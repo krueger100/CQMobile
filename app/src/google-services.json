@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1024682739844",
+    "firebase_url": "https://cqbms-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "cqbms-app",
+    "storage_bucket": "cqbms-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1024682739844:android:2696a70bc93ac959599ad1",
+        "android_client_info": {
+          "package_name": "com.example.cq_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM4BpxVicQeIpwDNCyba8_a5GszuwkzAU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="@string/nav_home" />
+
+    <item
+        android:id="@+id/navigation_map"
+        android:icon="@drawable/nav_pin_home"
+        android:title="@string/nav_Map" />
+
+    <item
+        android:id="@+id/navigation_my_jobs"
+        android:icon="@drawable/nav_job"
+        android:title="@string/nav_my_jobs" />
+
+    <item
+        android:id="@+id/navigation_ticket"
+        android:icon="@drawable/nav_ticket"
+        android:title="@string/nav_tickets" />
+    <item
+        android:id="@+id/navigation_chat"
+        android:icon="@drawable/nav_chat"
+        android:title="@string/nav_chat" />
+
+</menu>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="clockFaceColor" />
+    <attr name="hourHandColor" />
+    <attr name="minuteHandColor" />
+</resources>
