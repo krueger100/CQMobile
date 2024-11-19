@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.cq_mobile.R;
@@ -16,7 +15,7 @@ import com.example.cq_mobile.ui.home.CheckInFolder.CheckInManager;
 import com.example.cq_mobile.ui.home.ClockFolder.ClockView;
 
 import com.example.cq_mobile.ui.home.ClockFolder.DigitalClockManager;
-import com.example.cq_mobile.ui.home.ViewListFolder.CheckInListFragment;
+import com.example.cq_mobile.ui.home.ViewListFolder.CheckInBottomSheetFragment;
 
 public class HomeFragment extends Fragment {
 
@@ -40,21 +39,21 @@ public class HomeFragment extends Fragment {
 
         // Initialize CheckInManager
         checkInManager = new CheckInManager(requireContext());
+
         // Set up Check In button click listener
         binding.checkIn.setOnClickListener(v -> {
             Log.d("HomeFragment", "Check-in button clicked");
             checkInManager.saveCheckIn();
         });
 
+        // Set up View List button click listener
         binding.viewlist.setOnClickListener(v -> {
             Log.d("HomeFragment", "View List button clicked");
 
-            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, new CheckInListFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
+            // Open BottomSheetDialogFragment
+            CheckInBottomSheetFragment bottomSheetFragment = new CheckInBottomSheetFragment();
+            bottomSheetFragment.show(getParentFragmentManager(), bottomSheetFragment.getTag());
         });
-
 
         return root;
     }
@@ -66,4 +65,3 @@ public class HomeFragment extends Fragment {
         binding = null;
     }
 }
-
