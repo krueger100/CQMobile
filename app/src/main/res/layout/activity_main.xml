@@ -6,6 +6,8 @@
     android:paddingBottom="10dp"
     android:layout_height="match_parent">
 
+
+
     <!-- Main content with BottomNavigationView -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container"

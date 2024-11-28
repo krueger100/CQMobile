@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -18,16 +17,9 @@ import com.example.cq_mobile.ui.home.ClockFolder.ClockView;
 
 import com.example.cq_mobile.ui.home.ClockFolder.DigitalClockManager;
 import com.example.cq_mobile.ui.home.ViewListFolder.JSONPlaceholder;
-import com.example.cq_mobile.ui.home.ViewListFolder.Post;
 import com.example.cq_mobile.ui.home.ViewListFolder.PostAdapter;
 import com.example.cq_mobile.ui.home.ViewListFolder.RecyclerViewBottomSheetFragment;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -58,7 +50,6 @@ public class HomeFragment extends Fragment {
         } else {
             Log.e("HomeFragment", "RecyclerView initialization failed. Check fragment_home.xml.");
         }
-
 
 
         // Initialize Retrofit

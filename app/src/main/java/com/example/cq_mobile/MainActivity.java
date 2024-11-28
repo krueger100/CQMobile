@@ -1,97 +1,89 @@
 package com.example.cq_mobile;
 
-import static retrofit2.converter.gson.GsonConverterFactory.*;
-
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
+import android.webkit.CookieManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-
-import com.example.cq_mobile.API_InterfaceFolder.ApiClient;
-import com.example.cq_mobile.API_InterfaceFolder.ApiService;
-
-import com.example.cq_mobile.API_InterfaceFolder.LoginRequest;
-import com.example.cq_mobile.API_InterfaceFolder.LoginResponse;
+import com.example.cq_mobile.WebManagerFolder.HideNavigationBarManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
 import com.google.firebase.FirebaseApp;
-import com.google.gson.Gson;
 
 import androidx.drawerlayout.widget.DrawerLayout;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private DrawerLayout drawerLayout;
     private NavigationManager navigationManager;
-    private ApiService apiService;
+    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         FirebaseApp.initializeApp(this);
 
+        // Initialize WebView
+        webView = new WebView(this);
+        CookieManager.getInstance().setAcceptCookie(true);
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        cookieManager.setAcceptThirdPartyCookies(webView, true);
+
+        // Check login state from SharedPreferences
+        SharedPreferences preferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        boolean isLoggedIn = preferences.getBoolean("is_logged_in", false);
+
+        // If logged in, load the dashboard, else load the login page
+        if (isLoggedIn) {
+            webView.loadUrl("https://aws.customquoter.co.uk/dashboard-main");
+        } else {
+            webView.loadUrl("https://aws.customquoter.co.uk/login");
+        }
+
+
+
+        setupWebView();
+
+        // Initialize drawer navigation
         drawerLayout = binding.drawerLayout;
         navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout);
         navigationManager.setupNavigation();
-        // Initialize Retrofit and make the login API call
-        loginUser();
+    }
+
+    private void setupWebView() {
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setBuiltInZoomControls(false);
+        webSettings.setDisplayZoomControls(true);
+        webView.setInitialScale(100);
+
+        // Handle WebView navigation
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                HideNavigationBarManager.hideNavigationBar(webView);
+            }
+        });
     }
 
     @Override
     public boolean onSupportNavigateUp() {
         return navigationManager.onSupportNavigateUp();
     }
-
-    private void loginUser() {
-
-        // Initialize Retrofit and ApiService
-        apiService = ApiClient.getClient().create(ApiService.class);
-
-        // Create a sample login request
-        LoginRequest loginRequest = new LoginRequest("sag.gonzales@gmail.com", "P@ssw0rd1234");
-
-        // Make the login API call
-        Call<String> call = apiService.login(loginRequest);
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    // Log the raw response body
-                    String responseBody = response.body();
-                    Log.d("API Response", "Response: " + responseBody);
-
-                    // Check if the response is valid JSON or not
-                    try {
-                        // Attempt to parse the response (assuming it's supposed to be JSON)
-                        Gson gson = new Gson();
-                        LoginResponse loginResponse = gson.fromJson(responseBody, LoginResponse.class);
-                        Log.d("Login Response", "Message: " + loginResponse.getMessage());
-                    } catch (Exception e) {
-                        // Handle any JSON parsing errors
-                        Log.e("Login Error", "Invalid JSON response: " + responseBody);
-                    }
-                } else {
-                    // Log the error response message
-                    Log.e("API Error", "Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                // Log any failure in the network request
-                Log.e("API Failure", "Request failed: " + t.getMessage());
-            }
-        });
-    }
-
 }
+
+
+/*
+if ((url.contains("/dashboard") || url.contains("/jobschedule")) && !isRedirected) {
+                    webView.loadUrl("https://cqbms.app/jobschedule/lists");
+                    isRedirected = true; // Prevent further redirects
+                }
+ */

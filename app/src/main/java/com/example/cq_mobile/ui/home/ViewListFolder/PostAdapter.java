@@ -26,7 +26,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     @NonNull
     @Override
     public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item , parent , false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_job_file , parent , false);
         return new PostViewHolder(view);
     }
 
@@ -58,3 +58,5 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         }
     }
 }
+
+///https://aws.customquoter.co.uk/api/

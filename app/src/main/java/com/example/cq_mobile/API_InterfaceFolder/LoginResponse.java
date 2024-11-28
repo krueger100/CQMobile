@@ -3,14 +3,22 @@ package com.example.cq_mobile.API_InterfaceFolder;
 // LoginResponse model (for the response)
 // LoginResponse.java
 public class LoginResponse {
-    private String message;
-    private boolean success;
+    private String token; // Example field, change based on your actual response
+    private String userId; // Example field
 
-    public String getMessage() {
-        return message;
+    public String getToken() {
+        return token;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

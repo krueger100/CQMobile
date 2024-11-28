@@ -1,6 +1,7 @@
 package com.example.cq_mobile.ui.home.ViewListFolder;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +38,8 @@ public class RecyclerViewBottomSheetFragment extends BottomSheetDialogFragment {
 
         // Initialize Retrofit
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://jsonplaceholder.typicode.com/")
+               .baseUrl("https://jsonplaceholder.typicode.com/")
+            //   .baseUrl("https://aws.customquoter.co.uk/job-listings/")  // Add the trailing slash here
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         jsonPlaceholder = retrofit.create(JSONPlaceholder.class);
@@ -54,9 +56,24 @@ public class RecyclerViewBottomSheetFragment extends BottomSheetDialogFragment {
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
                 if (!response.isSuccessful()) {
+                    // Log the failure code and message
+                    Log.e("View List", "Failed: " + response.code());
                     Toast.makeText(getContext(), "Failed: " + response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                // Log the raw response body
+                String rawResponse = response.body().toString();
+                Log.d("View List", "API Response: " + rawResponse);
+
+                // Log response headers
+                Log.d("View List", "Response Headers: " + response.headers());
+
+                // Optionally, log the entire response object (e.g., status, body)
+                Log.d("View List", "Response Code: " + response.code());
+                Log.d("View List", "Response Body: " + response.body());
+
+                // Set up the RecyclerView adapter with the list of posts
                 List<Post> postList = response.body();
                 postAdapter = new PostAdapter(getContext(), postList);
                 recyclerView.setAdapter(postAdapter);
@@ -64,8 +81,11 @@ public class RecyclerViewBottomSheetFragment extends BottomSheetDialogFragment {
 
             @Override
             public void onFailure(Call<List<Post>> call, Throwable t) {
+                // Log the failure reason
+                Log.e("View List", "Request failed: " + t.getMessage());
                 Toast.makeText(getContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 }
