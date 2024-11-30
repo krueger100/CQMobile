@@ -1,36 +1,24 @@
 package com.example.cq_mobile.ui.home;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
+import androidx.viewpager2.widget.ViewPager2;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentHomeBinding;
-import com.example.cq_mobile.ui.home.ClockFolder.ClockView;
-
-import com.example.cq_mobile.ui.home.ClockFolder.DigitalClockManager;
-import com.example.cq_mobile.ui.home.ViewListFolder.JSONPlaceholder;
-import com.example.cq_mobile.ui.home.ViewListFolder.PostAdapter;
-import com.example.cq_mobile.ui.home.ViewListFolder.RecyclerViewBottomSheetFragment;
-
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import com.example.cq_mobile.ui.home.HomeFolder.HomePagerAdapter;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
-    private ClockView clockView;
-    private DigitalClockManager digitalClockManager;
-    private RecyclerView recyclerView;
-    private JSONPlaceholder jsonPlaceholder;
-    private PostAdapter postAdapter;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Initialize ViewModel and ViewBinding
@@ -38,42 +26,40 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Initialize ClockView and digitalClock TextView
-        clockView = root.findViewById(R.id.analogClock);
-        digitalClockManager = new DigitalClockManager(root.findViewById(R.id.digitalClock));
+        // Setup ViewPager2 and TabLayout
+        ViewPager2 viewPager = root.findViewById(R.id.viewPager);
+        TabLayout tabLayout = root.findViewById(R.id.tabLayout);
 
-        // Initialize RecyclerView
-        recyclerView = root.findViewById(R.id.recyclerView);
-        if (recyclerView != null) {
-            recyclerView.setHasFixedSize(true);
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        } else {
-            Log.e("HomeFragment", "RecyclerView initialization failed. Check fragment_home.xml.");
-        }
+        // Set up the PagerAdapter for ViewPager2
+        HomePagerAdapter homePagerAdapter = new HomePagerAdapter(this);
+        viewPager.setAdapter(homePagerAdapter);
 
+        // Link TabLayout with ViewPager2 and customize tab layout
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            // Inflate custom tab layout
+            View tabView = LayoutInflater.from(getContext()).inflate(R.layout.home_tab_item, null);
+            TextView tabText = tabView.findViewById(R.id.tabText);
+            ImageView tabIcon = tabView.findViewById(R.id.tabIcon);
 
-        // Initialize Retrofit
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://jsonplaceholder.typicode.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        jsonPlaceholder = retrofit.create(JSONPlaceholder.class);
+            // Set the text and icon for each tab
+            if (position == 0) {
+                tabText.setText("To do");
+                tabIcon.setImageResource(R.drawable.nav_todo);
+            } else if (position == 1) {
+                tabText.setText("Skipped");
+                tabIcon.setImageResource(R.drawable.nav_todo);
+            } else {
+                tabText.setText("Done");
+                tabIcon.setImageResource(R.drawable.nav_todo);
 
-        // Start the digital clock updates
-        digitalClockManager.startClock();
+            }
 
-        // Set up Check In button click listener
-        binding.checkIn.setOnClickListener(v -> {
-            Log.d("HomeFragment", "Check-in button clicked");
-            // You can add functionality for check-in here
-        });
+            // Set the custom tab view
+            tab.setCustomView(tabView);
 
-        // Set up View List button click listener
-        binding.viewlist.setOnClickListener(v -> {
-            Log.d("HomeFragment", "View-list button clicked");
-            RecyclerViewBottomSheetFragment bottomSheetFragment = new RecyclerViewBottomSheetFragment();
-            bottomSheetFragment.show(getParentFragmentManager(), "RecyclerViewBottomSheetFragment");
-        });
+            // Set the text color for each tab to change based on selection state
+            tabText.setTextColor(getResources().getColorStateList(R.color.tab_text_color, null));
+        }).attach();
 
         return root;
     }
@@ -81,7 +67,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        digitalClockManager.stopClock(); // Stop updating the clock when the view is destroyed
         binding = null;
     }
 }

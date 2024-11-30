@@ -7,23 +7,24 @@
     android:layout_height="match_parent">
 
 
-
-    <!-- Main content with BottomNavigationView -->
+    <!-- Navigation drawer menu -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
+
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/nav_view"
             android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_marginBottom="10dp"
+            android:layout_height="60dp"
             android:background="?android:attr/windowBackground"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:menu="@menu/bottom_nav_menu" />
+
 
         <fragment
             android:id="@+id/nav_host_fragment_activity_main"
@@ -37,22 +38,16 @@
             app:layout_constraintTop_toTopOf="parent"
             app:navGraph="@navigation/mobile_navigation" />
 
-        <FrameLayout
-            android:id="@+id/fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Navigation drawer menu -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view_drawer"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
+
         app:menu="@menu/drawer_menu" />
 
 

@@ -4,20 +4,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="@drawable/background"
     tools:context=".ui.map.MapFragment">
 
-    <!-- Button for setting the route -->
+    <include
+        android:id="@+id/include"
+        layout="@layout/layout_common_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/include"
+        android:layout_marginTop="0dp"
         android:fitsSystemWindows="false" />
 
-    <Button
+    <TextView
         android:id="@+id/setRouteButton"
         android:layout_width="200dp"
+        android:textColor="@color/white"
+        android:textAlignment="center"
+        android:background="@drawable/map_button"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
@@ -25,7 +34,7 @@
         android:layout_marginStart="111dp"
         android:layout_marginEnd="100dp"
         android:layout_marginBottom="85dp"
-        android:text="Set Route" />
+        android:text="Set route" />
 
 </RelativeLayout>
 
