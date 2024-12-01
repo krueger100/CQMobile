@@ -9,9 +9,7 @@ import android.util.Log;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cq_mobile.Clock.ViewListFolder.JSONPlaceholder;
-import com.example.cq_mobile.Clock.ViewListFolder.RecyclerViewBottomSheetFragment;
-import com.example.cq_mobile.HelperManagers.FullscreenManager;
+import com.example.cq_mobile.Clock.ViewListFolder.ViewList;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
@@ -21,8 +19,6 @@ import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,7 +28,6 @@ public class ClockActivity extends AppCompatActivity {
     private DigitalClockManager digitalClockManager;
     private RecyclerView recyclerView;
     private TextView checkInButton, viewListButton;
-    private JSONPlaceholder jsonPlaceholder;
     ImageView nav_drawer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,12 +59,6 @@ public class ClockActivity extends AppCompatActivity {
             Log.e("ClockActivity", "RecyclerView initialization failed. Check activity_clock.xml.");
         }
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://jsonplaceholder.typicode.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        jsonPlaceholder = retrofit.create(JSONPlaceholder.class);
-
         digitalClockManager.startClock();
 
         checkInButton.setOnClickListener(v -> {
@@ -80,8 +69,8 @@ public class ClockActivity extends AppCompatActivity {
 
         viewListButton.setOnClickListener(v -> {
             Log.d("ClockActivity", "View-list button clicked");
-            RecyclerViewBottomSheetFragment bottomSheetFragment = new RecyclerViewBottomSheetFragment();
-            bottomSheetFragment.show(getSupportFragmentManager(), "RecyclerViewBottomSheetFragment");
+            Intent intent = new Intent(ClockActivity.this, ViewList.class);
+            startActivity(intent);
         });
     }
 }
