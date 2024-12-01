@@ -25,9 +25,6 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Enable full-screen mode
-        FullscreenManager.enableFullScreen(getWindow());
-
         // Find views
         ImageView logo1 = findViewById(R.id.logo1);
         ImageView logo2 = findViewById(R.id.logo2);

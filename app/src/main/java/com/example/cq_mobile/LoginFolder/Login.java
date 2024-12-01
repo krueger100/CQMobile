@@ -37,7 +37,6 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        FullscreenManager.enableFullScreen(getWindow());
 
         // Hide the ActionBar if present
         if (getSupportActionBar() != null) {

@@ -39,7 +39,8 @@
         <activity android:name=".Clock.ClockActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:hardwareAccelerated="true"/>
+            android:hardwareAccelerated="true"
+            android:theme="@style/ClockStyle"  />
 
 
 
@@ -47,14 +48,14 @@
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme"
-            />
+            android:theme="@style/AppTheme" />
 
 
         <activity android:name=".LoginFolder.Login"
             android:exported="true"
             android:label="@string/app_name"
-            android:hardwareAccelerated="true"/>
+            android:hardwareAccelerated="true"
+            android:theme="@style/SplashTheme" />
 
 
         <meta-data

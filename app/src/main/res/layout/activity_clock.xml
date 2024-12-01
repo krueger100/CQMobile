@@ -11,16 +11,40 @@
         android:id="@+id/include2"
         layout="@layout/layout_common_header_black"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:elevation="10dp"
+        android:src="@drawable/clock_3"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@+id/imageView"
+        app:layout_constraintStart_toStartOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView" />
+
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="330dp"
+        android:layout_height="330dp"
+        android:src="@drawable/clock_1"
+        app:cardElevation="5dp"
+        app:layout_constraintBottom_toBottomOf="@+id/cardView"
+        app:layout_constraintEnd_toEndOf="@+id/cardView"
+        app:layout_constraintStart_toStartOf="@+id/cardView"
+        app:layout_constraintTop_toTopOf="@+id/cardView" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="300dp"
         android:layout_height="300dp"
+        android:layout_marginTop="55dp"
         app:cardCornerRadius="150dp"
-        android:layout_marginTop="45dp"
-
+        app:cardElevation="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/include2">
@@ -45,37 +69,38 @@
         android:id="@+id/digitalClock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
         android:text="00:00 AM"
         android:textColor="@color/white"
         android:textSize="36sp"
-        android:layout_marginTop="30dp"
         android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView2" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/digitalClock">
+        app:layout_constraintTop_toTopOf="@+id/guideline">
 
         <TextView
             android:id="@+id/check_in"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="26dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/check_in_btn"
-            android:textColor="@color/white"
-            android:text="Check In"
             android:drawableStart="@drawable/outline_timer_24"
-            android:paddingHorizontal="110dp"
             android:drawableTint="@color/white"
             android:gravity="center"
+            android:paddingHorizontal="110dp"
+            android:text="Check In"
             android:textAllCaps="false"
-            android:textSize="24sp"
-            android:layout_marginBottom="10dp"/>
+            android:textColor="@color/white"
+            android:textSize="24sp" />
 
         <TextView
             android:id="@+id/viewlist"
@@ -83,15 +108,21 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="26dp"
             android:layout_marginTop="5dp"
-            android:text="View List"
-            android:textColor="@color/white"
-  android:gravity="center"
             android:background="@drawable/check_in_btn"
+            android:gravity="center"
+            android:text="View List"
             android:textAllCaps="false"
+            android:textColor="@color/white"
             android:textSize="24sp" />
 
     </LinearLayout>
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="580dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
