@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.API_home;
+package com.example.cq_mobile.ui.home.HomeFolder;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

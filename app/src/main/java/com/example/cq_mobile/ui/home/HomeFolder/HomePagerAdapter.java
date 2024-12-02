@@ -4,8 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.example.cq_mobile.ui.home.HomeFolder.API_home.SkippedFragment;
-
 public class HomePagerAdapter extends FragmentStateAdapter {
 
     public HomePagerAdapter(@NonNull Fragment fragment) {

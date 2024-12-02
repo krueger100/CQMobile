@@ -8,32 +8,31 @@
 
     <TextView
         android:id="@+id/button"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/clock_out_btn"
         android:drawableStart="@drawable/outline_timer_24"
-        android:paddingHorizontal="120dp"
+        android:drawablePadding="8dp"
         android:drawableTint="@color/white"
-        android:text="Clock out"
-        android:layout_marginTop="10dp"
         android:gravity="center_vertical"
-    android:textSize="16sp"
-    android:textAllCaps="false"
-    android:textColor="@color/white"
-    android:drawablePadding="8dp"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent" />
-
+        android:paddingHorizontal="120dp"
+        android:text="Clock out"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

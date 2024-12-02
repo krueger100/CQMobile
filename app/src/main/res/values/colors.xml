@@ -13,6 +13,11 @@
     <color name="buttonBlue">#47559E</color>
     <color name="darkBlue">#1C2244</color>
 
+    <color name="selected_tab_bg">#47559E</color>
+    <color name="tab_icon_color">#47559E</color>
+    <color name="selected_tab_color">#47559E</color>
+    <color name="tab_selected_text_color">#FFFFFF</color>
+    <color name="tab_selected_icon_color">#FFFFFF</color>
 
 
 </resources>

@@ -35,10 +35,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = userList.get(position);
-        holder.firstName.setText(user.getFirstName());
-        holder.lastName.setText(user.getLastName());
-        holder.email.setText(user.getEmail());
-        Glide.with(context).load(user.getAvatar()).into(holder.avatar);
+      //  holder.Site_preparation.setText(user.getFirstName());
+      //  holder.state_description.setText(user.getLastName());
+     //   Glide.with(context).load(user.getAvatar()).into(holder.avatar);
     }
 
     @Override
@@ -47,14 +46,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     }
 
     public class UserViewHolder extends RecyclerView.ViewHolder {
-        TextView firstName, lastName, email;
+        TextView Site_preparation, state_description;
         ImageView avatar;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            firstName = itemView.findViewById(R.id.firstName);
-            lastName = itemView.findViewById(R.id.lastName);
-            email = itemView.findViewById(R.id.email);
+            Site_preparation = itemView.findViewById(R.id.Site_preparation);
+            state_description = itemView.findViewById(R.id.state_description);
             avatar = itemView.findViewById(R.id.avatar);
         }
     }

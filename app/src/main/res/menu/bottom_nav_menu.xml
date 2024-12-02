@@ -25,4 +25,5 @@
         android:icon="@drawable/nav_chat"
         android:title="@string/nav_chat" />
 
+
 </menu>

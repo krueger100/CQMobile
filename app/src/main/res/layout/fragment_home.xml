@@ -14,23 +14,19 @@
         android:layout_height="wrap_content" />
 
 
-    <!-- TabLayout for To Do and Done Tabs -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#47559E"
+        android:background="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/include"
         app:tabGravity="fill"
-        app:tabIndicatorColor="#47559E"
         app:tabMode="fixed"
-        app:tabSelectedTextColor="@color/white"
-        app:tabTextColor="@android:color/black"
         tools:ignore="SpeakableTextPresentCheck" />
 
-    <!-- ViewPager2 to handle To Do and Done Pages -->
+
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
@@ -39,5 +35,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tabLayout" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
