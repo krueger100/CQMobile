@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;
 import com.example.cq_mobile.ui.map.RouteFolder.DirectionsResponse;
@@ -64,7 +66,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentMapBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
@@ -150,4 +151,5 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onDestroyView();
         binding = null;
     }
+
 }

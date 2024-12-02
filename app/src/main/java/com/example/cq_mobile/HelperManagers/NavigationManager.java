@@ -13,6 +13,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.LoginFolder.LogoutManager;
 import com.example.cq_mobile.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -52,12 +53,16 @@ public class NavigationManager {
     private BottomNavigationView navView;
     private NavigationView navViewDrawer;
     private DrawerLayout drawerLayout;
+    private BackPressManager backPressManager;
 
     public NavigationManager(AppCompatActivity activity, BottomNavigationView navView, NavigationView navViewDrawer, DrawerLayout drawerLayout) {
         this.activity = activity;
         this.navView = navView;
         this.navViewDrawer = navViewDrawer;
         this.drawerLayout = drawerLayout;
+
+        // Initialize BackPressManager
+        this.backPressManager = new BackPressManager(activity);
     }
 
     public void setupNavigation() {
@@ -120,13 +125,17 @@ public class NavigationManager {
         });
 
         // Set a custom color for the app bar if needed (optional)
-        // You can set the status bar background to a color or make it transparent
         if (activity.getSupportActionBar() != null) {
             activity.getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#1C2244")));
         }
 
         // Enable swipe to open drawer (this is the default behavior of DrawerLayout)
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
+    // Method for handling back press to navigate to ClockActivity
+    public void handleBackPress() {
+        backPressManager.handleBackPress(ClockActivity.class);
     }
 
     // Method for handling navigation up behavior
