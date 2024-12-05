@@ -50,11 +50,11 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme" />
 
-        <activity android:name=".Clock.ViewListFolder.ViewList"
+        <activity android:name=".Clock.ViewListFolder.ViewListActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"/>
 
 
         <activity android:name=".LoginFolder.Login"
@@ -62,6 +62,13 @@
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/SplashTheme" />
+
+        <activity android:name=".ui.home.HomeFolder.NewBuildFolder.NewBuild"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
+
 
 
         <meta-data

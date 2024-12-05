@@ -9,7 +9,7 @@ public class ApiClient_home {
     public static Retrofit getClient() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
-                    .baseUrl("https://reqres.in/")
+                    .baseUrl("https://postman-rest-api-learner.glitch.me/")
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }

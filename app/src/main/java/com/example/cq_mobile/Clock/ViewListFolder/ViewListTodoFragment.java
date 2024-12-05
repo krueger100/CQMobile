@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder;
+package com.example.cq_mobile.Clock.ViewListFolder;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,35 +29,36 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+public class ViewListTodoFragment extends Fragment {
 
-public class DoneFragment extends Fragment {
     private RecyclerView recyclerView;
     private MessageAdapter messageAdapter;
     private List<String> messageList = new ArrayList<>();
     private ProgressBar progressBar;
     private int currentPage = 1;
-    TextView clockout_btn;
+    TextView goback ;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_viewlist_todo, container, false);
 
-
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_done, container, false);
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
-        clockout_btn = view.findViewById(R.id.clockout_btn);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        goback = view.findViewById(R.id.goback);
         messageAdapter = new MessageAdapter(getContext(), messageList);
         recyclerView.setAdapter(messageAdapter);
 
-        loadMessages();
-        clockout_btn.setOnClickListener(new View.OnClickListener() {
+        goback.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), ClockActivity.class);
-                intent.putExtra("key", "value");
+                Intent intent = new Intent(getContext(), ClockActivity.class);
                 startActivity(intent);
                 getActivity().finish();
             }
         });
+
+        loadMessages();
 
         return view;
     }
@@ -70,7 +73,7 @@ public class DoneFragment extends Fragment {
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     messageList.add(response.body().getMessage()); // Add the message to the list
-                    Log.d("DoneFragment", "API Response: " + messageList);
+                    Log.d("ToDoFragment", "API Response: " + messageList);
                     messageAdapter.notifyDataSetChanged(); // Refresh the adapter
                 }
             }
@@ -78,11 +81,9 @@ public class DoneFragment extends Fragment {
             @Override
             public void onFailure(Call<UserResponse> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("DoneFragment", "API Call Failed: " + t.getMessage(), t);
-
+                Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show(); // Fix context
+                Log.e("ToDoFragment", "API Call Failed: " + t.getMessage(), t);
             }
         });
     }
-
 }

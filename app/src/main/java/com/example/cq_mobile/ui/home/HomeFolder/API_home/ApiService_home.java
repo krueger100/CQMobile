@@ -5,6 +5,16 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface ApiService_home {
-    @GET("api/users")
-    Call<UserResponse> getUsers(@Query("page") int page);
+    @GET("info")
+    Call<UserResponse> getUserInfo(@Query("id") int id);
 }
+
+
+
+/*
+
+https://aws.customquoter.co.uk <- baseURL
+
+/info?id=1 <- GET
+
+ */

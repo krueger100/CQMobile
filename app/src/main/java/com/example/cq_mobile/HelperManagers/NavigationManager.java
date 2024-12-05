@@ -2,7 +2,6 @@ package com.example.cq_mobile.HelperManagers;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.view.Gravity;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,40 +13,11 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.cq_mobile.Clock.ClockActivity;
-import com.example.cq_mobile.LoginFolder.LogoutManager;
+import com.example.cq_mobile.LogoutFolder.LogoutManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
 public class NavigationManager {
     private AppCompatActivity activity;
     private BottomNavigationView navView;
@@ -60,13 +30,10 @@ public class NavigationManager {
         this.navView = navView;
         this.navViewDrawer = navViewDrawer;
         this.drawerLayout = drawerLayout;
-
-        // Initialize BackPressManager
         this.backPressManager = new BackPressManager(activity);
     }
 
     public void setupNavigation() {
-        // Remove the app bar setup completely
         // Set up the AppBarConfiguration for top-level destinations
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_map, R.id.navigation_my_jobs,
@@ -86,6 +53,15 @@ public class NavigationManager {
         // Handle Bottom Navigation clicks
         navView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
+
+            // Clear only the Home Fragment if navigating away from it
+            if (navController.getCurrentDestination() != null &&
+                    navController.getCurrentDestination().getId() == R.id.navigation_home &&
+                    id != R.id.navigation_home) {
+                navController.popBackStack(R.id.navigation_home, true);
+            }
+
+            // Navigate to the selected fragment
             if (id == R.id.navigation_home) {
                 navController.navigate(R.id.navigation_home);
                 return true;
@@ -135,7 +111,7 @@ public class NavigationManager {
 
     // Method for handling back press to navigate to ClockActivity
     public void handleBackPress() {
-        backPressManager.handleBackPress(ClockActivity.class);
+        backPressManager.handleBackPress(MainActivity.class);
     }
 
     // Method for handling navigation up behavior
@@ -144,3 +120,61 @@ public class NavigationManager {
         return NavigationUI.navigateUp(navController, drawerLayout) || activity.onSupportNavigateUp();
     }
 }
+
+
+/*
+
+public class MainActivity extends AppCompatActivity {
+
+    private ActivityMainBinding binding;
+    private DrawerLayout drawerLayout;
+    private NavigationManager navigationManager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Inflate layout using ViewBinding
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // Initialize Firebase and set status bar appearance
+        FirebaseApp.initializeApp(this);
+        StatusBarManager.setStatusBarLight(this);
+
+        // Initialize NavigationManager with required parameters
+        drawerLayout = binding.drawerLayout;
+        navigationManager = new NavigationManager(
+                this,
+                binding.navView,
+                binding.navViewDrawer,
+                drawerLayout
+        );
+
+        // Register a back press callback
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (navigationManager != null) {
+                    navigationManager.handleBackPress();
+                } else {
+                    finish();
+                }
+            }
+        });
+
+        navigationManager.setupNavigation();
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        return navigationManager.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatusBarManager.setStatusBarDefault(this);
+    }
+}
+ */

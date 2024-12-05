@@ -2,7 +2,6 @@ package com.example.cq_mobile.ui.map;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,12 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
-import com.example.cq_mobile.Clock.ClockActivity;
-import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;
-import com.example.cq_mobile.ui.map.RouteFolder.DirectionsResponse;
-import com.example.cq_mobile.ui.map.RouteFolder.DirectionsService;
 import com.example.cq_mobile.ui.map.RouteFolder.RouteManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -32,16 +27,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
-
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     private FragmentMapBinding binding;
@@ -109,7 +94,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 googleMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
 
                 // Inform the user to press the button
-                Toast.makeText(getContext(), "Destination set. Press 'Set Route' to draw the route.", Toast.LENGTH_SHORT).show();
                 Log.d("MapFragment", "Destination set: Lat: " + destinationLatLng.latitude + ", Lng: " + destinationLatLng.longitude);
             }
         });
@@ -127,12 +111,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                     if (task.isSuccessful() && task.getResult() != null) {
                         Location location = task.getResult();
                         userLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-
                         // Display the user's coordinates
                         Log.d("MapFragment", "Latitude: " + userLocationLatLng.latitude + ", Longitude: " + userLocationLatLng.longitude);
-                        Toast.makeText(getContext(), "Your Location: Lat: " + userLocationLatLng.latitude + ", Lng: " + userLocationLatLng.longitude,
-                                Toast.LENGTH_LONG).show();
-
                         // Add marker to the user's location
                         googleMap.addMarker(new MarkerOptions()
                                 .position(userLocationLatLng)

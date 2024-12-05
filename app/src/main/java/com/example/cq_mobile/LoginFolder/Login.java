@@ -25,8 +25,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
-
 public class Login extends AppCompatActivity {
 
     private EditText emailField, passwordField;
@@ -95,16 +93,12 @@ public class Login extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    // Get cookies and CSRF token from the response headers
-                    String cookies = response.headers().get("Set-Cookie");
-                    String csrfToken = response.headers().get("X-CSRF-Token");
+
 
                     // Save cookies and CSRF token in SharedPreferences
                     SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putBoolean("isLoggedIn", true);  // Store the login status
-                    editor.putString("cookies", cookies);  // Store cookies
-                    editor.putString("csrfToken", csrfToken);  // Store CSRF token
                     editor.apply();
 
                     // Navigate to home screen

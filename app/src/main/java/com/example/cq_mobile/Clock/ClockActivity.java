@@ -9,15 +9,12 @@ import android.util.Log;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cq_mobile.Clock.ViewListFolder.ViewList;
+import com.example.cq_mobile.Clock.ViewListFolder.ViewListActivity;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
 import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
 
-
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -61,15 +58,16 @@ public class ClockActivity extends AppCompatActivity {
 
         digitalClockManager.startClock();
 
-        checkInButton.setOnClickListener(v -> {
-            Log.d("ClockActivity", "Check-in button clicked");
-            Intent intent = new Intent(ClockActivity.this, MainActivity.class);
-            startActivity(intent);
-        });
+            checkInButton.setOnClickListener(v -> {
+                    Intent intent = new Intent(ClockActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+            });
 
-        viewListButton.setOnClickListener(v -> {
+
+            viewListButton.setOnClickListener(v -> {
             Log.d("ClockActivity", "View-list button clicked");
-            Intent intent = new Intent(ClockActivity.this, ViewList.class);
+            Intent intent = new Intent(ClockActivity.this, ViewListActivity.class);
             startActivity(intent);
         });
     }
