@@ -1,5 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.API_home;
-
+package com.example.cq_mobile;
 
 import android.util.Log;
 
@@ -11,11 +10,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class TodoApiManager {
+public class ApiManager {
 
-    private static final String TAG = "TodoApiManager";
+    private static final String TAG = "ApiManager";
 
-    public static void fetchApiData() {
+    public static void fetch_ApiData() {
         // Use ExecutorService to run the task in a background thread
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(new ApiTestTask());
@@ -60,5 +59,3 @@ public class TodoApiManager {
         }
     }
 }
-
-/// <<--- call   -->>     TodoApiManager.fetchApiData();
