@@ -15,12 +15,12 @@ import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 
 import java.util.List;
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
+public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MessageViewHolder> {
 
     private Context context;
     private List<String> messageList;
 
-    public MessageAdapter(Context context, List<String> messageList) {
+    public TodoAdapter(Context context, List<String> messageList) {
         this.context = context;
         this.messageList = messageList;
     }

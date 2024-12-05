@@ -18,7 +18,7 @@ import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_home.ApiClient_home;
 import com.example.cq_mobile.ui.home.HomeFolder.API_home.ApiService_home;
-import com.example.cq_mobile.ui.home.HomeFolder.API_home.MessageAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.API_home.TodoAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.API_home.UserResponse;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import retrofit2.Response;
 
 public class DoneFragment extends Fragment {
     private RecyclerView recyclerView;
-    private MessageAdapter messageAdapter;
+    private TodoAdapter todoAdapter;
     private List<String> messageList = new ArrayList<>();
     private ProgressBar progressBar;
     private int currentPage = 1;
@@ -43,8 +43,8 @@ public class DoneFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
         clockout_btn = view.findViewById(R.id.clockout_btn);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        messageAdapter = new MessageAdapter(getContext(), messageList);
-        recyclerView.setAdapter(messageAdapter);
+        todoAdapter = new TodoAdapter(getContext(), messageList);
+        recyclerView.setAdapter(todoAdapter);
 
         loadMessages();
         clockout_btn.setOnClickListener(new View.OnClickListener() {
@@ -71,7 +71,7 @@ public class DoneFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     messageList.add(response.body().getMessage()); // Add the message to the list
                     Log.d("DoneFragment", "API Response: " + messageList);
-                    messageAdapter.notifyDataSetChanged(); // Refresh the adapter
+                    todoAdapter.notifyDataSetChanged(); // Refresh the adapter
                 }
             }
 
