@@ -2,8 +2,6 @@ package com.example.cq_mobile.ui.home.HomeFolder;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,17 +15,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Job;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
+import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.Skipped;
+import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedApiManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SkippedFragment extends Fragment {
     private RecyclerView recyclerView;
-    private TodoAdapter todoAdapter;
-    private List<Job> joblist = new ArrayList<>(); // Use List<Job>
+    private SkippedAdapter skippedAdapter;
+    private List<Skipped> skippedList = new ArrayList<>(); // Use List<Job>
     private ProgressBar progressBar;
     private TextView clockout_btn;
 
@@ -39,8 +37,8 @@ public class SkippedFragment extends Fragment {
         clockout_btn = view.findViewById(R.id.clockout_btn);
         // Set up RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        todoAdapter = new TodoAdapter(getContext(), joblist);
-        recyclerView.setAdapter(todoAdapter);
+        skippedAdapter = new SkippedAdapter(getContext(), skippedList);
+        recyclerView.setAdapter(skippedAdapter);
 
 
         loadMessages();
@@ -59,17 +57,17 @@ public class SkippedFragment extends Fragment {
     private void loadMessages() {
         progressBar.setVisibility(View.VISIBLE);
 
-        TodoApiManager.fetchApiData(new TodoApiManager.ApiResponseCallback() {
+        SkippedApiManager.fetchSkippedApiData(new SkippedApiManager.ApiResponseCallback() {
             @Override
-            public void onDataFetched(List<Job> data) {
+            public void onDataFetched(List<Skipped> data) {
                 if (getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     if (data != null && !data.isEmpty()) {
-                        joblist.clear();
-                        joblist.addAll(data); // Add the List<Job>
-                        todoAdapter.notifyDataSetChanged();
+                        skippedList.clear();
+                        skippedList.addAll(data); // Add the List<Job>
+                        skippedAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(getContext(), "No jobs available", Toast.LENGTH_SHORT).show();
                     }

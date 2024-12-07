@@ -13,7 +13,7 @@ import com.example.cq_mobile.R;
 
 import java.util.List;
 
-public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MessageViewHolder> {
+public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder> {
 
     private Context context;
     private List<Job> jobList;
@@ -25,13 +25,13 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MessageViewHol
 
     @NonNull
     @Override
-    public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public TodoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_todo, parent, false);
-        return new MessageViewHolder(view);
+        return new TodoViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull TodoViewHolder holder, int position) {
         Job job = jobList.get(position);
         holder.nameTextView.setText(job.getName());
         holder.stateDescription.setText(job.getDescription());
@@ -42,11 +42,11 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.MessageViewHol
         return jobList.size();
     }
 
-    public static class MessageViewHolder extends RecyclerView.ViewHolder {
+    public static class TodoViewHolder extends RecyclerView.ViewHolder {
 
         TextView nameTextView, stateDescription;
 
-        public MessageViewHolder(View itemView) {
+        public TodoViewHolder(View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.Site_preparation);
             stateDescription = itemView.findViewById(R.id.state_description);

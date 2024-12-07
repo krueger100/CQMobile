@@ -26,6 +26,7 @@ import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class ToDoFragment extends Fragment {
 
     private RecyclerView recyclerView;

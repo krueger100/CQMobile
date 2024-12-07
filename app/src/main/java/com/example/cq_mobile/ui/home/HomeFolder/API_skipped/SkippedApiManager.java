@@ -1,30 +1,29 @@
-package com.example.cq_mobile.ui.home.HomeFolder.API_todo;
+package com.example.cq_mobile.ui.home.HomeFolder.API_skipped;
 
 import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import java.io.IOException;
-import java.util.List;
 
-public class TodoApiManager {
-
+public class SkippedApiManager {
     public interface ApiResponseCallback {
-        void onDataFetched(List<Job> data); // Return List<Job>
+        void onDataFetched(List<Skipped> data); // Return List<Job>
         void onError(String error);
     }
-
-    public static void fetchApiData(ApiResponseCallback callback) {
+    public static void fetchSkippedApiData(ApiResponseCallback callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
-        String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
+        String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=skipped";
         String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
         // Construct the full URL
-        String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
+        String url = String.format("%s%s?page=1&per_page=100&status=skipped", baseUrl, endpoint);
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -46,13 +45,13 @@ public class TodoApiManager {
                     Gson gson = new Gson();
 
                     // Parse the JSON into a JobResponse object
-                    JobResponse jobResponse = gson.fromJson(jsonResponse, JobResponse.class);
+                    SkippedResponse skippedResponse = gson.fromJson(jsonResponse, SkippedResponse.class);
 
                     // Pass the full list of Job objects to the callback
-                    if (jobResponse != null && jobResponse.getData() != null && !jobResponse.getData().isEmpty()) {
-                        callback.onDataFetched(jobResponse.getData());
+                    if (skippedResponse != null && skippedResponse.getData() != null && !skippedResponse.getData().isEmpty()) {
+                        callback.onDataFetched(skippedResponse.getData());
                     } else {
-                        callback.onError("No jobs found.");
+                        callback.onError("No skipped jobs found.");
                     }
                 } else {
                     callback.onError("Request Failed: " + response.code());
@@ -61,3 +60,5 @@ public class TodoApiManager {
         });
     }
 }
+
+
