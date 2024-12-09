@@ -27,8 +27,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
-import java.util.ArrayList;
 import java.util.List;
+
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -116,26 +116,33 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         // Fetch tasks and update RecyclerView adapter using jobId
         NewBuildApiManager.fetchNewBuiltApiData(jobId, new NewBuildApiManager.ApiResponseCallback() {
             @Override
-            public void onDataFetched(List<Task> data) {
-                // Convert Job objects to Task objects
-                List<Task> taskList = new ArrayList<>();
-                for (Task job : data) {
-                    Task task = new Task();
-                    task.setId(job.getId());
-                    task.setName(job.getName());
-                    task.setDescription(job.getDescription());
-                    task.setStatus(job.getStatus());
-                    task.setCategory(job.getCategory());
-                    task.setCategory_color(job.getCategory_color());
-                    task.setStart_date(job.getStart_date());
-                    task.setEnd_date(job.getEnd_date());
-                    taskList.add(task);
-                }
-
-                // Update RecyclerView on the main thread
+            public void onDataFetched(List<Taskmain> data) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    TaskAdapter adapter = new TaskAdapter(taskList);
+                    TaskmainAdapter adapter = new TaskmainAdapter(data);
                     recyclerView.setAdapter(adapter);
+
+                    // Add markers for each task based on coordinates
+                    if (googleMap != null) {
+                        for (Taskmain taskmain : data) {
+                            Taskmain.Coordinates coordinates = taskmain.getCoordinates();
+                            if (coordinates != null) {
+                                try {
+                                    double latitude = Double.parseDouble(coordinates.getLatitude());
+                                    double longitude = Double.parseDouble(coordinates.getLongitude());
+                                    LatLng taskLocation = new LatLng(latitude, longitude);
+                                    googleMap.addMarker(new MarkerOptions()
+                                            .position(taskLocation)
+                                            .title(taskmain.getName())
+                                            .snippet(taskmain.getDescription()));
+
+                                    // Optionally, animate camera to taskmain location (if desired)
+                                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLocation, 15));
+                                } catch (NumberFormatException e) {
+                                    Log.e("NewBuild", "Invalid coordinates: " + e.getMessage());
+                                }
+                            }
+                        }
+                    }
                 });
             }
 

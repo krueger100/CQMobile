@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DrawerLayout drawerLayout;
     private NavigationManager navigationManager;
-    private static final String TAG = "MainActivity"; // Tag for logging
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +35,6 @@ public class MainActivity extends AppCompatActivity {
         StatusBarManager.setStatusBarLight(this);
 
 
-
-        // Initialize DrawerLayout and NavigationManager
         drawerLayout = binding.drawerLayout;
         navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout);
 
