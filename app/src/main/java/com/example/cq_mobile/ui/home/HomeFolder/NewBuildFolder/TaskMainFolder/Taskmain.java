@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
+package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder;
 
 public class Taskmain {
     private int id;

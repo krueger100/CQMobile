@@ -3,14 +3,14 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SecondaryTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SecondaryTaskResponse;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskResponse;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.TaskmainResponse;
 import com.google.gson.Gson;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -66,7 +66,7 @@ public class NewBuildApiManager {
         });
     }
 
-    public static void fetchSecondaryApiData(String jobId, ApiResponseCallback<SecondaryTask> callback) {
+    public static void fetchSecondaryApiData(String jobId, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
         String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
@@ -93,7 +93,7 @@ public class NewBuildApiManager {
                 if (response.isSuccessful()) {
                     String jsonResponse = response.body().string();
                     Gson gson = new Gson();
-                    SecondaryTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SecondaryTaskResponse.class);
+                    SubTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SubTaskResponse.class);
 
                     if (secondaryResponse != null && secondaryResponse.getData() != null) {
                         new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));

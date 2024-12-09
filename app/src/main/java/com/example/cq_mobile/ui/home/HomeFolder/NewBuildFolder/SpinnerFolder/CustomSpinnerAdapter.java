@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SpinnerFolder;
+package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder;
 
 import android.content.Context;
 import android.view.LayoutInflater;
