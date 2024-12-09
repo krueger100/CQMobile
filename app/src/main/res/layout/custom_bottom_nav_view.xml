@@ -1,0 +1,54 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@color/white"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/nav_home"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_weight="1"
+        android:src="@drawable/nav_home"
+        android:contentDescription="Home" />
+
+    <ImageView
+        android:id="@+id/nav_map"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_weight="1"
+        android:src="@drawable/nav_map"
+        android:contentDescription="Search" />
+
+    <ImageView
+        android:id="@+id/nav_todo"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_weight="1"
+        android:src="@drawable/nav_todo"
+        android:contentDescription="Profile" />
+
+    <ImageView
+        android:id="@+id/nav_ticket"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_weight="1"
+        android:src="@drawable/nav_ticket"
+        android:contentDescription="Profile" />
+    <ImageView
+        android:id="@+id/nav_chat"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_weight="1"
+        android:src="@drawable/nav_chat"
+        android:contentDescription="Profile" />
+
+    <ImageView
+        android:id="@+id/nav_more"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        android:layout_weight="1"
+        android:src="@drawable/more__1__2"
+        android:contentDescription="Profile" />
+</LinearLayout>

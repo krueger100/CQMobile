@@ -11,15 +11,20 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.CustomSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskAdapter;
@@ -37,20 +42,25 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
+public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
+    private NavigationManagerForNewBuild navigationManager;
+
+    private SetupMainTaskManager setupMainTaskManager;
+    private SetupRecyclerViewManager setupRecyclerViewManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
+        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
+        navigationManager = new NavigationManagerForNewBuild(this);
+        navigationManager.setUpNavigation(bottomNavView);
 
-        // Get the job ID passed from the previous activity
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
             Log.d("job ID ->", "Received Job ID: " + jobId);
@@ -58,32 +68,35 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
             Log.e("job ID ->", "No Job ID received!");
         }
 
-        // Set up the BottomSheet
+        // Initialize map fragment
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);  // Will call onMapReady when ready
+        }
+
         View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
         BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
         bottomSheetBehavior.setHideable(false);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-
-        setupRecyclerView(jobId);
-        setupMainTask(jobId);
-
-
-        // Initialize the map
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
-
-        // Initialize the Fused Location Provider
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
+        setupRecyclerViewManager.setupRecyclerView(jobId);
     }
-
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.googleMap = googleMap;
+
+        // Initialize the SetupMainTaskManager only after googleMap is ready
+        setupMainTaskManager = new SetupMainTaskManager(this, googleMap, findViewById(R.id.task_title),
+                findViewById(R.id.task_description), findViewById(R.id.task_location), findViewById(R.id.task_number),
+                findViewById(R.id.spinner_task), this);  // Pass listener for coordinates
+
+        String jobId = getIntent().getStringExtra("job_id");
+        if (jobId != null) {
+            setupMainTaskManager.setupMainTask(jobId);
+        }
 
         // Check location permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -108,6 +121,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         googleMap.setMyLocationEnabled(true);
 
         // Get the user's current location
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
@@ -119,6 +133,41 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         });
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableUserLocation();
+            } else {
+                Toast.makeText(this, "Location permission is required to display your position", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // Implement the onCoordinatesReceived method to update the map with the task location
+    @Override
+    public void onCoordinatesReceived(double latitude, double longitude) {
+        // Create a LatLng object for the task location
+        LatLng taskLatLng = new LatLng(latitude, longitude);
+
+        // Add a marker for the task location
+        googleMap.addMarker(new MarkerOptions().position(taskLatLng).title("Task Location"));
+
+        // Move the camera to the task location with an animation
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLatLng, 15));
+    }
+
+    public void switchFragment(Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment); // Use fragment_container from the layout
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+}
+
+
+    /*
     private void setupMainTask(String jobId) {
         TextView task_title = findViewById(R.id.task_title);
         TextView task_description = findViewById(R.id.task_description);
@@ -260,18 +309,4 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
             }
         });
     }
-
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableUserLocation();
-            } else {
-                Toast.makeText(this, "Location permission is required to display your position", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-}
+     */
