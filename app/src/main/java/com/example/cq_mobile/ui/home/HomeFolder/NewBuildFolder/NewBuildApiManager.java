@@ -3,6 +3,8 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SecondaryTask;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SecondaryTaskResponse;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -14,14 +16,15 @@ import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
 public class NewBuildApiManager {
 
-    public interface ApiResponseCallback {
-        void onDataFetched(List<Taskmain> data);
+    public interface ApiResponseCallback<T> {
+        void onDataFetched(List<T> data);
         void onError(String error);
     }
 
-    public static void fetchNewBuiltApiData(String jobId, ApiResponseCallback callback) {
+    public static void fetchNewBuiltApiData(String jobId, ApiResponseCallback<Taskmain> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s", jobId);
         String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
@@ -38,7 +41,6 @@ public class NewBuildApiManager {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                // Use Handler to switch to the main thread for the error callback
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
             }
 
@@ -50,11 +52,9 @@ public class NewBuildApiManager {
                     TaskmainResponse taskmainResponse = gson.fromJson(jsonResponse, TaskmainResponse.class);
 
                     if (taskmainResponse != null && taskmainResponse.getData() != null) {
-                        // Wrap the task into a list
                         List<Taskmain> taskmainList = new ArrayList<>();
                         taskmainList.add(taskmainResponse.getData());
 
-                        // Switch to the main thread before invoking the callback
                         new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(taskmainList));
                     } else {
                         new Handler(Looper.getMainLooper()).post(() -> callback.onError("No data found."));
@@ -65,5 +65,45 @@ public class NewBuildApiManager {
             }
         });
     }
-}
 
+    public static void fetchSecondaryApiData(String jobId, ApiResponseCallback<SecondaryTask> callback) {
+        String baseUrl = "https://aws.customquoter.co.uk";
+        String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
+        String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
+        String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
+
+        // Construct the full URL
+        String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
+
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + token)
+                .addHeader("x-api-key", apiKey)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String jsonResponse = response.body().string();
+                    Gson gson = new Gson();
+                    SecondaryTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SecondaryTaskResponse.class);
+
+                    if (secondaryResponse != null && secondaryResponse.getData() != null) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("No secondary data found."));
+                    }
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code()));
+                }
+            }
+        });
+    }
+}

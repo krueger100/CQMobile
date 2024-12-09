@@ -32,7 +32,7 @@
     <LinearLayout
         android:id="@+id/new_built_bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="650dp"
+        android:layout_height="750dp"
         android:orientation="vertical"
         android:background="@color/white"
         app:behavior_hideable="false"
@@ -86,7 +86,7 @@
 
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/tasks"
+            android:id="@+id/recycler_view_secondary"
             android:layout_width="match_parent"
             android:layout_height="160dp"
             android:layout_weight="1"

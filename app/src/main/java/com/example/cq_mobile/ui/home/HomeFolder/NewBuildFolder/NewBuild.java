@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SecondaryAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SecondaryTask;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -57,8 +59,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        // Initialize RecyclerView
-        setupRecyclerView(jobId); // Pass the jobId to the method
+        // Initialize RecyclerViews
+        setupRecyclerView(jobId);
+        setupSecondaryRecyclerView(jobId);
 
         // Initialize the map
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -114,7 +117,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Fetch tasks and update RecyclerView adapter using jobId
-        NewBuildApiManager.fetchNewBuiltApiData(jobId, new NewBuildApiManager.ApiResponseCallback() {
+        NewBuildApiManager.fetchNewBuiltApiData(jobId, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
             @Override
             public void onDataFetched(List<Taskmain> data) {
                 new Handler(Looper.getMainLooper()).post(() -> {
@@ -130,13 +133,17 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
                                     double latitude = Double.parseDouble(coordinates.getLatitude());
                                     double longitude = Double.parseDouble(coordinates.getLongitude());
                                     LatLng taskLocation = new LatLng(latitude, longitude);
+
+                                    // Add marker to the map
                                     googleMap.addMarker(new MarkerOptions()
                                             .position(taskLocation)
                                             .title(taskmain.getName())
                                             .snippet(taskmain.getDescription()));
 
-                                    // Optionally, animate camera to taskmain location (if desired)
-                                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLocation, 15));
+                                    // Optionally, focus camera on the first task
+                                    if (data.indexOf(taskmain) == 0) {
+                                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLocation, 15));
+                                    }
                                 } catch (NumberFormatException e) {
                                     Log.e("NewBuild", "Invalid coordinates: " + e.getMessage());
                                 }
@@ -148,7 +155,32 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
 
             @Override
             public void onError(String error) {
-                runOnUiThread(() -> Toast.makeText(NewBuild.this, "Error fetching data: " + error, Toast.LENGTH_SHORT).show());
+                runOnUiThread(() ->
+                        Toast.makeText(NewBuild.this, "Error fetching data: " + error, Toast.LENGTH_SHORT).show()
+                );
+            }
+        });
+    }
+
+    private void setupSecondaryRecyclerView(String jobId) {
+        RecyclerView secondaryRecyclerView = findViewById(R.id.recycler_view_secondary);
+        secondaryRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        // Fetch secondary tasks and update RecyclerView adapter using jobId
+        NewBuildApiManager.fetchSecondaryApiData(jobId, new NewBuildApiManager.ApiResponseCallback<SecondaryTask>() {
+            @Override
+            public void onDataFetched(List<SecondaryTask> secondaryData) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    SecondaryAdapter secondaryAdapter = new SecondaryAdapter(secondaryData);
+                    secondaryRecyclerView.setAdapter(secondaryAdapter);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() ->
+                        Toast.makeText(NewBuild.this, "Error fetching secondary data: " + error, Toast.LENGTH_SHORT).show()
+                );
             }
         });
     }
