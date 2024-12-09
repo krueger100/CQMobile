@@ -2,8 +2,10 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -28,7 +30,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -41,16 +42,23 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
 
+        // Get the job ID passed from the previous activity
+        String jobId = getIntent().getStringExtra("job_id");
+        if (jobId != null) {
+            Log.d("job ID ->", "Received Job ID: " + jobId);
+        } else {
+            Log.e("job ID ->", "No Job ID received!");
+        }
+
         // Set up the BottomSheet
         View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
         BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-      //  bottomSheetBehavior.setPeekHeight(500);
-        bottomSheet.post(() -> {
-            bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 2);
-        });        bottomSheetBehavior.setHideable(true);
+        bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 2));
+        bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        setupRecyclerView();
+        // Initialize RecyclerView
+        setupRecyclerView(jobId); // Pass the jobId to the method
 
         // Initialize the map
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -82,9 +90,8 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
 
     private void enableUserLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Permission not granted to access location", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -93,11 +100,8 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         // Get the user's current location
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
-                // Move the camera to the user's location
                 LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
-
-                // Add a marker at the user's location
                 googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here"));
             } else {
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
@@ -105,19 +109,41 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback {
         });
     }
 
-    private void setupRecyclerView() {
+    private void setupRecyclerView(String jobId) {
         RecyclerView recyclerView = findViewById(R.id.recycler_view_tasks);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Sample data for the tasks
-        List<Task> taskList = new ArrayList<>();
-        taskList.add(new Task("New Build", "68 Victoria Street London E16 9B1"));
-        taskList.add(new Task("Keep alive or logout in chat", "Lorem ipsum dolor sit amet, et velit quiqui."));
-        taskList.add(new Task("Check task progress", "Verify ongoing status for projects."));
+        // Fetch tasks and update RecyclerView adapter using jobId
+        NewBuildApiManager.fetchNewBuiltApiData(jobId, new NewBuildApiManager.ApiResponseCallback() {
+            @Override
+            public void onDataFetched(List<Task> data) {
+                // Convert Job objects to Task objects
+                List<Task> taskList = new ArrayList<>();
+                for (Task job : data) {
+                    Task task = new Task();
+                    task.setId(job.getId());
+                    task.setName(job.getName());
+                    task.setDescription(job.getDescription());
+                    task.setStatus(job.getStatus());
+                    task.setCategory(job.getCategory());
+                    task.setCategory_color(job.getCategory_color());
+                    task.setStart_date(job.getStart_date());
+                    task.setEnd_date(job.getEnd_date());
+                    taskList.add(task);
+                }
 
-        // Set up the adapter
-        TaskAdapter adapter = new TaskAdapter(taskList);
-        recyclerView.setAdapter(adapter);
+                // Update RecyclerView on the main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    TaskAdapter adapter = new TaskAdapter(taskList);
+                    recyclerView.setAdapter(adapter);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> Toast.makeText(NewBuild.this, "Error fetching data: " + error, Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 
     @Override

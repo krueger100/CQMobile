@@ -1,13 +1,16 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_skipped;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 
 
 import java.util.List;
@@ -33,6 +36,23 @@ public class SkippedAdapter extends RecyclerView.Adapter<SkippedAdapter.SkippedV
         Skipped skipped = skippedList.get(position);
         holder.nameTextView.setText(skipped.getName());
         holder.stateDescription.setText(skipped.getDescription());
+        String id = String.valueOf(skipped.getId());
+        holder.new_built.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                holder.progressBar.setVisibility(View.VISIBLE);
+                Intent intent = new Intent(context, NewBuild.class);
+                intent.putExtra("job_id", id);
+                try {
+                    context.startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    holder.progressBar.setVisibility(View.GONE);
+                }
+            }
+        });
+
     }
 
     @Override
@@ -40,13 +60,15 @@ public class SkippedAdapter extends RecyclerView.Adapter<SkippedAdapter.SkippedV
         return skippedList.size();
     }
     public static class SkippedViewHolder extends RecyclerView.ViewHolder {
-
-        TextView nameTextView, stateDescription;
+        ProgressBar progressBar;
+        TextView nameTextView, stateDescription,new_built;
 
         public SkippedViewHolder(View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.Site_preparation);
             stateDescription = itemView.findViewById(R.id.state_description);
+            new_built = itemView.findViewById(R.id.new_built);
+            progressBar = itemView.findViewById(R.id.progressBar);
         }
     }
 }

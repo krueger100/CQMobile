@@ -11,14 +11,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.R;
 
+import java.util.ArrayList;
 import java.util.List;
-
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
     private final List<Task> taskList;
 
     public TaskAdapter(List<Task> taskList) {
-        this.taskList = taskList;
+        this.taskList = taskList != null ? taskList : new ArrayList<>();
     }
 
     @NonNull
@@ -32,7 +32,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
-        holder.taskTitle.setText(task.getTitle());
+        holder.taskTitle.setText(task.getName());
         holder.taskDescription.setText(task.getDescription());
     }
 
