@@ -19,6 +19,9 @@
     <color name="tab_selected_text_color">#FFFFFF</color>
     <color name="tab_selected_icon_color">#FFFFFF</color>
     <color name="textBtnBlue">#2F80ED</color>
+    <color name="textBtnRed">#EB5757</color>
+    <color name="color_inspection">#2F80ED</color>
+    <color name="color_done">#00796B</color>
 
 
 </resources>

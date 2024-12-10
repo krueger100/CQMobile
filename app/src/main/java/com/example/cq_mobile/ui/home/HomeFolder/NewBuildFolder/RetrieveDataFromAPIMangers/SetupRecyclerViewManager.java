@@ -32,7 +32,7 @@ public class SetupRecyclerViewManager {
             @Override
             public void onDataFetched(List<SubTask> secondaryData) {
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    SubTaskAdapter subTaskAdapter = new SubTaskAdapter(secondaryData);
+                    SubTaskAdapter subTaskAdapter = new SubTaskAdapter(secondaryData,context);
                     recyclerView.setAdapter(subTaskAdapter);
                 });
             }
@@ -40,7 +40,7 @@ public class SetupRecyclerViewManager {
             @Override
             public void onError(String error) {
                 ((Activity) context).runOnUiThread(() ->
-                        Toast.makeText(context, "Error fetching secondary data: " + error, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Error fetching data: " + error, Toast.LENGTH_SHORT).show()
                 );
             }
         });

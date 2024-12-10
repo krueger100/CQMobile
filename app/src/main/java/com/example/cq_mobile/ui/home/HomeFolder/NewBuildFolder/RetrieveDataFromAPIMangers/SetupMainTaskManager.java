@@ -11,6 +11,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.CustomSpinnerAdapter;
@@ -102,20 +104,26 @@ public class SetupMainTaskManager {
                         }
                     }
 
-                    // Set up spinner options and other UI updates
                     List<String> options = new ArrayList<>();
                     options.add("In Progress");
                     options.add("Pending");
                     options.add("Under Inspection");
                     options.add("Done");
 
-                    // Set up spinner adapter
+
+// Set up the adapter
+                    int[] dropDownColors = new int[]{
+                            ContextCompat.getColor(context, R.color.cq_secondary_color),
+                            ContextCompat.getColor(context, R.color.textBtnRed),
+                            ContextCompat.getColor(context, R.color.color_inspection),
+                            ContextCompat.getColor(context, R.color.color_done)
+                    };
+
                     CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
-                            (Activity) context,
+                            context,
                             R.layout.task_spinner_item,
                             options,
-                            R.drawable.arrow_down_24
-                    );
+                            dropDownColors);
                     spinnerTask.setAdapter(adapter);
 
                     // Handle spinner item selection
@@ -137,6 +145,7 @@ public class SetupMainTaskManager {
                                         ? selectedTask.getAddress().getAddress()
                                         : "No address";
                                 taskLocationView.setText(address);
+
                             } else {
                                 Log.e("SetupMainTaskManager", "Selected spinner position is out of bounds");
                             }

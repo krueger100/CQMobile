@@ -85,5 +85,5 @@ dependencies {
     implementation ("androidx.appcompat:appcompat:1.7.0")
 
     implementation ("com.fasterxml.jackson.core:jackson-databind:2.14.0")
-
+    implementation ("com.github.bumptech.glide:glide:4.13.0")
 }

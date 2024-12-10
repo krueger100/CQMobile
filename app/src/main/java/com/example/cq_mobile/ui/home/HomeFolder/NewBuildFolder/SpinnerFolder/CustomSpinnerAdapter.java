@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,13 +18,14 @@ public class CustomSpinnerAdapter extends ArrayAdapter<String> {
 
     private final Context context;
     private final List<String> items;
-    private final int iconResId; // Icon for each item
+    private final int[] dropDownItemColors;
 
-    public CustomSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, int iconResId) {
+    public CustomSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, int[] dropDownItemColors) {
         super(context, resource, objects);
         this.context = context;
         this.items = objects;
-        this.iconResId = iconResId;
+        this.dropDownItemColors = dropDownItemColors;
+
     }
 
     @NonNull
@@ -35,18 +35,21 @@ public class CustomSpinnerAdapter extends ArrayAdapter<String> {
 
         TextView text = view.findViewById(R.id.spinner_text);
         text.setText(items.get(position));
+
+        int textColor = dropDownItemColors[position % dropDownItemColors.length];
+        text.setTextColor(textColor);
         return view;
     }
-
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = LayoutInflater.from(context).inflate(R.layout.task_spinner_selected_item, parent, false);
-
         TextView text = view.findViewById(R.id.selected_text);
         text.setText(items.get(position));
-
+        int textColor = dropDownItemColors[position % dropDownItemColors.length];
+        text.setTextColor(textColor);
 
         return view;
     }
 }
+

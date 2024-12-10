@@ -19,8 +19,8 @@ public class CustomBottomNavView extends LinearLayout {
 
     public interface OnNavigationItemSelectedListener {
         void onHomeSelected();
-        void onSearchSelected();
-        void onProfileSelected();
+        void onMapSelected();
+        void onMyJobsSelected();
     }
 
     public CustomBottomNavView(Context context, AttributeSet attrs) {
@@ -42,12 +42,12 @@ public class CustomBottomNavView extends LinearLayout {
         });
         nav_map.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onSearchSelected();
+                listener.onMapSelected();
             }
         });
         nav_todo.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onProfileSelected();
+                listener.onMyJobsSelected();
             }
         });
     }

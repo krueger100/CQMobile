@@ -38,16 +38,30 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+
+        <TextView
+            android:id="@+id/showBottomSheet"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_margin="20dp"
+            android:elevation="15dp"
+            android:background="@drawable/arrow_up_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/new_built_bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="750dp"
+        android:layout_height="765dp"
         android:orientation="vertical"
         android:background="@color/white"
         app:behavior_hideable="false"
-        app:behavior_peekHeight="1500dp"
+        app:behavior_peekHeight="500dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
 
@@ -170,6 +184,7 @@
                                 android:layout_width="150dp"
                                 android:layout_height="45dp"
                                 tools:ignore="TouchTargetSizeCheck"
+                                android:textAlignment="center"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintStart_toStartOf="parent"
@@ -229,7 +244,7 @@
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_view"
                     android:layout_width="match_parent"
-                    android:layout_height="195dp"
+                    android:layout_height="200dp"
                     android:layout_weight="1"
                     android:clipToPadding="false"
                     android:padding="8dp"

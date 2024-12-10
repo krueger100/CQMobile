@@ -1,65 +1,74 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Spinner;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.CustomSpinnerAdapter;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskAdapter;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
+    private BackPressManager backPressManager;
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private NavigationManagerForNewBuild navigationManager;
-
+    TextView showBottomSheet;
     private SetupMainTaskManager setupMainTaskManager;
     private SetupRecyclerViewManager setupRecyclerViewManager;
-
+    private Marker marker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
-        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
-        navigationManager = new NavigationManagerForNewBuild(this);
-        navigationManager.setUpNavigation(bottomNavView);
+
+        backPressManager = new BackPressManager(this);
+        showBottomSheet = findViewById(R.id.showBottomSheet);
 
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
@@ -80,8 +89,33 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
         bottomSheetBehavior.setHideable(false);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
         setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
         setupRecyclerViewManager.setupRecyclerView(jobId);
+
+        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
+        navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
+        navigationManager.setUpNavigation(bottomNavView);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                backPressManager.handleBackPress(MainActivity.class);
+                finish();
+            }
+        });
+
+        showBottomSheet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
+                } else {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                }
+            }
+        });
     }
 
     @Override
@@ -127,6 +161,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
                 LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
                 googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here"));
+                Log.d("UserLocation",userLocation.latitude+" "+userLocation.longitude);
             } else {
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
             }
@@ -145,168 +180,87 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         }
     }
 
-    // Implement the onCoordinatesReceived method to update the map with the task location
     @Override
     public void onCoordinatesReceived(double latitude, double longitude) {
         // Create a LatLng object for the task location
         LatLng taskLatLng = new LatLng(latitude, longitude);
+        BitmapDescriptor customMarkerIcon = getCustomCircleMarkerIcon(NewBuild.this);
 
-        // Add a marker for the task location
-        googleMap.addMarker(new MarkerOptions().position(taskLatLng).title("Task Location"));
+        marker = googleMap.addMarker(new MarkerOptions()
+                .position(taskLatLng)
+                .icon(customMarkerIcon)
+                .anchor(0.6f, 0.6f)
+                .zIndex(5.0f));
 
-        // Move the camera to the task location with an animation
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLatLng, 15));
+    }
+
+
+
+    public BitmapDescriptor getCustomCircleMarkerIcon(Context context) {
+        int diameter = 200;
+        int padding = 25;
+        Bitmap bitmap = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        paint.setAntiAlias(true);
+        paint.setStyle(Paint.Style.FILL);
+
+        float radius = diameter / 2f;
+        // Draw the filled circle
+        canvas.drawCircle(radius, radius, radius, paint);
+
+        // Load the drawable (replace with your image resource)
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.map_marker_todo);
+
+        if (drawable != null) {
+            // Convert the drawable to a bitmap
+            Bitmap drawableBitmap = drawableToBitmap(drawable);
+
+            // Scale the drawable bitmap to fit the circle with padding
+            int scaledWidth = diameter - 2 * padding;
+            int scaledHeight = diameter - 2 * padding;
+            Bitmap scaledImage = Bitmap.createScaledBitmap(drawableBitmap, scaledWidth, scaledHeight, false);
+
+            // Calculate the starting position to center the image within the circle
+            float left = padding;
+            float top = padding;
+
+            // Draw the image onto the canvas with padding
+            canvas.drawBitmap(scaledImage, left, top, null);
+
+            // Draw the border around the circle
+            Paint borderPaint = new Paint();
+            borderPaint.setColor(Color.WHITE); // Border color
+            borderPaint.setStrokeWidth(5); // Border thickness
+            borderPaint.setStyle(Paint.Style.STROKE); // Only draw the border
+            canvas.drawCircle(radius, radius, radius - 5, borderPaint);
+        }
+
+        // Create the BitmapDescriptor from the bitmap
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+    private Bitmap drawableToBitmap(Drawable drawable) {
+        Bitmap bitmap;
+        if (drawable instanceof BitmapDrawable) {
+            bitmap = ((BitmapDrawable) drawable).getBitmap();
+        } else {
+            int width = drawable.getIntrinsicWidth();
+            int height = drawable.getIntrinsicHeight();
+            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+        }
+        return bitmap;
     }
 
     public void switchFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment); // Use fragment_container from the layout
+        transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }
 }
-
-
-    /*
-    private void setupMainTask(String jobId) {
-        TextView task_title = findViewById(R.id.task_title);
-        TextView task_description = findViewById(R.id.task_description);
-        TextView task_location = findViewById(R.id.task_location);
-        TextView task_number = findViewById(R.id.task_number);
-        Spinner spinner_task = findViewById(R.id.spinner_task);
-
-        NewBuildApiManager.fetchNewBuiltApiData(jobId, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
-            @Override
-            public void onDataFetched(List<Taskmain> data) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    StringBuilder taskTitle = new StringBuilder();
-                    StringBuilder taskDescription = new StringBuilder();
-                    StringBuilder taskLocation = new StringBuilder();
-                    StringBuilder taskNumber = new StringBuilder();
-
-                    for (Taskmain taskmain : data) {
-                        // Task title and description
-                        taskTitle.append(taskmain.getName());
-                        taskDescription.append(taskmain.getDescription());
-
-                        String clientInfo = taskmain.getClient_details() != null
-                                ? taskmain.getClient_details().getPhone()
-                                : "No client info";
-                        taskNumber.append(clientInfo);
-
-                        String address = taskmain.getAddress() != null
-                                ? taskmain.getAddress().getAddress()
-                                : "No address";
-                        taskLocation.append(address);
-
-                        if (googleMap != null) {
-                            Taskmain.Coordinates coordinates = taskmain.getCoordinates();
-                            if (coordinates != null) {
-                                try {
-                                    double latitude = Double.parseDouble(coordinates.getLatitude());
-                                    double longitude = Double.parseDouble(coordinates.getLongitude());
-                                    LatLng taskLatLng = new LatLng(latitude, longitude);
-
-                                    // Add marker to the map
-                                    googleMap.addMarker(new MarkerOptions()
-                                            .position(taskLatLng)
-                                            .title(taskmain.getName())
-                                            .snippet(taskmain.getDescription()));
-
-                                    // Optionally, focus camera on the first task
-                                    if (data.indexOf(taskmain) == 0) {
-                                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLatLng, 15));
-                                    }
-                                } catch (NumberFormatException e) {
-                                    Log.e("NewBuild", "Invalid coordinates: " + e.getMessage());
-                                }
-                            }
-                        }
-                    }
-
-                    // Set up spinner options
-                    List<String> options = new ArrayList<>();
-                    options.add("In Progress");
-                    options.add("Pending");
-                    options.add("Under Inspection");
-                    options.add("Done");
-
-                    // Set up spinner adapter
-                    CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
-                            NewBuild.this,
-                            R.layout.task_spinner_item,
-                            options,
-                            R.drawable.arrow_down_24
-                    );
-
-                    spinner_task.setAdapter(adapter);
-
-                    // Set spinner item selection listener
-                    spinner_task.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            if (position >= 0 && position < data.size()) { // Ensure position is within bounds
-                                Taskmain selectedTask = data.get(position);
-
-                                task_title.setText(selectedTask.getName());
-                                task_description.setText(selectedTask.getDescription());
-
-                                String clientInfo = selectedTask.getClient_details() != null
-                                        ? selectedTask.getClient_details().getPhone()
-                                        : "No client info";
-                                task_number.setText(clientInfo);
-
-                                String address = selectedTask.getAddress() != null
-                                        ? selectedTask.getAddress().getAddress()
-                                        : "No address";
-                                task_location.setText(address);
-                            } else {
-                                Log.e("NewBuild", "Selected spinner position is out of bounds");
-                            }
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-                            // Optional: handle case when no item is selected
-                        }
-                    });
-
-                    // Update the TextViews with the tasks
-                    task_title.setText(taskTitle.toString());
-                    task_description.setText(taskDescription.toString());
-                    task_location.setText(taskLocation.toString());
-                    task_number.setText(taskNumber.toString());
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() ->
-                        Toast.makeText(NewBuild.this, "Error fetching data: " + error, Toast.LENGTH_SHORT).show()
-                );
-            }
-        });
-    }
-
-    private void setupRecyclerView(String jobId) {
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // Fetch secondary tasks and update RecyclerView adapter using jobId
-        NewBuildApiManager.fetchSecondaryApiData(jobId, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
-            @Override
-            public void onDataFetched(List<SubTask> secondaryData) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    SubTaskAdapter subTaskAdapter = new SubTaskAdapter(secondaryData);
-                    recyclerView.setAdapter(subTaskAdapter);
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() ->
-                        Toast.makeText(NewBuild.this, "Error fetching secondary data: " + error, Toast.LENGTH_SHORT).show()
-                );
-            }
-        });
-    }
-     */

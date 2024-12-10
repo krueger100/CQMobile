@@ -1,5 +1,7 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.R;
@@ -19,11 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.SecondaryViewHolder> {
+    private Context context;
 
     private final List<SubTask> secondaryDataList;
 
-    public SubTaskAdapter(List<SubTask> secondaryDataList) {
+    public SubTaskAdapter(List<SubTask> secondaryDataList,Context context) {
+        this.context = context;
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
+
     }
 
     @NonNull
@@ -35,30 +41,32 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SecondaryViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull SecondaryViewHolder holder, @SuppressLint("RecyclerView") int position) {
         SubTask task = secondaryDataList.get(position);
         holder.textViewTitle.setText(task.getName());
         holder.textViewDescription.setText(task.getDescription());
 
-        // Populate Spinner with options
         List<String> options = new ArrayList<>();
         options.add("In Progress");
         options.add("Pending");
         options.add("Under Inspection");
         options.add("Done");
 
-        // Custom Adapter for Spinner
+// Set up the adapter
+        int[] dropDownColors = new int[]{
+                ContextCompat.getColor(context, R.color.cq_secondary_color),
+                ContextCompat.getColor(context, R.color.textBtnRed),
+                ContextCompat.getColor(context, R.color.color_inspection),
+                ContextCompat.getColor(context, R.color.color_done)
+        };
+
         CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
-                holder.itemView.getContext(),
+                context,
                 R.layout.task_spinner_item,
                 options,
-                R.drawable.arrow_down_24
+                dropDownColors
         );
-
-        // Set custom adapter to Spinner
         holder.taskSpinner.setAdapter(adapter);
-
-        // Spinner item selection listener
         holder.taskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int spinnerPosition, long id) {
@@ -69,6 +77,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                         Toast.makeText(view.getContext(),
                                 "Selected: " + selectedOption + " for Task: " + task.getName(),
                                 Toast.LENGTH_SHORT).show();
+
                     }
                 } else {
                     // Handle out-of-bounds case if necessary
