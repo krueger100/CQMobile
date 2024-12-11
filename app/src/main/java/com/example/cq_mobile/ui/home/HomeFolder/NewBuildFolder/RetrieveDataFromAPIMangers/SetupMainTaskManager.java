@@ -2,6 +2,8 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFrom
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -13,11 +15,11 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
+import com.example.cq_mobile.HelperManagers.CategoryColorManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.CustomSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -33,12 +35,14 @@ public class SetupMainTaskManager {
     private TextView taskLocationView;
     private TextView taskNumberView;
     private Spinner spinnerTask;
+    TextView category_todo;
+
     private OnCoordinatesReceivedListener coordinatesReceivedListener; // Callback listener
-    int[] dropDownColors;
+
     // Constructor with added listener parameter
     public SetupMainTaskManager(Context context, GoogleMap googleMap, TextView taskTitleView, TextView taskDescriptionView,
                                 TextView taskLocationView, TextView taskNumberView, Spinner spinnerTask,
-                                OnCoordinatesReceivedListener listener) {
+                                OnCoordinatesReceivedListener listener, TextView category_todo) {
         this.context = context;
         this.googleMap = googleMap;
         this.taskTitleView = taskTitleView;
@@ -47,6 +51,7 @@ public class SetupMainTaskManager {
         this.taskNumberView = taskNumberView;
         this.spinnerTask = spinnerTask;
         this.coordinatesReceivedListener = listener; // Set the listener
+        this.category_todo = category_todo;
     }
 
     public void setupMainTask(String jobId) {
@@ -58,11 +63,13 @@ public class SetupMainTaskManager {
                     StringBuilder taskDescription = new StringBuilder();
                     StringBuilder taskLocation = new StringBuilder();
                     StringBuilder taskNumber = new StringBuilder();
+                    StringBuilder category_maintask = new StringBuilder();
 
                     for (Taskmain taskmain : data) {
                         // Task title and description
                         taskTitle.append(taskmain.getName());
                         taskDescription.append(taskmain.getDescription());
+                        category_maintask.append(taskmain.getCategory());
 
                         String clientInfo = taskmain.getClient_details() != null
                                 ? taskmain.getClient_details().getPhone()
@@ -126,6 +133,29 @@ public class SetupMainTaskManager {
 
                                 taskTitleView.setText(selectedTask.getName());
                                 taskDescriptionView.setText(selectedTask.getDescription());
+
+                                String categories = String.valueOf(selectedTask.getCategory()).trim();
+                                String categoriesColors = String.valueOf(selectedTask.getCategory_color()).trim();
+                                Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
+
+                                category_todo.setText(categories);
+                                if (categoriesColors != null && !categoriesColors.isEmpty()) {
+                                    try {
+                                        int categoryColor = Color.parseColor(categoriesColors);
+                                        category_todo.setTextColor(categoryColor);
+                                        category_todo.setBackground(categoryBackground);
+
+                                    } catch (IllegalArgumentException e) {
+                                        Log.e("category_todo", "Invalid category color format: " + categoriesColors, e);
+                                        category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+
+                                    }
+                                } else {
+                                    category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+
+                                }
+
+
 
                                 String clientInfo = selectedTask.getClient_details() != null
                                         ? selectedTask.getClient_details().getPhone()

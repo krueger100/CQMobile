@@ -52,7 +52,7 @@ public class CustomSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.color_done);
                 break;
             default:
-                color = ContextCompat.getColor(context, R.color.textBtnRed); // Default fallback color
+                color = ContextCompat.getColor(context, R.color.cq_secondary_color); // Default fallback color
                 break;
         }
 
@@ -87,7 +87,7 @@ public class CustomSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.color_done);
                 break;
             default:
-                color = ContextCompat.getColor(context, R.color.textBtnRed); // Default fallback color
+                color = ContextCompat.getColor(context, R.color.cq_secondary_color); // Default fallback color
                 break;
         }
 

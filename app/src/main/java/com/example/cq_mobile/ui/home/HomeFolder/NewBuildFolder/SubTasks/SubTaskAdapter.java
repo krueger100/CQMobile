@@ -10,7 +10,6 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -25,8 +24,6 @@ import java.util.List;
 public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.SecondaryViewHolder> {
     private Context context;
     private final List<SubTask> secondaryDataList;
-    int[] dropDownColors;
-    int[] ViewItemColors;
     public SubTaskAdapter(List<SubTask> secondaryDataList,Context context) {
         this.context = context;
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
@@ -43,8 +40,6 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     @Override
     public void onBindViewHolder(@NonNull SecondaryViewHolder holder, @SuppressLint("RecyclerView") int position) {
         SubTask task = secondaryDataList.get(position);
-
-
         holder.textViewTitle.setText(task.getTitle());
         holder.textViewDescription.setText(task.getDescription());
 
@@ -170,6 +165,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         TextView textViewDescription;
         Spinner taskSpinner;
 TextView priority;
+
 ImageView spinner_task_imageBackground;
         public SecondaryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -178,6 +174,7 @@ ImageView spinner_task_imageBackground;
             taskSpinner = itemView.findViewById(R.id.spinner_task);
             priority = itemView.findViewById(R.id.priority);
             spinner_task_imageBackground = itemView.findViewById(R.id.spinner_task_imageBackground);
+
         }
     }
 }

@@ -164,10 +164,10 @@
                         app:layout_constraintStart_toStartOf="parent">
 
                         <TextView
+                            android:id="@+id/category_todo"
                             android:layout_width="150dp"
                             android:layout_height="45dp"
                             android:layout_marginEnd="10dp"
-                            android:background="@drawable/button_blue"
                             android:gravity="center"
                             android:text="New Build"
                             android:textColor="@color/textBtnBlue"

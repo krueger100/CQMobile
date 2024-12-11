@@ -54,7 +54,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     MarkerManager markerManager = new MarkerManager();
     BitmapDescriptor customMarkerIcon;
     MapCameraManager mapCameraManager;
-
+TextView category_todo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +62,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
          customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
-
+        category_todo = findViewById(R.id.category_todo);
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
             Log.d("job ID ->", "Received Todo ID: " + jobId);
@@ -121,7 +121,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         // Initialize the SetupMainTaskManager only after googleMap is ready
         setupMainTaskManager = new SetupMainTaskManager(this, googleMap, findViewById(R.id.task_title),
                 findViewById(R.id.task_description), findViewById(R.id.task_location), findViewById(R.id.task_number),
-                findViewById(R.id.spinner_task), this);  // Pass listener for coordinates
+                findViewById(R.id.spinner_task), this,category_todo);  // Pass listener for coordinates
 
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
@@ -202,8 +202,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
             Log.e("onCoordinatesReceived", "Received invalid coordinates: " + latitude + ", " + longitude);
         }
     }
-
-
 
 
     public void switchFragment(Fragment fragment) {
