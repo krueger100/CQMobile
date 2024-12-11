@@ -1,20 +1,10 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,30 +16,26 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
+import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
+import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
+import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
 
@@ -62,19 +48,26 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     private SetupMainTaskManager setupMainTaskManager;
     private SetupRecyclerViewManager setupRecyclerViewManager;
     private Marker marker;
+    private RouteNewBuildManager routeNewBuildManager; // Renamed RouteManager to RouteNewBuildManager
+    LatLng taskLatLng;
+    LatLng userLocation;
+    MarkerManager markerManager = new MarkerManager();
+    BitmapDescriptor customMarkerIcon;
+    MapCameraManager mapCameraManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
-
+         customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
 
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
-            Log.d("job ID ->", "Received Job ID: " + jobId);
+            Log.d("job ID ->", "Received Todo ID: " + jobId);
         } else {
-            Log.e("job ID ->", "No Job ID received!");
+            Log.e("job ID ->", "No Todo ID received!");
         }
 
         // Initialize map fragment
@@ -105,22 +98,25 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
             }
         });
 
-        showBottomSheet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                    bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
-                } else {
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                }
+        showBottomSheet.setOnClickListener(v -> {
+            if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
+            } else {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
+
+        // Initialize RouteNewBuildManager
+        routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
+
     }
+
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.googleMap = googleMap;
+        routeNewBuildManager.setGoogleMap(googleMap);
 
         // Initialize the SetupMainTaskManager only after googleMap is ready
         setupMainTaskManager = new SetupMainTaskManager(this, googleMap, findViewById(R.id.task_title),
@@ -158,10 +154,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
-                LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+             //  googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
                 googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here"));
-                Log.d("UserLocation",userLocation.latitude+" "+userLocation.longitude);
+                Log.d("UserLocation", userLocation.latitude + " " + userLocation.longitude);
+
             } else {
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
             }
@@ -182,80 +179,32 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
 
     @Override
     public void onCoordinatesReceived(double latitude, double longitude) {
-        // Create a LatLng object for the task location
-        LatLng taskLatLng = new LatLng(latitude, longitude);
-        BitmapDescriptor customMarkerIcon = getCustomCircleMarkerIcon(NewBuild.this);
+        // Check if coordinates are valid
+        if (latitude != 0.0 && longitude != 0.0) {
+            taskLatLng = new LatLng(latitude, longitude);
 
-        marker = googleMap.addMarker(new MarkerOptions()
-                .position(taskLatLng)
-                .icon(customMarkerIcon)
-                .anchor(0.6f, 0.6f)
-                .zIndex(5.0f));
-
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLatLng, 15));
-    }
-
+            // Make sure taskLatLng is not null
+            if (taskLatLng != null) {
+                marker = googleMap.addMarker(new MarkerOptions()
+                        .position(taskLatLng)
+                       .icon(customMarkerIcon)
+                        .anchor(0.6f, 0.6f)
+                        .zIndex(5.0f));
 
 
-    public BitmapDescriptor getCustomCircleMarkerIcon(Context context) {
-        int diameter = 200;
-        int padding = 25;
-        Bitmap bitmap = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888);
+                mapCameraManager = new MapCameraManager(googleMap, routeNewBuildManager, customMarkerIcon);
+                mapCameraManager.setDestination(userLocation, taskLatLng);
 
-        Canvas canvas = new Canvas(bitmap);
-        Paint paint = new Paint();
-        paint.setColor(Color.WHITE);
-        paint.setAntiAlias(true);
-        paint.setStyle(Paint.Style.FILL);
-
-        float radius = diameter / 2f;
-        // Draw the filled circle
-        canvas.drawCircle(radius, radius, radius, paint);
-
-        // Load the drawable (replace with your image resource)
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.map_marker_todo);
-
-        if (drawable != null) {
-            // Convert the drawable to a bitmap
-            Bitmap drawableBitmap = drawableToBitmap(drawable);
-
-            // Scale the drawable bitmap to fit the circle with padding
-            int scaledWidth = diameter - 2 * padding;
-            int scaledHeight = diameter - 2 * padding;
-            Bitmap scaledImage = Bitmap.createScaledBitmap(drawableBitmap, scaledWidth, scaledHeight, false);
-
-            // Calculate the starting position to center the image within the circle
-            float left = padding;
-            float top = padding;
-
-            // Draw the image onto the canvas with padding
-            canvas.drawBitmap(scaledImage, left, top, null);
-
-            // Draw the border around the circle
-            Paint borderPaint = new Paint();
-            borderPaint.setColor(Color.WHITE); // Border color
-            borderPaint.setStrokeWidth(5); // Border thickness
-            borderPaint.setStyle(Paint.Style.STROKE); // Only draw the border
-            canvas.drawCircle(radius, radius, radius - 5, borderPaint);
-        }
-
-        // Create the BitmapDescriptor from the bitmap
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
-    private Bitmap drawableToBitmap(Drawable drawable) {
-        Bitmap bitmap;
-        if (drawable instanceof BitmapDrawable) {
-            bitmap = ((BitmapDrawable) drawable).getBitmap();
+            } else {
+                Log.e("onCoordinatesReceived", "Invalid LatLng: " + latitude + ", " + longitude);
+            }
         } else {
-            int width = drawable.getIntrinsicWidth();
-            int height = drawable.getIntrinsicHeight();
-            bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bitmap);
-            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-            drawable.draw(canvas);
+            Log.e("onCoordinatesReceived", "Received invalid coordinates: " + latitude + ", " + longitude);
         }
-        return bitmap;
     }
+
+
+
 
     public void switchFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -264,3 +213,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         transaction.commit();
     }
 }
+
+
+//             LatLng defaultLoc = new LatLng(51.60357351825253, 0.17148271425495226);

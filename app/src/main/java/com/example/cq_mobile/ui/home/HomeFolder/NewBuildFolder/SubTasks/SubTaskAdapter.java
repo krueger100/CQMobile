@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,13 +24,12 @@ import java.util.List;
 
 public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.SecondaryViewHolder> {
     private Context context;
-
     private final List<SubTask> secondaryDataList;
-
+    int[] dropDownColors;
+    int[] ViewItemColors;
     public SubTaskAdapter(List<SubTask> secondaryDataList,Context context) {
         this.context = context;
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
-
     }
 
     @NonNull
@@ -43,44 +43,111 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     @Override
     public void onBindViewHolder(@NonNull SecondaryViewHolder holder, @SuppressLint("RecyclerView") int position) {
         SubTask task = secondaryDataList.get(position);
-        holder.textViewTitle.setText(task.getName());
+
+
+        holder.textViewTitle.setText(task.getTitle());
         holder.textViewDescription.setText(task.getDescription());
 
-        List<String> options = new ArrayList<>();
-        options.add("In Progress");
-        options.add("Pending");
-        options.add("Under Inspection");
-        options.add("Done");
+        String taskPriority = task.getPriority().trim().toLowerCase();  // Clean and standardize priority
+        holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
+        Log.d("taskStatus", "Priority not found in options list: " + taskPriority);
 
-// Set up the adapter
-        int[] dropDownColors = new int[]{
-                ContextCompat.getColor(context, R.color.cq_secondary_color),
-                ContextCompat.getColor(context, R.color.textBtnRed),
-                ContextCompat.getColor(context, R.color.color_inspection),
-                ContextCompat.getColor(context, R.color.color_done)
-        };
+        if (taskPriority != null && !taskPriority.isEmpty()) {
+            switch (taskPriority) {
+                case "low":
+                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_blue));
+                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnBlue));
+                    break;
+                case "medium":
+                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_green));
+                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGreen));
+                    break;
+                case "high":
+                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_red));
+                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+                    break;
+                default:
+                    // Handle unexpected values
+                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_red));
+                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed)); // Default color
+                    Log.d("SubTaskAdapter", "Priority not found in options list: " + taskPriority);
+                    break;
+            }
+
+        }else {
+            Log.d("SubTaskAdapter", "Invalid task priority: " + taskPriority);
+        }
+
+
+
+
+        String taskStatus = task.getStatus();
+        taskStatus = taskStatus.replace("_", " ").trim() .replaceAll("\\s+", " ");
+        taskStatus = taskStatus.substring(0, 1).toUpperCase() + taskStatus.substring(1).toLowerCase();
+
+
+        List<String> options = new ArrayList<>();
+        options.add(taskStatus);
+
+        if (!taskStatus.equals("In progress")) {
+            options.add("In Progress");
+        }
+        if (!taskStatus.equals("Pending")) {
+            options.add("Pending");
+
+        }
+        if (!taskStatus.equals("Under inspection")) {
+            options.add("Under inspection");
+
+        }
+        if (!taskStatus.equals("Done")) {
+            options.add("Done");
+
+        }
+
+        int imageResource;
+        switch (taskStatus) {
+            case "In progress":
+                imageResource = R.drawable.button_orange;
+                break;
+            case "Pending":
+                imageResource = R.drawable.button_red;
+                break;
+            case "Under inspection":
+                imageResource = R.drawable.button_blue;
+                break;
+            case "Done":
+                imageResource = R.drawable.button_green;
+                break;
+            default:
+                imageResource = R.drawable.button_red;
+                break;
+        }
+        holder.spinner_task_imageBackground.setImageResource(imageResource);
+
 
         CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
                 context,
                 R.layout.task_spinner_item,
-                options,
-                dropDownColors
+                options
         );
+
+
+
         holder.taskSpinner.setAdapter(adapter);
+        int defaultIndex = options.indexOf(taskStatus);
+        if (defaultIndex != -1) {
+            holder.taskSpinner.setSelection(defaultIndex);
+        } else {
+            Log.d("SubTaskAdapter", "Priority not found in options list: " + taskStatus);
+        }
         holder.taskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int spinnerPosition, long id) {
                 // Ensure spinnerPosition is within bounds of the options list
                 if (spinnerPosition >= 0 && spinnerPosition < options.size()) {
-                    if (spinnerPosition > 0) { // Ignore "Select Action"
-                        String selectedOption = options.get(spinnerPosition);
-                        Toast.makeText(view.getContext(),
-                                "Selected: " + selectedOption + " for Task: " + task.getName(),
-                                Toast.LENGTH_SHORT).show();
-
-                    }
+                    String selectedOption = options.get(spinnerPosition);
                 } else {
-                    // Handle out-of-bounds case if necessary
                     Log.d("SubTaskAdapter", "Selected spinner position is out of bounds");
                 }
             }
@@ -90,6 +157,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                 // No action
             }
         });
+
     }
 
     @Override
@@ -101,100 +169,16 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         TextView textViewTitle;
         TextView textViewDescription;
         Spinner taskSpinner;
-
+TextView priority;
+ImageView spinner_task_imageBackground;
         public SecondaryViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.secondary_item_title);
             textViewDescription = itemView.findViewById(R.id.secondary_item_description);
             taskSpinner = itemView.findViewById(R.id.spinner_task);
+            priority = itemView.findViewById(R.id.priority);
+            spinner_task_imageBackground = itemView.findViewById(R.id.spinner_task_imageBackground);
         }
     }
 }
 
-
-/*
-        setupSecondaryRecyclerView(jobId);
-
- private void setupSecondaryRecyclerView(String jobId) {
-        RecyclerView secondaryRecyclerView = findViewById(R.id.recycler_view_secondary);
-        secondaryRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-
-        // Fetch secondary tasks and update RecyclerView adapter using jobId
-        NewBuildApiManager.fetchSecondaryApiData(jobId, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
-            @Override
-            public void onDataFetched(List<SubTask> secondaryData) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    SubTaskAdapter secondaryAdapter = new SubTaskAdapter(secondaryData);
-                    secondaryRecyclerView.setAdapter(secondaryAdapter);
-                });
-            }
-
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() ->
-                        Toast.makeText(NewBuild.this, "Error fetching secondary data: " + error, Toast.LENGTH_SHORT).show()
-                );
-            }
-        });
-    }
-
-
- */
-
-
-/*
-
-API call
-
-public class NewBuildApiManager {
-
-    public interface ApiResponseCallback<T> {
-        void onDataFetched(List<T> data);
-        void onError(String error);
-    }
-
-    public static void fetchSecondaryApiData(String jobId, ApiResponseCallback<SubTask> callback) {
-        String baseUrl = "https://aws.customquoter.co.uk";
-        String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
-        String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
-        String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-
-        // Construct the full URL
-        String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
-
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "Bearer " + token)
-                .addHeader("x-api-key", apiKey)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String jsonResponse = response.body().string();
-                    Gson gson = new Gson();
-                    SubTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SubTaskResponse.class);
-
-                    if (secondaryResponse != null && secondaryResponse.getData() != null) {
-                        new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));
-                    } else {
-                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("No secondary data found."));
-                    }
-                } else {
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code()));
-                }
-            }
-        });
-    }
-}
-
-
-
- */

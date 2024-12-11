@@ -2,8 +2,6 @@ package com.example.cq_mobile.ui.home.HomeFolder;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Job;
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 
@@ -31,7 +29,7 @@ public class ToDoFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private TodoAdapter todoAdapter;
-    private List<Job> joblist = new ArrayList<>(); // Use List<Job>
+    private List<Todo> joblist = new ArrayList<>(); // Use List<Todo>
     private ProgressBar progressBar;
     private TextView clockout_btn;
 
@@ -71,14 +69,14 @@ public class ToDoFragment extends Fragment {
 
         TodoApiManager.fetchApiData(new TodoApiManager.ApiResponseCallback() {
             @Override
-            public void onDataFetched(List<Job> data) {
+            public void onDataFetched(List<Todo> data) {
                 if (getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     if (data != null && !data.isEmpty()) {
                         joblist.clear();
-                        joblist.addAll(data); // Add the List<Job>
+                        joblist.addAll(data); // Add the List<Todo>
                         todoAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(getContext(), "No jobs available", Toast.LENGTH_SHORT).show();

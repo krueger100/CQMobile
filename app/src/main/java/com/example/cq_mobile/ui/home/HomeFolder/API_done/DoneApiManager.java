@@ -41,10 +41,10 @@ public class DoneApiManager {
                         String jsonResponse = response.body().string();
                         Gson gson = new Gson();
 
-                        // Parse the JSON into a JobResponse object
+                        // Parse the JSON into a TodoResponse object
                         DoneResponse doneResponse = gson.fromJson(jsonResponse, DoneResponse.class);
 
-                        // Pass the full list of Job objects to the callback
+                        // Pass the full list of Todo objects to the callback
                         if (doneResponse != null && doneResponse.getData() != null && !doneResponse.getData().isEmpty()) {
                             callback.onDataFetched(doneResponse.getData());
                         } else {

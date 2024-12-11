@@ -13,7 +13,7 @@ import okhttp3.Response;
 
 public class SkippedApiManager {
     public interface ApiResponseCallback {
-        void onDataFetched(List<Skipped> data); // Return List<Job>
+        void onDataFetched(List<Skipped> data); // Return List<Todo>
         void onError(String error);
     }
     public static void fetchSkippedApiData(ApiResponseCallback callback) {
@@ -44,10 +44,10 @@ public class SkippedApiManager {
                     String jsonResponse = response.body().string();
                     Gson gson = new Gson();
 
-                    // Parse the JSON into a JobResponse object
+                    // Parse the JSON into a TodoResponse object
                     SkippedResponse skippedResponse = gson.fromJson(jsonResponse, SkippedResponse.class);
 
-                    // Pass the full list of Job objects to the callback
+                    // Pass the full list of Todo objects to the callback
                     if (skippedResponse != null && skippedResponse.getData() != null && !skippedResponse.getData().isEmpty()) {
                         callback.onDataFetched(skippedResponse.getData());
                     } else {

@@ -1,5 +1,5 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_todo;
-public class Job {
+public class Todo {
     private int id;
     private String name;
     private String description;

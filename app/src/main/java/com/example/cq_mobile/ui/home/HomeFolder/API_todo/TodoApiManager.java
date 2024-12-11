@@ -13,7 +13,7 @@ import java.util.List;
 public class TodoApiManager {
 
     public interface ApiResponseCallback {
-        void onDataFetched(List<Job> data); // Return List<Job>
+        void onDataFetched(List<Todo> data); // Return List<Todo>
         void onError(String error);
     }
 
@@ -45,12 +45,12 @@ public class TodoApiManager {
                     String jsonResponse = response.body().string();
                     Gson gson = new Gson();
 
-                    // Parse the JSON into a JobResponse object
-                    JobResponse jobResponse = gson.fromJson(jsonResponse, JobResponse.class);
+                    // Parse the JSON into a TodoResponse object
+                    TodoResponse todoResponse = gson.fromJson(jsonResponse, TodoResponse.class);
 
-                    // Pass the full list of Job objects to the callback
-                    if (jobResponse != null && jobResponse.getData() != null && !jobResponse.getData().isEmpty()) {
-                        callback.onDataFetched(jobResponse.getData());
+                    // Pass the full list of Todo objects to the callback
+                    if (todoResponse != null && todoResponse.getData() != null && !todoResponse.getData().isEmpty()) {
+                        callback.onDataFetched(todoResponse.getData());
                     } else {
                         callback.onError("No jobs found.");
                     }

@@ -73,10 +73,10 @@
                     app:layout_constraintStart_toStartOf="parent">
 
                     <TextView
+                        android:id="@+id/priority"
                         android:layout_width="150dp"
                         android:layout_height="45dp"
                         android:layout_marginEnd="10dp"
-                        android:background="@drawable/button_red"
                         android:gravity="center"
                         android:text="High"
                         android:textColor="#EB5757"
@@ -85,13 +85,14 @@
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        >
+                        android:layout_height="wrap_content">
 
                         <Spinner
                             android:id="@+id/spinner_task"
-                            android:layout_width="150dp"
-                            android:layout_height="45dp"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:padding="2dp"
+                            android:textAlignment="center"
                             tools:ignore="TouchTargetSizeCheck"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -99,9 +100,9 @@
                             app:layout_constraintTop_toTopOf="parent"/>
 
                         <ImageView
+                            android:id="@+id/spinner_task_imageBackground"
                             android:layout_width="150dp"
                             android:layout_height="45dp"
-                            android:background="@drawable/button_orange"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"

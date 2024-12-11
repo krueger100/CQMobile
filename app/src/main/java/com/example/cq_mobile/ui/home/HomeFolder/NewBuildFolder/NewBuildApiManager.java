@@ -8,6 +8,8 @@ import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskR
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.TaskmainResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,12 +70,13 @@ public class NewBuildApiManager {
 
     public static void fetchSecondaryApiData(String jobId, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
-        String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
-        String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
+      ///  String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);  <-- eto ang tama
+        String jobIdDummy = "1504";
+        String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
+        String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-        // Construct the full URL
-        String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
+        String url = baseUrl + endpoint;
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -92,18 +95,26 @@ public class NewBuildApiManager {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     String jsonResponse = response.body().string();
-                    Gson gson = new Gson();
-                    SubTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SubTaskResponse.class);
 
-                    if (secondaryResponse != null && secondaryResponse.getData() != null) {
-                        new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));
-                    } else {
-                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("No secondary data found."));
+                    try {
+                        Gson gson = new Gson();
+                        SubTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SubTaskResponse.class);
+
+                        if (secondaryResponse != null && secondaryResponse.getData() != null) {
+                            new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));
+                        } else {
+                            new Handler(Looper.getMainLooper()).post(() -> callback.onError("No secondary data found."));
+                        }
+                    } catch (JsonSyntaxException e) {
+                        new Handler(Looper.getMainLooper()).post(() -> callback.onError("JSON Parsing Error: " + e.getMessage()));
                     }
                 } else {
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code()));
+                    String errorResponse = response.body().string();
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code() + ", " + errorResponse));
                 }
             }
         });
-    }
+
+}
+
 }

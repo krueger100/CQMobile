@@ -25,7 +25,7 @@ import java.util.List;
 public class SkippedFragment extends Fragment {
     private RecyclerView recyclerView;
     private SkippedAdapter skippedAdapter;
-    private List<Skipped> skippedList = new ArrayList<>(); // Use List<Job>
+    private List<Skipped> skippedList = new ArrayList<>(); // Use List<Todo>
     private ProgressBar progressBar;
     private TextView clockout_btn;
 
@@ -66,7 +66,7 @@ public class SkippedFragment extends Fragment {
                     progressBar.setVisibility(View.GONE);
                     if (data != null && !data.isEmpty()) {
                         skippedList.clear();
-                        skippedList.addAll(data); // Add the List<Job>
+                        skippedList.addAll(data); // Add the List<Todo>
                         skippedAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(getContext(), "No jobs available", Toast.LENGTH_SHORT).show();

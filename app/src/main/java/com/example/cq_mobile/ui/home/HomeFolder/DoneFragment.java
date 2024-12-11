@@ -24,7 +24,7 @@ import java.util.List;
 public class DoneFragment extends Fragment {
     private RecyclerView recyclerView;
     private DoneAdapter doneAdapter;
-    private List<Done> donelist = new ArrayList<>(); // Use List<Job>
+    private List<Done> donelist = new ArrayList<>(); // Use List<Todo>
     private ProgressBar progressBar;
     private TextView clockout_btn;
 
@@ -65,7 +65,7 @@ public class DoneFragment extends Fragment {
                     progressBar.setVisibility(View.GONE);
                     if (data != null && !data.isEmpty()) {
                         donelist.clear();
-                        donelist.addAll(data); // Add the List<Job>
+                        donelist.addAll(data); // Add the List<Todo>
                         doneAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(getContext(), "No Done jobs available", Toast.LENGTH_SHORT).show();

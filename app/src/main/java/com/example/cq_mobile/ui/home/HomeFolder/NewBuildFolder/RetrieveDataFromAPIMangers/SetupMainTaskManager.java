@@ -34,7 +34,7 @@ public class SetupMainTaskManager {
     private TextView taskNumberView;
     private Spinner spinnerTask;
     private OnCoordinatesReceivedListener coordinatesReceivedListener; // Callback listener
-
+    int[] dropDownColors;
     // Constructor with added listener parameter
     public SetupMainTaskManager(Context context, GoogleMap googleMap, TextView taskTitleView, TextView taskDescriptionView,
                                 TextView taskLocationView, TextView taskNumberView, Spinner spinnerTask,
@@ -95,10 +95,11 @@ public class SetupMainTaskManager {
 
                                     // Optionally, focus camera on the first task
                                     if (data.indexOf(taskmain) == 0) {
-                                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLatLng, 15));
+                                        //googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLatLng, 15));
                                     }
                                 } catch (NumberFormatException e) {
                                     Log.e("SetupMainTaskManager", "Invalid coordinates: " + e.getMessage());
+
                                 }
                             }
                         }
@@ -110,20 +111,10 @@ public class SetupMainTaskManager {
                     options.add("Under Inspection");
                     options.add("Done");
 
-
-// Set up the adapter
-                    int[] dropDownColors = new int[]{
-                            ContextCompat.getColor(context, R.color.cq_secondary_color),
-                            ContextCompat.getColor(context, R.color.textBtnRed),
-                            ContextCompat.getColor(context, R.color.color_inspection),
-                            ContextCompat.getColor(context, R.color.color_done)
-                    };
-
                     CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
                             context,
                             R.layout.task_spinner_item,
-                            options,
-                            dropDownColors);
+                            options);
                     spinnerTask.setAdapter(adapter);
 
                     // Handle spinner item selection
