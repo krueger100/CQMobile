@@ -55,6 +55,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     BitmapDescriptor customMarkerIcon;
     MapCameraManager mapCameraManager;
 TextView category_todo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -113,9 +113,9 @@ public class SetupMainTaskManager {
                     }
 
                     List<String> options = new ArrayList<>();
-                    options.add("In Progress");
+                    options.add("In progress");
                     options.add("Pending");
-                    options.add("Under Inspection");
+                    options.add("Under inspection");
                     options.add("Done");
 
                     CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(

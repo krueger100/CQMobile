@@ -63,7 +63,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                     break;
                 default:
                     // Handle unexpected values
-                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_red));
+                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_grey));
                     holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey)); // Default color
                     Log.d("SubTaskAdapter", "Priority not found in options list: " + taskPriority);
                     break;
