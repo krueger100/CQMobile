@@ -44,13 +44,14 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
         holder.nameTextView.setText(todo.getName());
         holder.stateDescription.setText(todo.getDescription());
         String id = String.valueOf(todo.getId());
-        String categories = String.valueOf(todo.getCategory()).trim();
+        String categories = todo.getCategory() != null ? todo.getCategory().trim() : "No Category";
         String categoriesColors = String.valueOf(todo.getCategory_color()).trim();
         Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
         if (id != null) {
             Log.d("User ID ->", "Received Todo ID's: " + id);
             Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
+
         holder.category.setText(categories);
         if (categoriesColors != null && !categoriesColors.isEmpty()) {
             try {
@@ -61,12 +62,12 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
 
             } catch (IllegalArgumentException e) {
                 Log.e("SubTaskAdapter", "Invalid category color format: " + categoriesColors, e);
-                holder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+                holder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
 
 
             }
         } else {
-            holder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+            holder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
 
 
         }

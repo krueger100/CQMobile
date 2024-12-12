@@ -63,6 +63,7 @@ TextView category_todo;
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
         category_todo = findViewById(R.id.category_todo);
+
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
             Log.d("job ID ->", "Received Todo ID: " + jobId);

@@ -43,7 +43,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         holder.textViewTitle.setText(task.getTitle());
         holder.textViewDescription.setText(task.getDescription());
 
-        String taskPriority = task.getPriority().trim().toLowerCase();  // Clean and standardize priority
+        String taskPriority = task.getPriority() != null ? task.getPriority().trim().toLowerCase() : "No Category";
         holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
         Log.d("taskStatus", "Priority not found in options list: " + taskPriority);
 
@@ -64,7 +64,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                 default:
                     // Handle unexpected values
                     holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_red));
-                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed)); // Default color
+                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey)); // Default color
                     Log.d("SubTaskAdapter", "Priority not found in options list: " + taskPriority);
                     break;
             }

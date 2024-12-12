@@ -134,7 +134,10 @@ public class SetupMainTaskManager {
                                 taskTitleView.setText(selectedTask.getName());
                                 taskDescriptionView.setText(selectedTask.getDescription());
 
-                                String categories = String.valueOf(selectedTask.getCategory()).trim();
+                                String categories = selectedTask.getCategory() != null && !selectedTask.getCategory().trim().isEmpty()
+                                        ? selectedTask.getCategory().trim()
+                                        : "No Category";
+
                                 String categoriesColors = String.valueOf(selectedTask.getCategory_color()).trim();
                                 Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
@@ -147,11 +150,11 @@ public class SetupMainTaskManager {
 
                                     } catch (IllegalArgumentException e) {
                                         Log.e("category_todo", "Invalid category color format: " + categoriesColors, e);
-                                        category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+                                        category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
 
                                     }
                                 } else {
-                                    category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+                                    category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
 
                                 }
 

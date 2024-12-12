@@ -169,7 +169,8 @@
                             android:layout_height="45dp"
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
-                            android:text="New Build"
+                            android:text=""
+                            android:background="@drawable/button_grey"
                             android:textColor="@color/textBtnBlue"
                             android:textSize="14dp"
                             tools:ignore="TextSizeCheck" />
