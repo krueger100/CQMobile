@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,10 +30,11 @@ public class SetupRecyclerViewManager {
     private int currentPage = 1; // Start from page 1
     private final int pageSize = 15; // Number of items per page
     private String jobId;
-
-    public SetupRecyclerViewManager(Context context, RecyclerView recyclerView) {
+    ImageView statusImageView;
+    public SetupRecyclerViewManager(Context context, RecyclerView recyclerView, ImageView statusImageView) {
         this.context = context;
         this.recyclerView = recyclerView;
+        this.statusImageView = statusImageView;
     }
 
     public void setupRecyclerView(String jobId) {
@@ -42,7 +43,7 @@ public class SetupRecyclerViewManager {
         // Set up RecyclerView
         layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
-        subTaskAdapter = new SubTaskAdapter(subTaskList, context);
+        subTaskAdapter = new SubTaskAdapter(subTaskList, context,jobId,statusImageView);
         recyclerView.setAdapter(subTaskAdapter);
 
         // Fetch the first page of data

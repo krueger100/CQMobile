@@ -88,6 +88,7 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 todoHolder.progressBar.setVisibility(View.VISIBLE);
                 Intent intent = new Intent(context, NewBuild.class);
                 intent.putExtra("job_id", id);
+
                 try {
                     context.startActivity(intent);
                 } catch (Exception e) {

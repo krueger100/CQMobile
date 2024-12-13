@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.CustomSpinnerAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +24,12 @@ import java.util.List;
 public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.SecondaryViewHolder> {
     private Context context;
     private final List<SubTask> secondaryDataList;
-    public SubTaskAdapter(List<SubTask> secondaryDataList,Context context) {
+    String jobId;
+    ImageView statusImageView;
+    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId, ImageView statusImageView) {
         this.context = context;
+        this.jobId = jobId;
+        this.statusImageView = statusImageView;
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
     }
 
@@ -80,7 +84,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         taskStatus = taskStatus.replace("_", " ").trim() .replaceAll("\\s+", " ");
         taskStatus = taskStatus.substring(0, 1).toUpperCase() + taskStatus.substring(1).toLowerCase();
 
-
+        Log.d("Stats", "subTask -> "+ taskStatus);
         List<String> options = new ArrayList<>();
         options.add(taskStatus);
 
@@ -120,12 +124,11 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         }
         holder.spinner_task_imageBackground.setImageResource(imageResource);
 
-
-        CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
+        SubTaskSpinnerAdapter adapter = new SubTaskSpinnerAdapter(
                 context,
                 R.layout.task_spinner_item,
-                options
-        );
+                options,
+                jobId, statusImageView);
 
 
 

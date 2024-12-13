@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,7 +59,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     MapCameraManager mapCameraManager;
     ProgressBar progress_circular;
 TextView category_todo;
-
+ImageView statusImageView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +69,7 @@ TextView category_todo;
         showBottomSheet = findViewById(R.id.showBottomSheet);
         category_todo = findViewById(R.id.category_todo);
         progress_circular = findViewById(R.id.progress_circular);
+        statusImageView = findViewById(R.id.statusImageView);
 
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
@@ -89,7 +91,7 @@ TextView category_todo;
         bottomSheetBehavior.setHideable(false);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
+        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view),statusImageView);
         setupRecyclerViewManager.setupRecyclerView(jobId);
 
         CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
@@ -127,7 +129,7 @@ TextView category_todo;
         // Initialize the SetupMainTaskManager only after googleMap is ready
         setupMainTaskManager = new SetupMainTaskManager(this, googleMap, findViewById(R.id.task_title),
                 findViewById(R.id.task_description), findViewById(R.id.task_location), findViewById(R.id.task_number),
-                findViewById(R.id.spinner_task), this,category_todo);  // Pass listener for coordinates
+                findViewById(R.id.spinner_task), this,category_todo,statusImageView);  // Pass listener for coordinates
 
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {

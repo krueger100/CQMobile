@@ -9,6 +9,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,7 +19,7 @@ import androidx.core.content.ContextCompat;
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.CustomSpinnerAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SetupMainTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -26,6 +27,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
+
+
 public class SetupMainTaskManager {
 
     private Context context;
@@ -37,11 +40,12 @@ public class SetupMainTaskManager {
     private Spinner spinnerTask;
     TextView category_todo;
     private OnCoordinatesReceivedListener coordinatesReceivedListener; // Callback listener
+    ImageView statusImageView;
+    String taskStatus;
 
-    // Constructor with added listener parameter
     public SetupMainTaskManager(Context context, GoogleMap googleMap, TextView taskTitleView, TextView taskDescriptionView,
                                 TextView taskLocationView, TextView taskNumberView, Spinner spinnerTask,
-                                OnCoordinatesReceivedListener listener, TextView category_todo) {
+                                OnCoordinatesReceivedListener listener, TextView category_todo, ImageView statusImageView) {
         this.context = context;
         this.googleMap = googleMap;
         this.taskTitleView = taskTitleView;
@@ -49,8 +53,9 @@ public class SetupMainTaskManager {
         this.taskLocationView = taskLocationView;
         this.taskNumberView = taskNumberView;
         this.spinnerTask = spinnerTask;
-        this.coordinatesReceivedListener = listener; // Set the listener
+        this.coordinatesReceivedListener = listener;
         this.category_todo = category_todo;
+        this.statusImageView = statusImageView;
 
     }
 
@@ -64,12 +69,15 @@ public class SetupMainTaskManager {
                     StringBuilder taskLocation = new StringBuilder();
                     StringBuilder taskNumber = new StringBuilder();
                     StringBuilder category_maintask = new StringBuilder();
+                    StringBuilder status_maintask = new StringBuilder();
+
 
                     for (Taskmain taskmain : data) {
                         // Task title and description
                         taskTitle.append(taskmain.getName());
                         taskDescription.append(taskmain.getDescription());
                         category_maintask.append(taskmain.getCategory());
+                        status_maintask.append(taskmain.getStatus());
 
                         String clientInfo = taskmain.getClient_details() != null
                                 ? taskmain.getClient_details().getPhone()
@@ -112,16 +120,21 @@ public class SetupMainTaskManager {
                         }
                     }
 
+
+                   String status_main = status_maintask.toString().trim();
+                    Log.d("Stats", "SetupMainTaskManager -> "+ status_main);
+
                     List<String> options = new ArrayList<>();
-                    options.add("In progress");
-                    options.add("Pending");
-                    options.add("Under inspection");
+                    options.add("Todo");
+                    options.add("Skipped");
                     options.add("Done");
 
-                    CustomSpinnerAdapter adapter = new CustomSpinnerAdapter(
+
+
+                    SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
                             context,
                             R.layout.task_spinner_item,
-                            options);
+                            options,jobId,statusImageView,status_main);
                     spinnerTask.setAdapter(adapter);
 
                     // Handle spinner item selection
@@ -131,17 +144,21 @@ public class SetupMainTaskManager {
                             if (position >= 0 && position < data.size()) { // Ensure position is within bounds
                                 Taskmain selectedTask = data.get(position);
 
+                                // Set the task's title and description on the UI
                                 taskTitleView.setText(selectedTask.getName());
                                 taskDescriptionView.setText(selectedTask.getDescription());
 
+                                // Get the category and category color
                                 String categories = selectedTask.getCategory() != null && !selectedTask.getCategory().trim().isEmpty()
                                         ? selectedTask.getCategory().trim()
                                         : "No Category";
-
                                 String categoriesColors = String.valueOf(selectedTask.getCategory_color()).trim();
-                                Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
+                                // Set the category background using CategoryColorManager
+                                Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
                                 category_todo.setText(categories);
+
+                                // Set the category color and background
                                 if (categoriesColors != null && !categoriesColors.isEmpty()) {
                                     try {
                                         int categoryColor = Color.parseColor(categoriesColors);
@@ -151,15 +168,12 @@ public class SetupMainTaskManager {
                                     } catch (IllegalArgumentException e) {
                                         Log.e("category_todo", "Invalid category color format: " + categoriesColors, e);
                                         category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
-
                                     }
                                 } else {
                                     category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
-
                                 }
 
-
-
+                                // Set client info and address on the UI
                                 String clientInfo = selectedTask.getClient_details() != null
                                         ? selectedTask.getClient_details().getPhone()
                                         : "No client info";
@@ -170,10 +184,10 @@ public class SetupMainTaskManager {
                                         : "No address";
                                 taskLocationView.setText(address);
 
+
                             } else {
                                 Log.e("SetupMainTaskManager", "Selected spinner position is out of bounds");
                             }
-
 
 
                         }
@@ -205,4 +219,6 @@ public class SetupMainTaskManager {
     public interface OnCoordinatesReceivedListener {
         void onCoordinatesReceived(double latitude, double longitude);
     }
+
+
 }
