@@ -1,5 +1,7 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_skipped;
 
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoResponse;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -15,15 +17,16 @@ public class SkippedApiManager {
     public interface ApiResponseCallback {
         void onDataFetched(List<Skipped> data); // Return List<Todo>
         void onError(String error);
+
     }
-    public static void fetchSkippedApiData(ApiResponseCallback callback) {
+
+    public static void fetchApiDataPaginated(int page, int pageSize, ApiResponseCallback callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=skipped";
         String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-
-        // Construct the full URL
-        String url = String.format("%s%s?page=1&per_page=100&status=skipped", baseUrl, endpoint);
+        // Construct the full URL with pagination parameters
+        String url = String.format("%s%s?page=%d&per_page=%d&status=skipped", baseUrl, endpoint, page, pageSize);
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -44,7 +47,6 @@ public class SkippedApiManager {
                     String jsonResponse = response.body().string();
                     Gson gson = new Gson();
 
-                    // Parse the JSON into a TodoResponse object
                     SkippedResponse skippedResponse = gson.fromJson(jsonResponse, SkippedResponse.class);
 
                     // Pass the full list of Todo objects to the callback
@@ -60,5 +62,3 @@ public class SkippedApiManager {
         });
     }
 }
-
-

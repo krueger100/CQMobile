@@ -68,10 +68,8 @@ public class NewBuildApiManager {
         });
     }
 
-    public static void fetchSecondaryApiData(String jobId, ApiResponseCallback<SubTask> callback) {
+    public static void fetchSecondaryApiData(String jobId, int page, int pageSize, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
-      ///  String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);  <-- eto ang tama
-        String jobIdDummy = "1504";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
         String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";

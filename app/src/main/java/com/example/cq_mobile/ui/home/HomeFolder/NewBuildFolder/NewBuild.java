@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +39,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
-
+    private int currentPage = 1; // Start from page 1
+    private final int pageSize = 15; // Number of items per page
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private BackPressManager backPressManager;
     private GoogleMap googleMap;
@@ -48,12 +50,13 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     private SetupMainTaskManager setupMainTaskManager;
     private SetupRecyclerViewManager setupRecyclerViewManager;
     private Marker marker;
-    private RouteNewBuildManager routeNewBuildManager; // Renamed RouteManager to RouteNewBuildManager
+    private RouteNewBuildManager routeNewBuildManager;
     LatLng taskLatLng;
     LatLng userLocation;
     MarkerManager markerManager = new MarkerManager();
     BitmapDescriptor customMarkerIcon;
     MapCameraManager mapCameraManager;
+    ProgressBar progress_circular;
 TextView category_todo;
 
     @Override
@@ -64,6 +67,7 @@ TextView category_todo;
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
         category_todo = findViewById(R.id.category_todo);
+        progress_circular = findViewById(R.id.progress_circular);
 
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
@@ -165,6 +169,8 @@ TextView category_todo;
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
             }
         });
+
+
     }
 
     @Override
@@ -196,12 +202,17 @@ TextView category_todo;
 
                 mapCameraManager = new MapCameraManager(googleMap, routeNewBuildManager, customMarkerIcon);
                 mapCameraManager.setDestination(userLocation, taskLatLng);
+                progress_circular.setVisibility(View.GONE);
 
             } else {
                 Log.e("onCoordinatesReceived", "Invalid LatLng: " + latitude + ", " + longitude);
+                progress_circular.setVisibility(View.GONE);
+
             }
         } else {
             Log.e("onCoordinatesReceived", "Received invalid coordinates: " + latitude + ", " + longitude);
+            progress_circular.setVisibility(View.GONE);
+
         }
     }
 

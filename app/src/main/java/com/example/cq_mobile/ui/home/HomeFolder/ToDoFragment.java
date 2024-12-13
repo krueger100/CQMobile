@@ -2,6 +2,7 @@ package com.example.cq_mobile.ui.home.HomeFolder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,11 @@ public class ToDoFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView clockout_btn;
 
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
+    private int currentPage = 1;
+    private final int PAGE_SIZE = 15;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -44,9 +50,28 @@ public class ToDoFragment extends Fragment {
         clockout_btn = view.findViewById(R.id.clockout_btn);
 
         // Set up RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
         todoAdapter = new TodoAdapter(getContext(), joblist);
         recyclerView.setAdapter(todoAdapter);
+
+        // Add scroll listener for pagination
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (!isLoading && !isLastPage) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
+                        loadMessages();
+                    }
+                }
+            }
+        });
 
         // Load initial data
         loadMessages();
@@ -61,25 +86,35 @@ public class ToDoFragment extends Fragment {
             }
         });
 
+
         return view;
     }
 
     private void loadMessages() {
+        if (isLoading) return;
+        isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
-        TodoApiManager.fetchApiData(new TodoApiManager.ApiResponseCallback() {
+        TodoApiManager.fetchApiDataPaginated(currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Todo> data) {
                 if (getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
+                    isLoading = false;
+
                     if (data != null && !data.isEmpty()) {
-                        joblist.clear();
-                        joblist.addAll(data); // Add the List<Todo>
+                        joblist.addAll(data);
                         todoAdapter.notifyDataSetChanged();
+                        currentPage++;
+
+                        // Check if this is the last page
+                        if (data.size() < PAGE_SIZE) {
+                            isLastPage = true;
+                        }
                     } else {
-                        Toast.makeText(getContext(), "No jobs available", Toast.LENGTH_SHORT).show();
+                        isLastPage = true; // No more data to load
                     }
                 });
             }
@@ -90,7 +125,8 @@ public class ToDoFragment extends Fragment {
 
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Error loading data: " + error, Toast.LENGTH_SHORT).show();
+                    isLoading = false;
+                    Log.d("Paginated Data", "Error loading data: " + error);
                 });
             }
         });

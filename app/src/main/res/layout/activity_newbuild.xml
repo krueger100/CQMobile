@@ -88,7 +88,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingBottom="4dp"
-                        android:text="Task Title"
+                        android:text="Loading.. ."
                         android:layout_marginTop="10dp"
                         android:layout_marginStart="10dp"
                         android:textSize="16sp"
@@ -109,7 +109,7 @@
                         android:id="@+id/task_location"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Task location"
+                        android:text="Loading.. ."
                         android:textSize="14sp"
                         android:layout_marginStart="5dp"
                         app:layout_constraintBottom_toBottomOf="@+id/imageView3"
@@ -131,7 +131,7 @@
                         android:id="@+id/task_number"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Task Number"
+                        android:text="Loading.. ."
                         android:textSize="14sp"
                         android:layout_marginStart="5dp"
                         app:layout_constraintBottom_toBottomOf="@+id/imageView4"
@@ -143,7 +143,7 @@
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_margin="10dp"
-                        android:text="Task description"
+                        android:text="Loading.. ."
                         android:textSize="14sp"
                         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -169,7 +169,7 @@
                             android:layout_height="45dp"
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
-                            android:text=""
+                            android:text="Loading.. ."
                             android:background="@drawable/button_grey"
                             android:textColor="@color/textBtnBlue"
                             android:textSize="14dp"
@@ -266,7 +266,7 @@
                 android:gravity="center">
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="130dp"
+                    android:layout_width="185dp"
                     android:layout_height="70dp"
                     app:cardCornerRadius="8dp"
                     android:elevation="10dp"
@@ -291,7 +291,7 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="130dp"
+                    android:layout_width="185dp"
                     android:layout_height="70dp"
                     app:cardCornerRadius="8dp"
                     android:elevation="10dp"
@@ -323,11 +323,34 @@
                 android:gravity="center">
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="130dp"
+                    android:layout_width="185dp"
                     android:layout_height="70dp"
                     app:cardCornerRadius="8dp"
                     android:elevation="10dp"
                     android:layout_margin="10dp"
+                    android:padding="10dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/outline_folder_24"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Documents"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="185dp"
+                    android:layout_height="70dp"
+                    app:cardCornerRadius="8dp"
+                    android:elevation="10dp"
                     android:padding="10dp">
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -342,30 +365,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Documents"/>
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="130dp"
-                    android:layout_height="70dp"
-                    app:cardCornerRadius="8dp"
-                    android:elevation="10dp"
-                    android:padding="10dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical">
-                        <ImageView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/reminder__1__2"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Reminders"/>
+                            android:text="Sheets"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -382,4 +382,10 @@
 
     </LinearLayout>
 
+
+    <ProgressBar
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

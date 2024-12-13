@@ -9,7 +9,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import java.io.IOException;
 import java.util.List;
-
 public class TodoApiManager {
 
     public interface ApiResponseCallback {
@@ -17,14 +16,14 @@ public class TodoApiManager {
         void onError(String error);
     }
 
-    public static void fetchApiData(ApiResponseCallback callback) {
+    public static void fetchApiDataPaginated(int page, int pageSize, ApiResponseCallback callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
-        String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
+        String endpoint = "/api/m/jobs/schedules/today";
         String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-        // Construct the full URL
-        String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
+        // Construct the full URL with pagination parameters
+        String url = String.format("%s%s?page=%d&per_page=%d&status=todo", baseUrl, endpoint, page, pageSize);
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -48,7 +47,7 @@ public class TodoApiManager {
                     // Parse the JSON into a TodoResponse object
                     TodoResponse todoResponse = gson.fromJson(jsonResponse, TodoResponse.class);
 
-                    // Pass the full list of Todo objects to the callback
+                    // Pass the paginated list of Todo objects to the callback
                     if (todoResponse != null && todoResponse.getData() != null && !todoResponse.getData().isEmpty()) {
                         callback.onDataFetched(todoResponse.getData());
                     } else {

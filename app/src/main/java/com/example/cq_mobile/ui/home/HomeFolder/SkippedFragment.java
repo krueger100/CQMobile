@@ -2,6 +2,7 @@ package com.example.cq_mobile.ui.home.HomeFolder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +20,9 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.Skipped;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedApiManager;
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +30,14 @@ import java.util.List;
 public class SkippedFragment extends Fragment {
     private RecyclerView recyclerView;
     private SkippedAdapter skippedAdapter;
-    private List<Skipped> skippedList = new ArrayList<>(); // Use List<Todo>
+    private List<Skipped> skippedList = new ArrayList<>();
     private ProgressBar progressBar;
     private TextView clockout_btn;
+
+    private boolean isLoading = false;
+    private boolean isLastPage = false;
+    private int currentPage = 1;
+    private final int PAGE_SIZE = 15;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate and setup the "Done" layout here
@@ -36,10 +46,27 @@ public class SkippedFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
         clockout_btn = view.findViewById(R.id.clockout_btn);
         // Set up RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
         skippedAdapter = new SkippedAdapter(getContext(), skippedList);
         recyclerView.setAdapter(skippedAdapter);
 
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (!isLoading && !isLastPage) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
+                        loadMessages();
+                    }
+                }
+            }
+        });
 
         loadMessages();
         clockout_btn.setOnClickListener(new View.OnClickListener() {
@@ -55,21 +82,29 @@ public class SkippedFragment extends Fragment {
         return view;
     }
     private void loadMessages() {
+        if (isLoading) return; // Prevent multiple calls while already loading
+        isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
-        SkippedApiManager.fetchSkippedApiData(new SkippedApiManager.ApiResponseCallback() {
+        SkippedApiManager.fetchApiDataPaginated(currentPage, PAGE_SIZE, new SkippedApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Skipped> data) {
                 if (getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
+                    isLoading = false;
+
                     if (data != null && !data.isEmpty()) {
-                        skippedList.clear();
-                        skippedList.addAll(data); // Add the List<Todo>
-                        skippedAdapter.notifyDataSetChanged();
+                        skippedAdapter.setSkippedList(data); // Update the adapter with new data
+                        currentPage++;
+
+                        // Check if this is the last page
+                        if (data.size() < PAGE_SIZE) {
+                            isLastPage = true;
+                        }
                     } else {
-                        Toast.makeText(getContext(), "No jobs available", Toast.LENGTH_SHORT).show();
+                        isLastPage = true; // No more data to load
                     }
                 });
             }
@@ -80,7 +115,8 @@ public class SkippedFragment extends Fragment {
 
                 getActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Error loading data: " + error, Toast.LENGTH_SHORT).show();
+                    isLoading = false;
+                    Log.d("Paginated Data", "Error loading data: " + error);
                 });
             }
         });

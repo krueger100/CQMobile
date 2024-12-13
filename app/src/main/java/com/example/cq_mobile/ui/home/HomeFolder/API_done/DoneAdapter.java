@@ -19,40 +19,101 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.DoneViewHolder> {
+public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int VIEW_TYPE_EMPTY = 0;
+    private static final int VIEW_TYPE_ITEM = 1;
     private Context context;
     private List<Done> doneList;
+    private Set<String> uniqueIds;  // Set to track unique IDs
 
     public DoneAdapter(Context context, List<Done> doneList) {
         this.context = context;
         this.doneList = doneList;
+        this.uniqueIds = new HashSet<>();
+        addUniqueItemsToList(doneList);
+    }
+    private void addUniqueItemsToList(List<Done> doneList) {
+        if (doneList != null) {
+            for (Done done : doneList) {
+                if (done != null && done.getId() != -1) { // Check for invalid ID value instead of null
+                    uniqueIds.add(String.valueOf(done.getId()));
+                }
+            }
+        }
+    }
+
+    public void setDoneList(List<Done> newDoneList) {
+        // Clear the current skipped list
+        doneList.clear();
+        uniqueIds.clear();
+
+        // Add new items to the list and set
+        addUniqueItemsToList(newDoneList);
+        doneList.addAll(newDoneList);
+
+        // Notify that the data has been updated
+        notifyDataSetChanged();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (doneList == null || doneList.isEmpty()) {
+            return VIEW_TYPE_EMPTY;
+        }
+        return VIEW_TYPE_ITEM;
     }
 
     @NonNull
     @Override
-    public DoneAdapter.DoneViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_done, parent, false);
-        return new DoneAdapter.DoneViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_EMPTY) {
+            View view = LayoutInflater.from(context).inflate(R.layout.item_empty_state, parent, false);
+            return new EmptyViewHolder(view);
+        } else {
+            View view = LayoutInflater.from(context).inflate(R.layout.item_done, parent, false);
+            return new DoneViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull DoneAdapter.DoneViewHolder holder, int position) {
-        Done done = doneList.get(position);
-        holder.nameTextView.setText(done.getName());
-        holder.stateDescription.setText(done.getDescription());
-        String id = String.valueOf(done.getId());
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof DoneViewHolder) {
+            DoneViewHolder doneHolder = (DoneViewHolder) holder;
+            Done done = doneList.get(position);
 
-        String categories = done.getCategory() != null ? done.getCategory().trim() : "Empty Category";
-        String categoriesColors = String.valueOf(done.getCategory_color()).trim();
-        Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
+            doneHolder.nameTextView.setText(done.getName());
+            doneHolder.stateDescription.setText(done.getDescription());
+            String id = String.valueOf(done.getId());
 
+            String categories = done.getCategory() != null ? done.getCategory().trim() : "Empty Category";
+            String categoriesColors = String.valueOf(done.getCategory_color()).trim();
+            Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
-        holder.category.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                holder.progressBar.setVisibility(View.VISIBLE);
+            if (id != null) {
+                Log.d("User ID ->", "Received Todo ID's: " + id);
+                Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
+
+                doneHolder.category.setText(categories);
+                if (categoriesColors != null && !categoriesColors.isEmpty()) {
+                    try {
+                        int categoryColor = Color.parseColor(categoriesColors);
+                        doneHolder.category.setTextColor(categoryColor);
+                        doneHolder.category.setBackground(categoryBackground);
+                    } catch (IllegalArgumentException e) {
+                        Log.e("DoneAdapter", "Invalid category color format: " + categoriesColors, e);
+                        doneHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
+                    }
+                } else {
+                    doneHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
+                }
+            }
+
+            doneHolder.category.setOnClickListener(v -> {
+                doneHolder.progressBar.setVisibility(View.VISIBLE);
                 Intent intent = new Intent(context, NewBuild.class);
                 intent.putExtra("job_id", id);
                 try {
@@ -60,61 +121,23 @@ public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.DoneViewHolder
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
-                    holder.progressBar.setVisibility(View.GONE);
+                    doneHolder.progressBar.setVisibility(View.GONE);
                 }
-            }
-        });
-        if (id != null) {
-            Log.d("User ID ->", "Received Todo ID's: " + id);
-            Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
-
-            holder.category.setText(categories);
-            if (categoriesColors != null && !categoriesColors.isEmpty()) {
-                try {
-                    int categoryColor = Color.parseColor(categoriesColors);
-                    holder.category.setTextColor(categoryColor);
-                    holder.category.setBackground(categoryBackground);
-
-
-                } catch (IllegalArgumentException e) {
-                    Log.e("SubTaskAdapter", "Invalid category color format: " + categoriesColors, e);
-                    holder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
-
-
-                }
-            } else {
-                holder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
-
-
-            }
-
+            });
+        } else if (holder instanceof EmptyViewHolder) {
+            // Optional: Handle empty view logic if needed.
+            ((EmptyViewHolder) holder).empty_state_text.setText("");
         }
-        holder.category.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                holder.progressBar.setVisibility(View.VISIBLE);
-                Intent intent = new Intent(context, NewBuild.class);
-                intent.putExtra("job_id", id);
-                try {
-                    context.startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    holder.progressBar.setVisibility(View.GONE);
-                }
-            }
-        });
-
     }
 
     @Override
     public int getItemCount() {
-        return doneList.size();
-
+        return (doneList == null || doneList.isEmpty()) ? 1 : doneList.size();
     }
+
     public static class DoneViewHolder extends RecyclerView.ViewHolder {
         ProgressBar progressBar;
-        TextView nameTextView, stateDescription,category;
+        TextView nameTextView, stateDescription, category;
 
         public DoneViewHolder(View itemView) {
             super(itemView);
@@ -122,7 +145,14 @@ public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.DoneViewHolder
             stateDescription = itemView.findViewById(R.id.state_description);
             category = itemView.findViewById(R.id.category);
             progressBar = itemView.findViewById(R.id.progressBar);
+        }
+    }
 
+    public static class EmptyViewHolder extends RecyclerView.ViewHolder {
+        TextView empty_state_text;
+        public EmptyViewHolder(View itemView) {
+            super(itemView);
+            empty_state_text = itemView.findViewById(R.id.empty_state_text);
         }
     }
 }

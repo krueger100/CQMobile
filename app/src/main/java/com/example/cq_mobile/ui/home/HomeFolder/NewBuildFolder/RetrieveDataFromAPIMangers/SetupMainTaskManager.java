@@ -36,7 +36,6 @@ public class SetupMainTaskManager {
     private TextView taskNumberView;
     private Spinner spinnerTask;
     TextView category_todo;
-
     private OnCoordinatesReceivedListener coordinatesReceivedListener; // Callback listener
 
     // Constructor with added listener parameter
@@ -52,6 +51,7 @@ public class SetupMainTaskManager {
         this.spinnerTask = spinnerTask;
         this.coordinatesReceivedListener = listener; // Set the listener
         this.category_todo = category_todo;
+
     }
 
     public void setupMainTask(String jobId) {
@@ -173,6 +173,9 @@ public class SetupMainTaskManager {
                             } else {
                                 Log.e("SetupMainTaskManager", "Selected spinner position is out of bounds");
                             }
+
+
+
                         }
 
                         @Override
