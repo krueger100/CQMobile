@@ -14,11 +14,9 @@ import com.example.cq_mobile.R;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
-public class UserPositionMarkerManager {
-
-    private static final int DIAMETER = 150;
-    private static final int PADDING = 35;
-
+public class DistanceMarkerManager {
+    private static final int DIAMETER = 100;
+    private static final int PADDING = 25;
     public BitmapDescriptor getCustomCircleMarkerIcon(Context context) {
         Bitmap bitmap = Bitmap.createBitmap(DIAMETER, DIAMETER, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -32,7 +30,7 @@ public class UserPositionMarkerManager {
         canvas.drawCircle(radius, radius, radius, paint);
 
         // Load the drawable (replace with your image resource)
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.baseline_location_on_24);
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.baseline_directions_24);
 
         if (drawable != null) {
             // Convert the drawable to a bitmap

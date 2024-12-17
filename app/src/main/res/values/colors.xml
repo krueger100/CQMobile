@@ -29,9 +29,9 @@
     <color name="skippedColor">#1976D2</color>
     <color name="doneColor">#2AC76F</color>
 
-        <color name="route_color_1">#2D63F8</color>
-        <color name="route_color_2">#804E7CFF</color>
-        <color name="route_color_3">#80303F9F</color>
+        <color name="route_color_1">#E626ABF4</color>
+        <color name="route_color_2">#B326ABF4</color>
+        <color name="route_color_3">#8026ABF4</color>
 
 
 

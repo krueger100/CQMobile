@@ -1,96 +1,200 @@
 package com.example.cq_mobile.ui.map.RouteFolder;
 
+import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DirectionsResponse {
     @SerializedName("routes")
-    public List<Route> routes;
+    public List<DirectionsResponse.Route> routes;
 
+    // Get all route polylines
+    public List<String> getAllRoutePolylines() {
+        List<String> polylines = new ArrayList<>();
+        if (routes != null && !routes.isEmpty()) {
+            for (DirectionsResponse.Route route : routes) {
+                if (route.overviewPolyline != null) {
+                    polylines.add(route.overviewPolyline.points);
+                }
+            }
+        }
+        Log.d("DirectionsAPI", "All route polylines: " + polylines.size());  // Log the total number of polylines
+        return polylines;
+    }
+
+    // Get the polyline for the shortest route
     public String getShortestRoutePolyline() {
+        DirectionsResponse.Route shortestRoute = getShortestRoute();
+        if (shortestRoute != null && shortestRoute.overviewPolyline != null) {
+            return shortestRoute.overviewPolyline.points;
+        }
+        return null;
+    }
+
+    // Get the destination locations for all routes
+    public List<LatLng> getAllDestinations() {
+        List<LatLng> destinations = new ArrayList<>();
         if (routes != null && !routes.isEmpty()) {
-            Route shortestRoute = getShortestRoute();
-            if (shortestRoute != null && shortestRoute.overviewPolyline != null) {
-                return shortestRoute.overviewPolyline.points;
+            for (DirectionsResponse.Route route : routes) {
+                LatLng destination = getDestinationLocation(route);
+                if (destination != null) {
+                    destinations.add(destination);
+                }
+            }
+        }
+        return destinations;
+    }
+
+    // Get the destination location for a specific route (last leg's end location)
+    private LatLng getDestinationLocation(DirectionsResponse.Route route) {
+        if (route != null && route.legs != null && !route.legs.isEmpty()) {
+            DirectionsResponse.Route.Leg lastLeg = route.legs.get(route.legs.size() - 1);
+            if (lastLeg != null && lastLeg.endLocation != null) {
+                return new LatLng(lastLeg.endLocation.lat, lastLeg.endLocation.lng);
             }
         }
         return null;
     }
 
-    public String getLongestRoutePolyline() {
-        if (routes != null && !routes.isEmpty()) {
-            Route longestRoute = getLongestRoute();
-            if (longestRoute != null && longestRoute.overviewPolyline != null) {
-                return longestRoute.overviewPolyline.points;
-            }
-        }
-        return null;
+    private DirectionsResponse.Route getShortestRoute() {
+        return getRouteBasedOnDistance(true);
     }
 
-    private Route getShortestRoute() {
-        return getRouteBasedOnSteps(true);
-    }
-
-    private Route getLongestRoute() {
-        return getRouteBasedOnSteps(false);
-    }
-
-    private Route getRouteBasedOnSteps(boolean shortest) {
+    private DirectionsResponse.Route getRouteBasedOnDistance(boolean shortest) {
         if (routes == null || routes.isEmpty()) {
             return null;
         }
 
-        Route selectedRoute = routes.get(0);
-        int selectedRouteSteps = getTotalSteps(selectedRoute);
+        DirectionsResponse.Route selectedRoute = routes.get(0);
+        int selectedDistance = getTotalDistance(selectedRoute);
 
-        for (Route route : routes) {
-            int currentRouteSteps = getTotalSteps(route);
-            if ((shortest && currentRouteSteps < selectedRouteSteps) || (!shortest && currentRouteSteps > selectedRouteSteps)) {
+        for (DirectionsResponse.Route route : routes) {
+            int currentDistance = getTotalDistance(route);
+            if ((shortest && currentDistance < selectedDistance) || (!shortest && currentDistance > selectedDistance)) {
                 selectedRoute = route;
-                selectedRouteSteps = currentRouteSteps;
+                selectedDistance = currentDistance;
             }
         }
 
         return selectedRoute;
     }
 
-    private int getTotalSteps(Route route) {
-        int totalSteps = 0;
-        if (route != null && route.legs != null) {
-            for (Route.Leg leg : route.legs) {
-                totalSteps += leg.steps.size();
+    private int getTotalDistance(DirectionsResponse.Route route) {
+        if (route == null || route.legs == null || route.legs.isEmpty()) {
+            return 0;
+        }
+
+        int totalDistance = 0;
+        for (DirectionsResponse.Route.Leg leg : route.legs) {
+            if (leg.distance != null) {
+                totalDistance += leg.distance.value;
             }
         }
-        return totalSteps;
+        return totalDistance;
     }
 
-    public static class Route {
-        @SerializedName("legs")
-        public List<Leg> legs;
+    // Get route info for each route
+    public List<DirectionsResponse.RouteInfo> getRouteInfo() {
+        List<DirectionsResponse.RouteInfo> routeInfoList = new ArrayList<>();
+        if (routes != null && !routes.isEmpty()) {
+            for (DirectionsResponse.Route route : routes) {
+                DirectionsResponse.RouteInfo routeInfo = new DirectionsResponse.RouteInfo();
 
-        @SerializedName("overview_polyline")
-        private OverviewPolyline overviewPolyline;
+                // Add total distance
+                int totalDistance = 0;
+                int totalDuration = 0;
+                if (route.legs != null && !route.legs.isEmpty()) {
+                    for (DirectionsResponse.Route.Leg leg : route.legs) {
+                        if (leg.distance != null) {
+                            totalDistance += leg.distance.value;
+                        }
+                        if (leg.duration != null) {
+                            totalDuration += leg.duration.value;
+                        }
+                    }
+                }
+                routeInfo.setDistance(totalDistance);
+                routeInfo.setDuration(totalDuration);
 
-        public static class Leg {
-            @SerializedName("steps")
-            public List<Step> steps;
-
-            public static class Step {
-                @SerializedName("html_instructions")
-                private String htmlInstructions;
-
-                @SerializedName("start_location")
-                private LatLng startLocation;
-
-                @SerializedName("end_location")
-                private LatLng endLocation;
+                routeInfoList.add(routeInfo);
             }
         }
+        return routeInfoList;
+    }
+
+    // Nested classes representing the response structure
+    public static class Route {
+        @SerializedName("overview_polyline")
+        public DirectionsResponse.Route.OverviewPolyline overviewPolyline;
+
+        @SerializedName("legs")
+        public List<DirectionsResponse.Route.Leg> legs;
 
         public static class OverviewPolyline {
             @SerializedName("points")
             public String points;
+        }
+
+        public static class Leg {
+            @SerializedName("distance")
+            public DirectionsResponse.Route.Leg.Distance distance;
+
+            @SerializedName("duration")
+            public DirectionsResponse.Route.Leg.Duration duration;  // Add duration field
+
+            @SerializedName("end_location")
+            public DirectionsResponse.Route.Leg.Location endLocation;
+
+            public static class Distance {
+                @SerializedName("value")
+                public int value;  // Distance in meters
+            }
+
+            public static class Duration {
+                @SerializedName("value")
+                public int value;  // Duration in seconds
+            }
+
+            public static class Location {
+                @SerializedName("lat")
+                public double lat;
+
+                @SerializedName("lng")
+                public double lng;
+            }
+        }
+    }
+
+    public static class RouteInfo {
+        private int distance;  // distance in meters
+        private int duration;  // duration in seconds
+
+        public int getDistance() {
+            return distance;
+        }
+
+        public void setDistance(int distance) {
+            this.distance = distance;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+
+        public void setDuration(int duration) {
+            this.duration = duration;
+        }
+
+        public String getFormattedDistance() {
+            return distance + " meters";
+        }
+
+        public String getFormattedDuration() {
+            int minutes = duration / 60;
+            int seconds = duration % 60;
+            return minutes + " min " + seconds + " sec";
         }
     }
 }

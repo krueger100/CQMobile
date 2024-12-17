@@ -3,36 +3,30 @@ package com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
-
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import androidx.core.content.ContextCompat;
-
-import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.DistanceMarkerManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
-
 import java.io.IOException;
 import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
 
 public class RouteNewBuildManager {
     private GoogleMap googleMap;
@@ -79,39 +73,53 @@ public class RouteNewBuildManager {
                 if (response.isSuccessful() && response.body() != null) {
                     DirectionsResponseNewBuild directionsResponse = response.body();
 
-                    // Get all route polylines (if there are multiple)
                     List<String> allRoutePolylines = directionsResponse.getAllRoutePolylines();
                     List<DirectionsResponseNewBuild.RouteInfo> routeInfoList = directionsResponse.getRouteInfo();
+
                     if (allRoutePolylines != null && !allRoutePolylines.isEmpty()) {
+                        // Define the colors for each route
+                        int[] routeColors = {
+                                Color.parseColor("#804E7CFF"), // Route Color 1  2D63F8
+                                Color.parseColor("#2D63F8"), // Route Color 2  804E7CFF
+                                Color.parseColor("#80303F9F")  // Route Color 3
+                        };
+                        // Loop through each route
+                        for (int i = 0; i < allRoutePolylines.size(); i++) {
+                            String polyline = allRoutePolylines.get(i);
+                            DirectionsResponseNewBuild.RouteInfo routeInfo = routeInfoList.get(i);
+                            String distanceText = routeInfo.getFormattedDistance();
+                            String durationText = routeInfo.getFormattedDuration();
 
+                            // Choose the color for this route
+                            int color = routeColors[i % routeColors.length];
 
-                    // Loop through each route and add polyline and distance/time information
-                    for (int i = 0; i < allRoutePolylines.size(); i++) {
-                        String polyline = allRoutePolylines.get(i);
-                        DirectionsResponseNewBuild.RouteInfo routeInfo = routeInfoList.get(i);
-                        String distanceText = routeInfo.getFormattedDistance();
-                        String durationText = routeInfo.getFormattedDuration();
+                            // Draw polyline
+                            drawPolyline(polyline, color, "Route " + (i + 1), 10);
 
-                        // Draw polyline
-                        drawPolyline(polyline, Color.BLUE, "Route " + (i + 1), 10);
+                            // Calculate the center of the polyline (simple midpoint approach)
+                            List<LatLng> points = PolyUtil.decode(polyline);
+                            LatLng midpoint = calculatePolylineCenter(points);
 
-                        // Calculate the center of the polyline (simple midpoint approach)
-                        List<LatLng> points = PolyUtil.decode(polyline);
-                        LatLng midpoint = calculatePolylineCenter(points);
+                            DistanceMarkerManager distanceMarkerManager = new DistanceMarkerManager();
+                            BitmapDescriptor customMarkerIcon = distanceMarkerManager.getCustomCircleMarkerIcon(context);
 
-                        // Place marker at midpoint with distance and time
-                        googleMap.addMarker(new MarkerOptions()
-                                .position(midpoint)
-                                .title("Distance: " + distanceText + ", Time: " + durationText)
-                                .snippet("Duration: " + durationText)
-                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                                .anchor(0.5f, 0.8f)
-                                .zIndex(5.0f));
-                    }
-                    }else {
+                            Marker marker = googleMap.addMarker(new MarkerOptions()
+                                    .position(midpoint)
+                                    .title("Distance: " + distanceText +"\n"+", Time: " + durationText)
+                                    .snippet("Duration: " + durationText)
+                                    .icon(customMarkerIcon)
+                                    .anchor(0.5f, 0.8f)
+                                    .zIndex(5.0f));
+
+                            if (marker != null) {
+                                marker.showInfoWindow();
+                            }
+
+                        }
+                    } else {
                         showAddressInputDialog(origin, destination);
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15));
                         Toast.makeText(context, "No routes found", Toast.LENGTH_SHORT).show();
-
                     }
 
 
@@ -127,18 +135,19 @@ public class RouteNewBuildManager {
                 Toast.makeText(context, "Error fetching directions", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
+
 
     // Calculate the center of the polyline
     public LatLng calculatePolylineCenter(List<LatLng> points) {
-        double latSum = 0;
-        double lngSum = 0;
-        for (LatLng point : points) {
-            latSum += point.latitude;
-            lngSum += point.longitude;
+        if (points == null || points.isEmpty()) {
+            Log.e(TAG, "Polyline points are empty or null.");
+            return null; // Return null or handle this case as needed
         }
-        int size = points.size();
-        return new LatLng(latSum / size, lngSum / size);
+        // Find the middle point of the polyline
+        int middleIndex = points.size() / 2;
+        return points.get(middleIndex);
     }
 
     public void drawPolyline(String encodedPolyline, int color, String label, float width) {

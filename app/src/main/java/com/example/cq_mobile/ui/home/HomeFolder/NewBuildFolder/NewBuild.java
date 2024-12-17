@@ -166,14 +166,13 @@ ImageView statusImageView;
              //  googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
                 UserPositionMarkerManager userPositionMarkerManager = new UserPositionMarkerManager();
                 BitmapDescriptor customMarkerIcon = userPositionMarkerManager.getCustomCircleMarkerIcon(this);
-                //   googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here >>"));
 
                 Marker userMarker;
                 userMarker =  googleMap.addMarker(new MarkerOptions()
                         .position(userLocation)
                         .title("You are here")
-                        .anchor(0.5f, 0.8f)
-                        .zIndex(5.0f)
+                        .anchor(0.6f, 0.9f)
+                        .zIndex(8.0f)
                         .icon(customMarkerIcon));
 
 
