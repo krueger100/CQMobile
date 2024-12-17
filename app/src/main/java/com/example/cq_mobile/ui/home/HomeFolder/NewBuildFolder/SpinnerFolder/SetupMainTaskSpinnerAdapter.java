@@ -43,7 +43,7 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
             lowerCaseSet.add(status_main.toLowerCase());
         }
 
-        // Add remaining items, ensuring uniqueness by checking for case-insensitive duplicates
+
         for (String item : objects) {
             if (!lowerCaseSet.contains(item.toLowerCase())) {
                 lowerCaseSet.add(item.toLowerCase());
@@ -61,6 +61,7 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
 
 
 
+
     @NonNull
     @Override
     public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -69,12 +70,31 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
         TextView text = view.findViewById(R.id.spinner_text);
         String currentItem = items.get(position);
         text.setText(capitalizeFirstLetter(currentItem));
-        int color = getColorAndUpdateStatus(currentItem);
-
+        int color = getColorAndUpdateStatusDropDown(currentItem);
         text.setTextColor(color);
-
         return view;
     }
+
+    private int getColorAndUpdateStatusDropDown(String currentItem) {
+        int color;
+        switch (currentItem) {
+            case "Todo":
+                color = ContextCompat.getColor(context, R.color.todoColor);
+                break;
+            case "Skipped":
+                color = ContextCompat.getColor(context, R.color.skippedColor);
+                break;
+            case "Done":
+                color = ContextCompat.getColor(context, R.color.color_done);
+                break;
+            default:
+                color = ContextCompat.getColor(context, R.color.textBtnGrey);
+                break;
+        }
+        return color;
+    }
+
+
 
     @NonNull
     @Override
@@ -97,16 +117,17 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
         return view;
     }
 
-    /**
-     * A utility method to determine the color for a given status and update the statusImageView.
-     */
+
     private int getColorAndUpdateStatus(String status) {
         if (status == null) {
             return ContextCompat.getColor(context, R.color.textBtnGrey); // Default color for null status
         }
 
+        // Convert status to lowercase for comparison
+        String lowercaseStatus = status.toLowerCase();
+
         int color;
-        switch (status.toLowerCase()) {
+        switch (lowercaseStatus) {
             case "todo":
                 color = ContextCompat.getColor(context, R.color.todoColor);
                 if (statusImageView != null) {
@@ -127,20 +148,19 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
                     UpdateJobApiManager.updateJobStatus(jobId, "373", "done");
                     statusImageView.setImageResource(R.drawable.button_green);
                 }
+                break;
             default:
-                color = ContextCompat.getColor(context, R.color.color_done);
-                statusImageView.setImageResource(R.drawable.button_green);
+                color = ContextCompat.getColor(context, R.color.textBtnGrey);
+                if (statusImageView != null) {
+                    statusImageView.setImageResource(R.drawable.button_grey);
+                }
                 break;
         }
         return color;
     }
 
-    /**
-     * Capitalizes the first letter of a given string and makes the rest lowercase.
-     *
-     * @param input The string to capitalize.
-     * @return The string with the first letter capitalized.
-     */
+
+
     private String capitalizeFirstLetter(String input) {
         if (input == null || input.isEmpty()) {
             return "";

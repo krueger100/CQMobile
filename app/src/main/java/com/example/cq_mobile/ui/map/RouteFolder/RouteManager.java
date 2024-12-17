@@ -57,7 +57,7 @@ public class RouteManager {
             @Override
             public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    String polyline = response.body().getRoutePolyline();
+                    String polyline = response.body().getShortestRoutePolyline();
                     Log.d("DirectionsAPI", "Polyline: " + polyline); // Log the polyline
                     if (polyline != null) {
                         drawPolyline(polyline);

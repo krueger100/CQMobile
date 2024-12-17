@@ -114,18 +114,25 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
             }
 
-            skippedHolder.category.setOnClickListener(v -> {
-                skippedHolder.progressBar.setVisibility(View.VISIBLE);
-                Intent intent = new Intent(context, NewBuild.class);
-                intent.putExtra("job_id", id);
-                try {
-                    context.startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    skippedHolder.progressBar.setVisibility(View.GONE);
+
+            skippedHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    skippedHolder.progressBar.setVisibility(View.VISIBLE);
+                    Intent intent = new Intent(context, NewBuild.class);
+                    intent.putExtra("job_id", id);
+
+                    try {
+                        context.startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        skippedHolder.progressBar.setVisibility(View.GONE);
+                    }
                 }
             });
+
+
         } else if (holder instanceof EmptyViewHolder) {
             // Optional: Handle empty view logic
             ((EmptyViewHolder) holder).empty_state_text.setText("");

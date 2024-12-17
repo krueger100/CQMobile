@@ -164,7 +164,19 @@ ImageView statusImageView;
             if (location != null) {
                  userLocation = new LatLng(location.getLatitude(), location.getLongitude());
              //  googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
-                googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here"));
+                UserPositionMarkerManager userPositionMarkerManager = new UserPositionMarkerManager();
+                BitmapDescriptor customMarkerIcon = userPositionMarkerManager.getCustomCircleMarkerIcon(this);
+                //   googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here >>"));
+
+                Marker userMarker;
+                userMarker =  googleMap.addMarker(new MarkerOptions()
+                        .position(userLocation)
+                        .title("You are here")
+                        .anchor(0.5f, 0.8f)
+                        .zIndex(5.0f)
+                        .icon(customMarkerIcon));
+
+
                 Log.d("UserLocation", userLocation.latitude + " " + userLocation.longitude);
 
             } else {
@@ -198,7 +210,7 @@ ImageView statusImageView;
                 marker = googleMap.addMarker(new MarkerOptions()
                         .position(taskLatLng)
                        .icon(customMarkerIcon)
-                        .anchor(0.6f, 0.6f)
+                        .anchor(0.5f, 0.8f)
                         .zIndex(5.0f));
 
 

@@ -112,18 +112,25 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
 
-            doneHolder.category.setOnClickListener(v -> {
-                doneHolder.progressBar.setVisibility(View.VISIBLE);
-                Intent intent = new Intent(context, NewBuild.class);
-                intent.putExtra("job_id", id);
-                try {
-                    context.startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    doneHolder.progressBar.setVisibility(View.GONE);
+
+            doneHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    doneHolder.progressBar.setVisibility(View.VISIBLE);
+                    Intent intent = new Intent(context, NewBuild.class);
+                    intent.putExtra("job_id", id);
+
+                    try {
+                        context.startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        doneHolder.progressBar.setVisibility(View.GONE);
+                    }
                 }
             });
+
+
         } else if (holder instanceof EmptyViewHolder) {
             // Optional: Handle empty view logic if needed.
             ((EmptyViewHolder) holder).empty_state_text.setText("");

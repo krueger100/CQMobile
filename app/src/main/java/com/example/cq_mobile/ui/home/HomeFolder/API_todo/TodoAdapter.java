@@ -84,23 +84,32 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
 
-            todoHolder.category.setOnClickListener(v -> {
-                todoHolder.progressBar.setVisibility(View.VISIBLE);
-                Intent intent = new Intent(context, NewBuild.class);
-                intent.putExtra("job_id", id);
+            todoHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    todoHolder.progressBar.setVisibility(View.VISIBLE);
+                    Intent intent = new Intent(context, NewBuild.class);
+                    intent.putExtra("job_id", id);
 
-                try {
-                    context.startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    todoHolder.progressBar.setVisibility(View.GONE);
+                    try {
+                        context.startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        todoHolder.progressBar.setVisibility(View.GONE);
+                    }
                 }
             });
+
+
+
         } else if (holder instanceof EmptyViewHolder) {
             // Optional: Handle empty view logic
            ((EmptyViewHolder) holder).empty_state_text.setText("");
         }
+
+
+
     }
 
     @Override

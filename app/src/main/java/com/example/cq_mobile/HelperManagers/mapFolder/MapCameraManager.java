@@ -38,7 +38,7 @@ public class MapCameraManager {
             marker = googleMap.addMarker(new MarkerOptions()
                     .position(taskLatLng)
                     .icon(customMarkerIcon)
-                    .anchor(0.6f, 0.6f)
+                    .anchor(0.5f, 0.8f)
                     .zIndex(5.0f));
 
             // Draw the route between user location and destination

@@ -3,24 +3,24 @@ package com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
 
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
+
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.map.RouteFolder.DirectionsResponse;
-import com.example.cq_mobile.ui.map.RouteFolder.DirectionsService;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
@@ -50,66 +50,98 @@ public class RouteNewBuildManager {
     public void setGoogleMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
     }
+    public void drawRoute(LatLng origin, LatLng destination) {
+        if (googleMap == null) {
+            Log.e("RouteManager", "GoogleMap is not initialized.");
+            return;
+        }
 
-public void drawRoute(LatLng origin, LatLng destination) {
-    if (googleMap == null) {
-        Log.e("RouteManager", "GoogleMap is not initialized.");
-        return;
+        String apiKey = context.getString(R.string.google_maps_key);
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + origin.latitude + "," + origin.longitude
+                + "&destination=" + destination.latitude + "," + destination.longitude
+                + "&mode=driving" // Add driving mode
+                + "&alternatives=true"  // Request alternative routes
+                + "&key=" + apiKey;
+
+        Log.d("DirectionsAPI", "URL: " + url); // Log the URL
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://maps.googleapis.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        DirectionsServiceNewBuild service = retrofit.create(DirectionsServiceNewBuild.class);
+        Call<DirectionsResponseNewBuild> call = service.getDirections(url, true); // Requesting alternatives
+        call.enqueue(new Callback<DirectionsResponseNewBuild>() {
+            @Override
+            public void onResponse(Call<DirectionsResponseNewBuild> call, Response<DirectionsResponseNewBuild> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    DirectionsResponseNewBuild directionsResponse = response.body();
+
+                    // Get all route polylines (if there are multiple)
+                    List<String> allRoutePolylines = directionsResponse.getAllRoutePolylines();
+                    List<DirectionsResponseNewBuild.RouteInfo> routeInfoList = directionsResponse.getRouteInfo();
+                    if (allRoutePolylines != null && !allRoutePolylines.isEmpty()) {
+
+
+                    // Loop through each route and add polyline and distance/time information
+                    for (int i = 0; i < allRoutePolylines.size(); i++) {
+                        String polyline = allRoutePolylines.get(i);
+                        DirectionsResponseNewBuild.RouteInfo routeInfo = routeInfoList.get(i);
+                        String distanceText = routeInfo.getFormattedDistance();
+                        String durationText = routeInfo.getFormattedDuration();
+
+                        // Draw polyline
+                        drawPolyline(polyline, Color.BLUE, "Route " + (i + 1), 10);
+
+                        // Calculate the center of the polyline (simple midpoint approach)
+                        List<LatLng> points = PolyUtil.decode(polyline);
+                        LatLng midpoint = calculatePolylineCenter(points);
+
+                        // Place marker at midpoint with distance and time
+                        googleMap.addMarker(new MarkerOptions()
+                                .position(midpoint)
+                                .title("Distance: " + distanceText + ", Time: " + durationText)
+                                .snippet("Duration: " + durationText)
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                                .anchor(0.5f, 0.8f)
+                                .zIndex(5.0f));
+                    }
+                    }else {
+                        showAddressInputDialog(origin, destination);
+                        Toast.makeText(context, "No routes found", Toast.LENGTH_SHORT).show();
+
+                    }
+
+
+                } else {
+                    Log.e("DirectionsAPI", "Response not successful: " + response.errorBody());
+                    Toast.makeText(context, "Unable to fetch routes", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<DirectionsResponseNewBuild> call, Throwable t) {
+                Log.e("DirectionsAPI", "API call failed: " + t.getMessage());
+                Toast.makeText(context, "Error fetching directions", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    String apiKey = context.getString(R.string.google_maps_key);
-    String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
-            + origin.latitude + "," + origin.longitude
-            + "&destination=" + destination.latitude + "," + destination.longitude
-            + "&mode=driving" // Add driving mode
-            + "&key=" + apiKey;
-
-    Log.d("DirectionsAPI", "URL: " + url); // Log the URL
-
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("https://maps.googleapis.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
-
-    DirectionsService service = retrofit.create(DirectionsService.class);
-    Call<DirectionsResponse> call = service.getDirections(url);
-    call.enqueue(new Callback<DirectionsResponse>() {
-        @Override
-        public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-            if (response.isSuccessful() && response.body() != null) {
-                String polyline = response.body().getRoutePolyline();
-                Log.d("DirectionsAPI", "Polyline: " + polyline); // Log the polyline
-                if (polyline != null) {
-                    drawPolyline(polyline);
-                } else {
-                    Log.e("DirectionsAPI", "No routes found in response");
-                    Toast.makeText(context, "No route found", Toast.LENGTH_SHORT).show();
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15));
-                    showAddressInputDialog(origin, destination);
-                }
-                MarkerManager markerManager = new MarkerManager();
-                BitmapDescriptor customMarkerIcon = markerManager.getCustomCircleMarkerIcon(context);
-                // Add custom destination marker
-                googleMap.addMarker(new MarkerOptions()
-                        .position(destination)
-                        .title("Destination")
-                        .anchor(0.6f, 0.6f)
-                        .zIndex(5.0f)
-                        .icon(customMarkerIcon));// Use custom marker for destination
-            } else {
-                Log.e("DirectionsAPI", "Response not successful: " + response.errorBody());
-                Toast.makeText(context, "Unable to fetch route", Toast.LENGTH_SHORT).show();
-            }
+    // Calculate the center of the polyline
+    public LatLng calculatePolylineCenter(List<LatLng> points) {
+        double latSum = 0;
+        double lngSum = 0;
+        for (LatLng point : points) {
+            latSum += point.latitude;
+            lngSum += point.longitude;
         }
+        int size = points.size();
+        return new LatLng(latSum / size, lngSum / size);
+    }
 
-        @Override
-        public void onFailure(Call<DirectionsResponse> call, Throwable t) {
-            Log.e("DirectionsAPI", "API call failed: " + t.getMessage());
-            Toast.makeText(context, "Error fetching directions", Toast.LENGTH_SHORT).show();
-        }
-    });
-}
-    public void drawPolyline(String encodedPolyline) {
+    public void drawPolyline(String encodedPolyline, int color, String label, float width) {
         if (googleMap == null) {
             Log.e("RouteManager", "GoogleMap is null, unable to draw polyline.");
             return;
@@ -119,12 +151,13 @@ public void drawRoute(LatLng origin, LatLng destination) {
             List<LatLng> points = PolyUtil.decode(encodedPolyline);
             googleMap.addPolyline(new PolylineOptions()
                     .addAll(points)
-                    .width(10)
-                    .color(Color.BLUE)
-                    .geodesic(true));
-            Log.d("Polyline", "Polyline drawn with points: " + points.size());
+                    .width(width)                // Set thickness of the polyline
+                    .color(color)                 // Set color of the polyline
+                    .geodesic(true)               // Smooth the polyline to follow the curve of the Earth
+                    .zIndex(1.0f));               // Make sure that this polyline is visible above other layers
+            Log.d("Polyline", label + " drawn with " + points.size() + " points.");
         } else {
-            Log.e("Polyline", "Encoded polyline is null");
+            Log.e("Polyline", "Encoded polyline is null for " + label);
         }
     }
 
