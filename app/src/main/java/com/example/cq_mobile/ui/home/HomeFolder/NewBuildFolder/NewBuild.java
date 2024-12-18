@@ -91,8 +91,7 @@ ImageView statusImageView;
         bottomSheetBehavior.setHideable(false);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view),statusImageView);
-        setupRecyclerViewManager.setupRecyclerView(jobId);
+
 
         CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
         navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
@@ -135,6 +134,9 @@ ImageView statusImageView;
         if (jobId != null) {
             setupMainTaskManager.setupMainTask(jobId);
         }
+
+        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
+        setupRecyclerViewManager.setupRecyclerView(jobId);
 
         // Check location permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)

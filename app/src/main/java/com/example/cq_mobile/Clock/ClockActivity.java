@@ -3,6 +3,7 @@ package com.example.cq_mobile.Clock;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -35,6 +36,12 @@ public class ClockActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
+        // Retrieve the SharedPreferences data
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+        Log.d("ClockActivity", "isLoggedIn: " + isLoggedIn);
+        String email = sharedPreferences.getString("email", "Not set");
+        Log.d("ClockActivity", "Email: " + email);
 
         initializeViews();
     }

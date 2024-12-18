@@ -16,6 +16,9 @@ public class SubTaskResponse {
     @SerializedName("message")
     private String message;
 
+    @SerializedName("meta")
+    private Meta meta;  // Add the 'meta' field
+
     // Getter for 'data'
     public List<SubTask> getData() {
         return data != null ? data : new ArrayList<>(); // Ensure 'data' is never null
@@ -45,4 +48,15 @@ public class SubTaskResponse {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    // Getter for 'meta' (added)
+    public Meta getMeta() {
+        return meta;
+    }
+
+    // Setter for 'meta' (added)
+    public void setMeta(Meta meta) {
+        this.meta = meta;
+    }
 }
+

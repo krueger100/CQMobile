@@ -10,11 +10,11 @@ public class SubTask {
     private String end_date;
 
     // Getters and Setters for each field
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

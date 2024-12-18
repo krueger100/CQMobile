@@ -18,7 +18,6 @@ import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskA
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class SetupRecyclerViewManager {
 
     private Context context;
@@ -28,13 +27,12 @@ public class SetupRecyclerViewManager {
     private List<SubTask> subTaskList = new ArrayList<>();
     private boolean isLoading = false;
     private int currentPage = 1; // Start from page 1
-    private final int pageSize = 15; // Number of items per page
+    private final int pageSize = 10; // Number of items per page (updated to 10)
     private String jobId;
-    ImageView statusImageView;
-    public SetupRecyclerViewManager(Context context, RecyclerView recyclerView, ImageView statusImageView) {
+
+    public SetupRecyclerViewManager(Context context, RecyclerView recyclerView) {
         this.context = context;
         this.recyclerView = recyclerView;
-        this.statusImageView = statusImageView;
     }
 
     public void setupRecyclerView(String jobId) {
@@ -43,7 +41,7 @@ public class SetupRecyclerViewManager {
         // Set up RecyclerView
         layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
-        subTaskAdapter = new SubTaskAdapter(subTaskList, context,jobId,statusImageView);
+        subTaskAdapter = new SubTaskAdapter(subTaskList, context, jobId);
         recyclerView.setAdapter(subTaskAdapter);
 
         // Fetch the first page of data
@@ -64,6 +62,7 @@ public class SetupRecyclerViewManager {
         });
     }
 
+
     private void fetchPage(int page) {
         isLoading = true;
 
@@ -74,7 +73,7 @@ public class SetupRecyclerViewManager {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (secondaryData != null && !secondaryData.isEmpty()) {
                         subTaskList.addAll(secondaryData); // Add the fetched data to the list
-                        subTaskAdapter.notifyDataSetChanged(); // Notify adapter to update the RecyclerView
+                        subTaskAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(context, "No more data available.", Toast.LENGTH_SHORT).show(); // Show a message when there's no more data
                     }

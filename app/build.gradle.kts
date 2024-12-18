@@ -86,4 +86,6 @@ dependencies {
 
     implementation ("com.fasterxml.jackson.core:jackson-databind:2.14.0")
     implementation ("com.github.bumptech.glide:glide:4.13.0")
+    implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
+
 }

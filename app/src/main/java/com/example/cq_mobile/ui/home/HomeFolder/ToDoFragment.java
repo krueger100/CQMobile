@@ -91,7 +91,7 @@ public class ToDoFragment extends Fragment {
     }
 
     private void loadMessages() {
-        if (isLoading) return;
+        if (isLoading) return; // Prevent fetching while already loading data
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
@@ -109,9 +109,16 @@ public class ToDoFragment extends Fragment {
                         todoAdapter.notifyDataSetChanged();
                         currentPage++;
 
-                        // Check if this is the last page
-                        if (data.size() < PAGE_SIZE) {
-                            isLastPage = true;
+                        // Check if total data count has reached 100
+                        if (joblist.size() >= 100 && currentPage == 1) {
+                            // If data reaches 100, skip to page 2 directly, if we are still on page 1
+                            currentPage = 1;
+                            loadMessages(); // Recurse to load data from page 2
+                        } else {
+                            // Check if this is the last page
+                            if (data.size() < PAGE_SIZE) {
+                                isLastPage = true;
+                            }
                         }
                     } else {
                         isLastPage = true; // No more data to load

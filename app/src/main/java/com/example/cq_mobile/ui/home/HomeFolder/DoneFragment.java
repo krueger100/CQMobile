@@ -91,19 +91,29 @@ public class DoneFragment extends Fragment {
                     progressBar.setVisibility(View.GONE);
                     isLoading = false;
 
-                    if (data != null && !data.isEmpty()) {
-                        doneAdapter.setDoneList(data); // Update the adapter with new data
-                        currentPage++;
+                if (data != null && !data.isEmpty()) {
+                    donelist.addAll(data);
+                    doneAdapter.notifyDataSetChanged();
+                    currentPage++;
 
+                    // Check if total data count has reached 100
+                    if (donelist.size() >= 100 && currentPage == 1) {
+                        // If data reaches 100, skip to page 2 directly, if we are still on page 1
+                        currentPage = 1;
+                        loadMessages(); // Recurse to load data from page 2
+                    } else {
                         // Check if this is the last page
                         if (data.size() < PAGE_SIZE) {
                             isLastPage = true;
                         }
-                    } else {
-                        isLastPage = true; // No more data to load
                     }
-                });
-            }
+                } else {
+                    isLastPage = true; // No more data to load
+                }
+            });
+
+
+        }
 
             @Override
             public void onError(String error) {

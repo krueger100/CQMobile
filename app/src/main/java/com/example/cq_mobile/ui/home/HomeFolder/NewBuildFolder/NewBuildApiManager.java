@@ -2,6 +2,8 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskResponse;
@@ -68,13 +70,17 @@ public class NewBuildApiManager {
         });
     }
 
+
     public static void fetchSecondaryApiData(String jobId, int page, int pageSize, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
         String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-        String url = baseUrl + endpoint;
+
+        // Add page and pageSize parameters to the endpoint URL
+        String url = baseUrl + endpoint + "?page=" + page + "&per_page=" + pageSize;
+        Log.d("ApiRequest", "Request URL: " + url); // Log the request URL
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -86,33 +92,58 @@ public class NewBuildApiManager {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                Log.e("ApiRequest", "Request failed: " + e.getMessage()); // Log the error
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                Log.d("ApiRequest", "Response code: " + response.code()); // Log the response code
                 if (response.isSuccessful()) {
                     String jsonResponse = response.body().string();
+                    Log.d("ApiRequest", "Response body: " + jsonResponse); // Log the response body
 
                     try {
                         Gson gson = new Gson();
                         SubTaskResponse secondaryResponse = gson.fromJson(jsonResponse, SubTaskResponse.class);
 
                         if (secondaryResponse != null && secondaryResponse.getData() != null) {
+                            Log.d("ApiRequest", "Data fetched successfully."); // Log success
                             new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));
+
+                            // Check if there is more data (pagination logic)
+                            if (secondaryResponse.getMeta() != null) {
+                                int currentPage = secondaryResponse.getMeta().getCurrentPage();
+                                int lastPage = secondaryResponse.getMeta().getLastPage();
+
+                                if (currentPage < lastPage) {
+                                    // More pages exist, request the next page
+                                    Log.d("ApiRequest", "More pages available. Current page: " + currentPage);
+                                    fetchSecondaryApiData(jobId, currentPage + 1, pageSize, callback); // Recursive call for the next page
+                                } else {
+                                    Log.d("ApiRequest", "All data loaded.");
+                                }
+                            } else {
+                                Log.e("ApiRequest", "No meta data found."); // Log if no meta data
+                                new Handler(Looper.getMainLooper()).post(() -> callback.onError("No meta data found."));
+                            }
+
                         } else {
+                            Log.e("ApiRequest", "No secondary data found."); // Log if no data found
                             new Handler(Looper.getMainLooper()).post(() -> callback.onError("No secondary data found."));
                         }
                     } catch (JsonSyntaxException e) {
+                        Log.e("ApiRequest", "JSON Parsing Error: " + e.getMessage()); // Log JSON parsing error
                         new Handler(Looper.getMainLooper()).post(() -> callback.onError("JSON Parsing Error: " + e.getMessage()));
                     }
                 } else {
                     String errorResponse = response.body().string();
+                    Log.e("ApiRequest", "Request failed: " + response.code() + ", " + errorResponse); // Log request failure
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code() + ", " + errorResponse));
                 }
             }
         });
+    }
 
-}
 
 }

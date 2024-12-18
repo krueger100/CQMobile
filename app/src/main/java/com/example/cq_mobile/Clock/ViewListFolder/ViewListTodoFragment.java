@@ -31,7 +31,6 @@ public class ViewListTodoFragment extends Fragment {
     private TodoAdapter todoAdapter;
     private List<Todo> joblist = new ArrayList<>(); // Use List<Todo>
     private ProgressBar progressBar;
-    private TextView clockout_btn;
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private int currentPage = 1;
@@ -74,8 +73,7 @@ public class ViewListTodoFragment extends Fragment {
         // Load initial data
         loadMessages();
 
-        // Clockout button listener
-        clockout_btn.setOnClickListener(v -> {
+        goback.setOnClickListener(v -> {
             if (getActivity() != null) {
                 Intent intent = new Intent(getActivity(), ClockActivity.class);
                 intent.putExtra("key", "value");
@@ -88,7 +86,7 @@ public class ViewListTodoFragment extends Fragment {
     }
 
     private void loadMessages() {
-        if (isLoading) return;
+        if (isLoading) return; // Prevent fetching while already loading data
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
@@ -106,11 +104,19 @@ public class ViewListTodoFragment extends Fragment {
                         todoAdapter.notifyDataSetChanged();
                         currentPage++;
 
-                        if (data.size() < PAGE_SIZE) {
-                            isLastPage = true;
+                        // Check if total data count has reached 100
+                        if (joblist.size() >= 100 && currentPage == 1) {
+                            // If data reaches 100, skip to page 2 directly, if we are still on page 1
+                            currentPage = 1;
+                            loadMessages(); // Recurse to load data from page 2
+                        } else {
+                            // Check if this is the last page
+                            if (data.size() < PAGE_SIZE) {
+                                isLastPage = true;
+                            }
                         }
                     } else {
-                        isLastPage = true;
+                        isLastPage = true; // No more data to load
                     }
                 });
             }

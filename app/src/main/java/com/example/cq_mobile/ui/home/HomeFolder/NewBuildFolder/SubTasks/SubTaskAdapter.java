@@ -24,13 +24,24 @@ import java.util.List;
 public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.SecondaryViewHolder> {
     private Context context;
     private final List<SubTask> secondaryDataList;
-    String jobId;
-    ImageView statusImageView;
-    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId, ImageView statusImageView) {
+    private String jobId;
+    private final List<String> taskIdList = new ArrayList<>(); // List to store task IDs
+
+    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId) {
         this.context = context;
         this.jobId = jobId;
-        this.statusImageView = statusImageView;
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
+        initializeTaskIdList(); // Initialize taskId list
+    }
+
+    // Initialize the taskIdList during adapter creation
+    private void initializeTaskIdList() {
+        taskIdList.clear();
+        for (SubTask task : secondaryDataList) {
+            if (task != null && task.getId() != null) {
+                taskIdList.add(String.valueOf(task.getId()));
+            }
+        }
     }
 
     @NonNull
@@ -44,118 +55,100 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     @Override
     public void onBindViewHolder(@NonNull SecondaryViewHolder holder, @SuppressLint("RecyclerView") int position) {
         SubTask task = secondaryDataList.get(position);
-        holder.textViewTitle.setText(task.getTitle());
-        holder.textViewDescription.setText(task.getDescription());
 
-        String taskPriority = task.getPriority() != null ? task.getPriority().trim().toLowerCase() : "No Category";
-        holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
-        Log.d("taskStatus", "Priority not found in options list: " + taskPriority);
+        if (task != null) {
+            // Set title and description
+            holder.textViewTitle.setText(task.getTitle());
+            holder.textViewDescription.setText(task.getDescription());
 
-        if (taskPriority != null && !taskPriority.isEmpty()) {
-            switch (taskPriority) {
-                case "low":
-                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_blue));
-                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnBlue));
-                    break;
-                case "medium":
-                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_green));
-                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGreen));
-                    break;
-                case "high":
-                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_red));
-                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
-                    break;
-                default:
-                    // Handle unexpected values
-                    holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_grey));
-                    holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey)); // Default color
-                    Log.d("SubTaskAdapter", "Priority not found in options list: " + taskPriority);
-                    break;
+            // Set priority
+            String taskPriority = task.getPriority() != null ? task.getPriority().trim().toLowerCase() : "No Category";
+            holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
+
+            // Add taskId to the list if it's not already added
+            Integer taskId = task.getId(); // Now it's an Integer object, which can be null
+            if (taskId != null && !taskIdList.contains(taskId.toString())) {
+                taskIdList.add(taskId.toString());
             }
 
-        }else {
-            Log.d("SubTaskAdapter", "Invalid task priority: " + taskPriority);
-        }
+            Log.d("taskId", "taskId " + taskId);
 
-
-
-
-        String taskStatus = task.getStatus();
-        taskStatus = taskStatus.replace("_", " ").trim() .replaceAll("\\s+", " ");
-        taskStatus = taskStatus.substring(0, 1).toUpperCase() + taskStatus.substring(1).toLowerCase();
-
-        Log.d("Stats", "subTask -> "+ taskStatus);
-        List<String> options = new ArrayList<>();
-        options.add(taskStatus);
-
-        if (!taskStatus.equals("In progress")) {
-            options.add("In Progress");
-        }
-        if (!taskStatus.equals("Pending")) {
-            options.add("Pending");
-
-        }
-        if (!taskStatus.equals("Under inspection")) {
-            options.add("Under inspection");
-
-        }
-        if (!taskStatus.equals("Done")) {
-            options.add("Done");
-
-        }
-
-        int imageResource;
-        switch (taskStatus) {
-            case "In progress":
-                imageResource = R.drawable.button_orange;
-                break;
-            case "Pending":
-                imageResource = R.drawable.button_red;
-                break;
-            case "Under inspection":
-                imageResource = R.drawable.button_blue;
-                break;
-            case "Done":
-                imageResource = R.drawable.button_green;
-                break;
-            default:
-                imageResource = R.drawable.button_red;
-                break;
-        }
-        holder.spinner_task_imageBackground.setImageResource(imageResource);
-
-        SubTaskSpinnerAdapter adapter = new SubTaskSpinnerAdapter(
-                context,
-                R.layout.task_spinner_item,
-                options,
-                jobId, statusImageView);
-
-
-
-        holder.taskSpinner.setAdapter(adapter);
-        int defaultIndex = options.indexOf(taskStatus);
-        if (defaultIndex != -1) {
-            holder.taskSpinner.setSelection(defaultIndex);
-        } else {
-            Log.d("SubTaskAdapter", "Priority not found in options list: " + taskStatus);
-        }
-        holder.taskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int spinnerPosition, long id) {
-                // Ensure spinnerPosition is within bounds of the options list
-                if (spinnerPosition >= 0 && spinnerPosition < options.size()) {
-                    String selectedOption = options.get(spinnerPosition);
-                } else {
-                    Log.d("SubTaskAdapter", "Selected spinner position is out of bounds");
+            // Apply background and text color based on priority
+            if (taskPriority != null && !taskPriority.isEmpty()) {
+                switch (taskPriority) {
+                    case "low":
+                        holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_blue));
+                        holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnBlue));
+                        break;
+                    case "medium":
+                        holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_green));
+                        holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGreen));
+                        break;
+                    case "high":
+                        holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_red));
+                        holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnRed));
+                        break;
+                    default:
+                        holder.priority.setBackground(ContextCompat.getDrawable(context, R.drawable.button_grey));
+                        holder.priority.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
+                        Log.d("SubTaskAdapter", "Priority not found in options list: " + taskPriority);
+                        break;
                 }
+            } else {
+                Log.d("SubTaskAdapter", "Invalid task priority: " + taskPriority);
             }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // No action
-            }
-        });
+            // Handle task status and spinner setup
+            String taskStatus = task.getStatus();
+            taskStatus = taskStatus.replace("_", " ").trim().replaceAll("\\s+", " ");
+            taskStatus = taskStatus.substring(0, 1).toUpperCase() + taskStatus.substring(1).toLowerCase();
 
+            Log.d("Stats", "subTask -> " + taskStatus);
+            List<String> options = new ArrayList<>();
+            options.add(taskStatus);
+
+            if (!taskStatus.equals("In progress")) options.add("In Progress");
+            if (!taskStatus.equals("Pending")) options.add("Pending");
+            if (!taskStatus.equals("Under inspection")) options.add("Under inspection");
+            if (!taskStatus.equals("Done")) options.add("Done");
+
+            // Create spinner adapter
+            SubTaskSpinnerAdapter spinnerAdapter = new SubTaskSpinnerAdapter(
+                    context,
+                    R.layout.task_spinner_item,
+                    options,
+                    jobId,
+                    holder.spinner_task_imageBackground,
+                    taskStatus,
+                    taskId.toString() // Pass taskId as string to the spinner adapter
+            );
+
+            holder.taskSpinner.setAdapter(spinnerAdapter);
+            int defaultIndex = options.indexOf(taskStatus);
+            if (defaultIndex != -1) {
+                holder.taskSpinner.setSelection(defaultIndex);
+            } else {
+                Log.d("SubTaskAdapter", "Task status not found in options list: " + taskStatus);
+            }
+
+            // Handle spinner item selection
+            holder.taskSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int spinnerPosition, long id) {
+                    if (spinnerPosition >= 0 && spinnerPosition < options.size()) {
+                        String selectedOption = options.get(spinnerPosition);
+                        Log.d("SubTaskAdapter", "Selected spinner option: " + selectedOption);
+                    } else {
+                        Log.d("SubTaskAdapter", "Selected spinner position is out of bounds");
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // No action
+                }
+            });
+        }
     }
 
     @Override
@@ -163,13 +156,16 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         return secondaryDataList.size();
     }
 
-    static class SecondaryViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewTitle;
-        TextView textViewDescription;
-        Spinner taskSpinner;
-TextView priority;
+    // Method to get the taskId list
+    public List<String> getTaskIdList() {
+        return new ArrayList<>(taskIdList); // Return a copy to prevent external modification
+    }
 
-ImageView spinner_task_imageBackground;
+    static class SecondaryViewHolder extends RecyclerView.ViewHolder {
+        TextView textViewTitle, textViewDescription, priority;
+        Spinner taskSpinner;
+        ImageView spinner_task_imageBackground;
+
         public SecondaryViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.secondary_item_title);
@@ -177,8 +173,6 @@ ImageView spinner_task_imageBackground;
             taskSpinner = itemView.findViewById(R.id.spinner_task);
             priority = itemView.findViewById(R.id.priority);
             spinner_task_imageBackground = itemView.findViewById(R.id.spinner_task_imageBackground);
-
         }
     }
 }
-

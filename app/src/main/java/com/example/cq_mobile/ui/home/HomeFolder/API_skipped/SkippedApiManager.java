@@ -1,7 +1,5 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_skipped;
 
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoResponse;
 import com.google.gson.Gson;
 
 import java.io.IOException;
