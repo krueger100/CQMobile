@@ -2,6 +2,7 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,8 +16,10 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +29,8 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     private final List<SubTask> secondaryDataList;
     private String jobId;
     private final List<String> taskIdList = new ArrayList<>(); // List to store task IDs
-
+    String title;
+    String description;
     public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId) {
         this.context = context;
         this.jobId = jobId;
@@ -60,12 +64,12 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             // Set title and description
             holder.textViewTitle.setText(task.getTitle());
             holder.textViewDescription.setText(task.getDescription());
+            title = task.getTitle();
+            description = task.getDescription();
 
-            // Set priority
             String taskPriority = task.getPriority() != null ? task.getPriority().trim().toLowerCase() : "No Category";
             holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
 
-            // Add taskId to the list if it's not already added
             Integer taskId = task.getId(); // Now it's an Integer object, which can be null
             if (taskId != null && !taskIdList.contains(taskId.toString())) {
                 taskIdList.add(taskId.toString());
@@ -148,6 +152,24 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                     // No action
                 }
             });
+
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (taskId != null) { // Ensure taskId is not null
+                        Intent intent = new Intent(context, TaskActivity.class);
+                        intent.putExtra("jobId", jobId); // Pass jobId as a string
+                        intent.putExtra("taskId", taskId); // Pass taskId as an integer
+                        intent.putExtra("title", title);
+                        intent.putExtra("description", description);
+                        context.startActivity(intent);
+                    } else {
+
+                        Log.d("SubTaskAdapter", "Task ID is null, cannot navigate to TaskActivity.");
+                    }
+                }
+            });
+
         }
     }
 

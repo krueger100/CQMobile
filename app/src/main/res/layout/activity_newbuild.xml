@@ -274,7 +274,9 @@
                     android:elevation="10dp"
                     android:layout_margin="10dp"
                     android:padding="10dp">
+
                     <LinearLayout
+                        android:id="@+id/notes"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
@@ -299,6 +301,7 @@
                     android:elevation="10dp"
                     android:padding="10dp">
                     <LinearLayout
+                        android:id="@+id/folder"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
@@ -332,6 +335,7 @@
                     android:layout_margin="10dp"
                     android:padding="10dp">
                     <LinearLayout
+                        android:id="@+id/docs"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
@@ -355,6 +359,7 @@
                     android:elevation="10dp"
                     android:padding="10dp">
                     <LinearLayout
+                        android:id="@+id/sheets"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"

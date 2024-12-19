@@ -1,11 +1,13 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,10 +25,16 @@ import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNa
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
+import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildButtonManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesAcitivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsAcitivy;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -60,6 +68,10 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     ProgressBar progress_circular;
 TextView category_todo;
 ImageView statusImageView;
+
+LinearLayout notes,folder,docs,sheets;
+    private NewBuildButtonManager newBuildButtonManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +83,29 @@ ImageView statusImageView;
         progress_circular = findViewById(R.id.progress_circular);
         statusImageView = findViewById(R.id.statusImageView);
 
+        notes  = findViewById(R.id.notes);
+        folder = findViewById(R.id.folder);
+        docs = findViewById(R.id.docs);
+        sheets  = findViewById(R.id.sheets);
+        newBuildButtonManager = new NewBuildButtonManager(notes, folder, docs, sheets);
+
+        newBuildButtonManager.setButtonsVisibility(true);
+        newBuildButtonManager.setButtonClickListener(view -> {
+            // Handle button clicks here
+            if (view == notes) {
+                Intent intent = new Intent(this, NotesAcitivity.class);
+                this.startActivity(intent);
+            } else if (view == folder) {
+                Intent intent = new Intent(this, FilesActivity.class);
+                this.startActivity(intent);
+            } else if (view == docs) {
+                Intent intent = new Intent(this, DocsActivity.class);
+                this.startActivity(intent);
+            } else if (view == sheets) {
+                Intent intent = new Intent(this, SheetsAcitivy.class);
+                this.startActivity(intent);
+            }
+        });
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
             Log.d("job ID ->", "Received Todo ID: " + jobId);

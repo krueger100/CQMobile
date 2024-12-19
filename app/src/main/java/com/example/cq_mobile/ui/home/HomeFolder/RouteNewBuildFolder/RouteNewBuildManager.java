@@ -117,6 +117,7 @@ public class RouteNewBuildManager {
                         Log.w(TAG, "No routes found");
                         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(destination, 15));
                         Toast.makeText(context, "No routes found", Toast.LENGTH_SHORT).show();
+                        showAddressInputDialog(origin, destination);
                     }
                 } else {
                     Log.e(TAG, "Response not successful: " + response.errorBody());
@@ -182,4 +183,64 @@ public class RouteNewBuildManager {
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
+
+    public void showAddressInputDialog(LatLng userLocation, LatLng taskLatLng) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Enter Destination Address");
+
+        // Set up the input field
+        final EditText input = new EditText(context);
+        input.setHint("Enter address or location");
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String userInput = input.getText().toString();
+                if (!userInput.isEmpty()) {
+                    // Process the user input and geocode the address
+                    geocodeAddress(userLocation, userInput, taskLatLng); // Pass taskLatLng to keep the destination
+                } else {
+                    Toast.makeText(context, "Please enter an address", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void geocodeAddress(LatLng userLocation, String address, LatLng taskLatLng) {
+        Geocoder geocoder = new Geocoder(context);
+        try {
+            List<Address> addresses = geocoder.getFromLocationName(address, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                // Get the LatLng from the geocoded address
+                Address userAddress = addresses.get(0);
+                LatLng addressDestination = new LatLng(userAddress.getLatitude(), userAddress.getLongitude());
+                // Log the geocoded destination coordinates
+                Log.d("geocodeAddress", "Destination: " + addressDestination.latitude + ", " + addressDestination.longitude);
+
+                // Add markers for user location and the newly geocoded destination
+                googleMap.addMarker(new MarkerOptions().position(userLocation).title("You are here"));
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+
+                // Clear previous markers and polyline -->   googleMap.clear();
+
+                drawRoute(userLocation, addressDestination);
+
+            } else {
+                Toast.makeText(context, "Address not found", Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Geocoding failed", e);
+            Toast.makeText(context, "Error in geocoding", Toast.LENGTH_SHORT).show();
+        }
+    }
 }

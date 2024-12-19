@@ -69,11 +69,40 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
+        <activity android:name=".ui.home.HomeFolder.TaskFolder.TaskActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
 
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesAcitivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
+
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
+
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
+
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsAcitivy"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDldAC6lIbzEjRDaluQO3oQKRJyvMAdoU0"/>
+
 
 
 
