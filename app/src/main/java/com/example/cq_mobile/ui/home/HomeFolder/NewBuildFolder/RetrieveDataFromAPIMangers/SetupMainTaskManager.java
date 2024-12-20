@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SetupMainTaskSpinnerAdapter;
@@ -57,10 +58,26 @@ public class SetupMainTaskManager {
         this.category_todo = category_todo;
         this.statusImageView = statusImageView;
 
+
+
     }
 
     public void setupMainTask(String jobId) {
-        NewBuildApiManager.fetchNewBuiltApiData(jobId, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("SetupMainTaskManagerSharedPreff", "Retrieved User Data: ");
+        Log.d("SetupMainTaskManagerSharedPreff", "Access Token: " + accessToken);
+        Log.d("SetupMainTaskManagerSharedPreff", "User ID: " + userId);
+        Log.d("SetupMainTaskManagerSharedPreff", "First Name: " + firstName);
+        Log.d("SetupMainTaskManagerSharedPreff", "Last Name: " + lastName);
+        Log.d("SetupMainTaskManagerSharedPreff", "Email: " + email);
+
+        NewBuildApiManager.fetchNewBuiltApiData(jobId,accessToken, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
             @Override
             public void onDataFetched(List<Taskmain> data) {
                 new Handler(Looper.getMainLooper()).post(() -> {
@@ -134,7 +151,7 @@ public class SetupMainTaskManager {
                     SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
                             context,
                             R.layout.task_spinner_item,
-                            options,jobId,statusImageView,status_main);
+                            options,jobId,statusImageView,status_main,accessToken);
                     spinnerTask.setAdapter(adapter);
 
                     // Handle spinner item selection

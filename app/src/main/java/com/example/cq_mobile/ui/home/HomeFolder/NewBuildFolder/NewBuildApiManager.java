@@ -3,7 +3,6 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskResponse;
@@ -28,10 +27,10 @@ public class NewBuildApiManager {
         void onError(String error);
     }
 
-    public static void fetchNewBuiltApiData(String jobId, ApiResponseCallback<Taskmain> callback) {
+    public static void fetchNewBuiltApiData(String jobId, String accessToken, ApiResponseCallback<Taskmain> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s", jobId);
-        String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
+        String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
 
@@ -71,10 +70,10 @@ public class NewBuildApiManager {
     }
 
 
-    public static void fetchSecondaryApiData(String jobId, int page, int pageSize, ApiResponseCallback<SubTask> callback) {
+    public static void fetchSecondaryApiData(String jobId, int page, int pageSize, String accessToken, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
-        String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
+        String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
 
@@ -119,7 +118,7 @@ public class NewBuildApiManager {
                                 if (currentPage < lastPage) {
                                     // More pages exist, request the next page
                                     Log.d("ApiRequest", "More pages available. Current page: " + currentPage);
-                                    fetchSecondaryApiData(jobId, currentPage + 1, pageSize, callback); // Recursive call for the next page
+                                    fetchSecondaryApiData(jobId, currentPage + 1, pageSize, accessToken, callback); // Recursive call for the next page
                                 } else {
                                     Log.d("ApiRequest", "All data loaded.");
                                 }

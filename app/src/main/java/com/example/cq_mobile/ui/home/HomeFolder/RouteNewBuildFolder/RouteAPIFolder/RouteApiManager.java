@@ -19,10 +19,10 @@ public class RouteApiManager {
         void onError(String error);
     }
 
-    public static void fetchRouteApiData(String jobId, ApiResponseCallback<Routemain> callback) {
+    public static void fetchRouteApiData(String jobId, String accessToken, ApiResponseCallback<Routemain> callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s", jobId);
-        String token = "3817|bEOb2Euof0Wdq9Qi7153VCMovHnhbO8qbEXRIgw6";
+        String token = accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
 

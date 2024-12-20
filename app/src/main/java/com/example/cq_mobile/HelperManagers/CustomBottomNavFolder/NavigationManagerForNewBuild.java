@@ -1,14 +1,18 @@
 package com.example.cq_mobile.HelperManagers.CustomBottomNavFolder;
 
 
+import android.content.Intent;
 import android.view.View;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
+import com.example.cq_mobile.ui.chat.ChatFragment;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFragment;
 import com.example.cq_mobile.ui.map.MapFragment;
 import com.example.cq_mobile.ui.myJob.myJobFragment;
+import com.example.cq_mobile.ui.ticket.TicketFragment;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -41,7 +45,25 @@ public class NavigationManagerForNewBuild {
             public void onMyJobsSelected() {
                 switchFragment(new myJobFragment());
             }
+            @Override
+            public void onTicketSelected() {
+                switchFragment(new TicketFragment());
+            }
+
+            @Override
+            public void onChatSelected() {
+                switchFragment(new ChatFragment());
+            }
+
+            @Override
+            public void onMoreSelected() {
+                Intent intent = new Intent(activity, MoreActivity.class);
+                activity.startActivity(intent);
+                activity.finish();
+            }
+
         });
+
     }
 
     private void switchFragment(Fragment fragment) {

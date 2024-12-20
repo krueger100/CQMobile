@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -16,13 +15,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.Skipped;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedApiManager;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
-import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +48,20 @@ public class SkippedFragment extends Fragment {
         skippedAdapter = new SkippedAdapter(getContext(), skippedList);
         recyclerView.setAdapter(skippedAdapter);
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("SkippedFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("SkippedFragmentSharedPreff", "Access Token: " + accessToken);
+        Log.d("SkippedFragmentSharedPreff", "User ID: " + userId);
+        Log.d("SkippedFragmentSharedPreff", "First Name: " + firstName);
+        Log.d("SkippedFragmentSharedPreff", "Last Name: " + lastName);
+        Log.d("SkippedFragmentSharedPreff", "Email: " + email);
+
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -62,13 +73,13 @@ public class SkippedFragment extends Fragment {
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
-                        loadMessages();
+                        loadMessages(accessToken);
                     }
                 }
             }
         });
 
-        loadMessages();
+        loadMessages(accessToken);
         clockout_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -81,12 +92,12 @@ public class SkippedFragment extends Fragment {
 
         return view;
     }
-    private void loadMessages() {
+    private void loadMessages(String accessToken) {
         if (isLoading) return; // Prevent multiple calls while already loading
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
-        SkippedApiManager.fetchApiDataPaginated(currentPage, PAGE_SIZE, new SkippedApiManager.ApiResponseCallback() {
+        SkippedApiManager.fetchApiDataPaginated(accessToken,currentPage, PAGE_SIZE, new SkippedApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Skipped> data) {
                 if (getActivity() == null) return;
@@ -104,7 +115,7 @@ public class SkippedFragment extends Fragment {
                         if (skippedList.size() >= 100 && currentPage == 1) {
                             // If data reaches 100, skip to page 2 directly, if we are still on page 1
                             currentPage = 1;
-                            loadMessages(); // Recurse to load data from page 2
+                            loadMessages(accessToken); // Recurse to load data from page 2
                         } else {
                             // Check if this is the last page
                             if (data.size() < PAGE_SIZE) {

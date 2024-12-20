@@ -54,61 +54,39 @@
         app:layout_constraintStart_toStartOf="@+id/task_title"
         app:layout_constraintTop_toBottomOf="@+id/task_title" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="0dp"
+
+    <HorizontalScrollView
+        android:id="@+id/h_scrollView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="5dp"
         android:layout_marginHorizontal="16dp"
+        android:padding="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/task_assign"
-        app:layout_constraintVertical_bias="0.0">
+        tools:ignore="SpeakableTextPresentCheck">
 
-        <!-- FrameLayout to stack images -->
-        <FrameLayout
+        <LinearLayout
+            android:id="@+id/linearLayout2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-           >
+            android:layout_marginHorizontal="16dp"
+            android:orientation="horizontal"
+            android:padding="5dp">
 
-            <!-- First circular image -->
-            <ImageView
-                android:id="@+id/image1"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/round_account_circle_24"
-                android:layout_gravity="start|top"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="5dp"
+            <!-- FrameLayout to stack images -->
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-                android:background="@drawable/circular_background" />
+            </FrameLayout>
 
-            <!-- Second circular image (stacked on top of the first) -->
-            <ImageView
-                android:id="@+id/image2"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/round_account_circle_24"
-                android:layout_gravity="start|top"
-                android:layout_marginEnd="5dp"
-                android:layout_marginStart="25dp"
-                android:background="@drawable/circular_background" />
+        </LinearLayout>
 
-            <!-- Third circular image (stacked on top of the others) -->
-            <ImageView
-                android:id="@+id/image3"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/round_account_circle_24"
-                android:layout_gravity="start|top"
-                android:layout_marginEnd="0dp"
-                android:layout_marginStart="45dp"
-                android:background="@drawable/circular_background" />
-        </FrameLayout>
+    </HorizontalScrollView>
 
-    </LinearLayout>
 
     <TextView
         android:id="@+id/checklist_text"
@@ -119,8 +97,8 @@
         android:textAlignment="textStart"
         android:textColor="@color/black"
         android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="@+id/linearLayout2"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+        app:layout_constraintStart_toStartOf="@+id/h_scrollView"
+        app:layout_constraintTop_toBottomOf="@+id/h_scrollView" />
 
     <!-- ScrollView added around LinearLayout3 -->
     <ScrollView

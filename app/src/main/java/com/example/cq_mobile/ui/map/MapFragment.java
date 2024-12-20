@@ -14,6 +14,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;;
@@ -80,15 +82,29 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("MapFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("MapFragmentSharedPreff", "Access Token: " + accessToken);
+        Log.d("MapFragmentSharedPreff", "User ID: " + userId);
+        Log.d("MapFragmentSharedPreff", "First Name: " + firstName);
+        Log.d("MapFragmentSharedPreff", "Last Name: " + lastName);
+        Log.d("MapFragmentSharedPreff", "Email: " + email);
+
         // Retrieve the job_id from arguments
         String jobId = getArguments() != null ? getArguments().getString("job_id") : null;
         Log.d("MapFragment", "Received Job ID in MapFragment: " + jobId);
 
         if (jobId != null) {
-            fetchRouteData(jobId);
+            fetchRouteData(jobId,accessToken);
         } else {
             Log.e("MapFragment", "job_id is null in MapFragment!");
-            fetchRouteData("5654");
+            fetchRouteData("5654", accessToken);
         }
 
 
@@ -164,8 +180,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void fetchRouteData(String jobId) {
-        RouteApiManager.fetchRouteApiData(jobId, new RouteApiManager.ApiResponseCallback<Routemain>() {
+    private void fetchRouteData(String jobId, String accessToken) {
+        RouteApiManager.fetchRouteApiData(jobId,accessToken, new RouteApiManager.ApiResponseCallback<Routemain>() {
             @Override
             public void onDataFetched(List<Routemain> data) {
                 if (!data.isEmpty()) {

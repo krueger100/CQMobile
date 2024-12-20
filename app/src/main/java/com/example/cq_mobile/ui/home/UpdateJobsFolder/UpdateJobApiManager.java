@@ -10,10 +10,11 @@ public class UpdateJobApiManager {
 
     private static final String TAG = "UpdateJobApiManager";
 
-    public static void updateJobStatus(String jobScheduleId, String taskId, String status) {
+    public static void updateJobStatus(String jobScheduleId, String taskId, String status, String accessToken) {
         // Use ExecutorService to run the task in a background thread
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateJobTask(jobScheduleId, taskId, status));
+        executorService.execute(new ApiUpdateJobTask(jobScheduleId, taskId, status, accessToken));
+
     }
 
     private static class ApiUpdateJobTask implements Runnable {
@@ -21,11 +22,13 @@ public class UpdateJobApiManager {
         private String jobScheduleId;
         private String taskId;
         private String status;
+        private String accessToken;
 
-        public ApiUpdateJobTask(String jobScheduleId, String taskId, String status) {
+        public ApiUpdateJobTask(String jobScheduleId, String taskId, String status, String accessToken) {
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
             this.status = status;
+            this.accessToken = accessToken; // Pass the accessToken here
         }
 
         @Override
@@ -33,7 +36,7 @@ public class UpdateJobApiManager {
 
             String baseUrl = "https://aws.customquoter.co.uk";
             String endpoint = "/api/m/jobs/schedules/" + jobScheduleId;
-            String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
+            String token =accessToken;//"3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             String url = baseUrl + endpoint;
             String jsonBody = String.format("{\"status\": \"%s\", \"task_id\": \"%s\"}", status, taskId);

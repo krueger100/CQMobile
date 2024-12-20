@@ -31,11 +31,12 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
     private final String initialStatus;
     private final ImageView statusImageView;
     private String taskId;  // Now taskId is a dynamic field
-
+    String accessToken;
     public SubTaskSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, String jobId,
-                                 ImageView statusImageView, String initialStatus, String taskId) {
+                                 ImageView statusImageView, String initialStatus, String taskId, String accessToken) {
         super(context, resource, objects);
         this.context = context;
+        this.accessToken = accessToken;
 
         // Ensure initialStatus is the first item if not already in the list
         this.items = new ArrayList<>();
@@ -109,7 +110,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.cq_secondary_color);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(jobId, taskId, "in_progress");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken,jobId, taskId, "in_progress");
                     statusImageView.setImageResource(R.drawable.button_orange);
                 }
                 break;
@@ -117,7 +118,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.textBtnRed);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(jobId, taskId, "pending");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "pending");
                     statusImageView.setImageResource(R.drawable.button_red);
                 }
                 break;
@@ -125,7 +126,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.color_inspection);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(jobId, taskId, "under_inspection");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "under_inspection");
                     statusImageView.setImageResource(R.drawable.button_blue);
                 }
                 break;
@@ -133,7 +134,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.color_done);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(jobId, taskId, "done");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "done");
                     statusImageView.setImageResource(R.drawable.button_green);
                 }
                 break;

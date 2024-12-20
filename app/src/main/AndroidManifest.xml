@@ -75,29 +75,36 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesAcitivity"
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesActivity"
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsActivity"
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsFolder.DocsActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsAcitivy"
+        <activity android:name=".ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsFolder.SheetsAcitivy"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
+
+        <activity android:name=".MoreActivityFolder.MoreActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
+
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

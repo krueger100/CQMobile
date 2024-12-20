@@ -31,10 +31,10 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildButtonManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsActivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesActivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesAcitivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsAcitivy;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsFolder.DocsActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsFolder.SheetsAcitivy;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -83,6 +83,13 @@ LinearLayout notes,folder,docs,sheets;
         progress_circular = findViewById(R.id.progress_circular);
         statusImageView = findViewById(R.id.statusImageView);
 
+        String jobId = getIntent().getStringExtra("job_id");
+        if (jobId != null) {
+            Log.d("job ID ->", "Received Todo ID: " + jobId);
+        } else {
+            Log.e("job ID ->", "No Todo ID received!");
+        }
+
         notes  = findViewById(R.id.notes);
         folder = findViewById(R.id.folder);
         docs = findViewById(R.id.docs);
@@ -93,25 +100,23 @@ LinearLayout notes,folder,docs,sheets;
         newBuildButtonManager.setButtonClickListener(view -> {
             // Handle button clicks here
             if (view == notes) {
-                Intent intent = new Intent(this, NotesAcitivity.class);
+                Intent intent = new Intent(this, NotesActivity.class);
+                intent.putExtra("job_id", jobId);
                 this.startActivity(intent);
             } else if (view == folder) {
                 Intent intent = new Intent(this, FilesActivity.class);
+                intent.putExtra("job_id", jobId);
                 this.startActivity(intent);
             } else if (view == docs) {
                 Intent intent = new Intent(this, DocsActivity.class);
+                intent.putExtra("job_id", jobId);
                 this.startActivity(intent);
             } else if (view == sheets) {
                 Intent intent = new Intent(this, SheetsAcitivy.class);
+                intent.putExtra("job_id", jobId);
                 this.startActivity(intent);
             }
         });
-        String jobId = getIntent().getStringExtra("job_id");
-        if (jobId != null) {
-            Log.d("job ID ->", "Received Todo ID: " + jobId);
-        } else {
-            Log.e("job ID ->", "No Todo ID received!");
-        }
 
         // Initialize map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()

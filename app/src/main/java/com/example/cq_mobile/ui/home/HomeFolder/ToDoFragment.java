@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
@@ -55,6 +55,21 @@ public class ToDoFragment extends Fragment {
         todoAdapter = new TodoAdapter(getContext(), joblist);
         recyclerView.setAdapter(todoAdapter);
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("ToDoFragmentSharedPreff", "Access Token: " + accessToken);
+        Log.d("ToDoFragmentSharedPreff", "User ID: " + userId);
+        Log.d("ToDoFragmentSharedPreff", "First Name: " + firstName);
+        Log.d("ToDoFragmentSharedPreff", "Last Name: " + lastName);
+        Log.d("ToDoFragmentSharedPreff", "Email: " + email);
+
+
         // Add scroll listener for pagination
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -67,14 +82,14 @@ public class ToDoFragment extends Fragment {
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
-                        loadMessages();
+                        loadMessages(accessToken);
                     }
                 }
             }
         });
 
         // Load initial data
-        loadMessages();
+        loadMessages(accessToken);
 
         // Clockout button listener
         clockout_btn.setOnClickListener(v -> {
@@ -90,12 +105,12 @@ public class ToDoFragment extends Fragment {
         return view;
     }
 
-    private void loadMessages() {
+    private void loadMessages(String accessToken) {
         if (isLoading) return; // Prevent fetching while already loading data
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
-        TodoApiManager.fetchApiDataPaginated(currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
+        TodoApiManager.fetchApiDataPaginated(accessToken,currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Todo> data) {
                 if (getActivity() == null) return;
@@ -113,7 +128,7 @@ public class ToDoFragment extends Fragment {
                         if (joblist.size() >= 100 && currentPage == 1) {
                             // If data reaches 100, skip to page 2 directly, if we are still on page 1
                             currentPage = 1;
-                            loadMessages(); // Recurse to load data from page 2
+                            loadMessages(accessToken); // Recurse to load data from page 2
                         } else {
                             // Check if this is the last page
                             if (data.size() < PAGE_SIZE) {

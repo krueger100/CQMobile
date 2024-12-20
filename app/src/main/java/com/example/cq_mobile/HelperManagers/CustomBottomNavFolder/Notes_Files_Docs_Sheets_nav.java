@@ -1,15 +1,13 @@
 package com.example.cq_mobile.HelperManagers.CustomBottomNavFolder;
 
-// CustomBottomNavView.java
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import android.widget.LinearLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.example.cq_mobile.R;
-
-public class CustomBottomNavView extends LinearLayout {
+public class Notes_Files_Docs_Sheets_nav extends LinearLayout {
 
     private ImageView nav_home;   //
     private ImageView nav_map;
@@ -29,9 +27,9 @@ public class CustomBottomNavView extends LinearLayout {
         void onMoreSelected();
     }
 
-    public CustomBottomNavView(Context context, AttributeSet attrs) {
+    public Notes_Files_Docs_Sheets_nav(Context context, AttributeSet attrs) {
         super(context, attrs);
-        LayoutInflater.from(context).inflate(R.layout.custom_bottom_nav_view, this, true);
+        LayoutInflater.from(context).inflate(R.layout.nfds_bottom_nav_view, this, true);
 
         nav_home = findViewById(R.id.nav_home);
         nav_map = findViewById(R.id.nav_map);
@@ -70,10 +68,10 @@ public class CustomBottomNavView extends LinearLayout {
             }
         });
         nav_more.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onMoreSelected();
-            }
-        });
+           if (listener != null) {
+               listener.onMoreSelected();
+           }
+     });
     }
 
     public void setOnNavigationItemSelectedListener(OnNavigationItemSelectedListener listener) {

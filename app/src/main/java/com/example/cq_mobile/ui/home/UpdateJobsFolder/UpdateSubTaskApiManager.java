@@ -16,10 +16,10 @@ import okhttp3.Response;
 public class UpdateSubTaskApiManager {
     private static final String TAG = "UpdateSubTaskApiManager";
 
-    public static void updateSubTaskApiManager(String jobScheduleId, String taskId, String status) {
+    public static void updateSubTaskApiManager(String accessToken, String jobScheduleId, String taskId, String status) {
         // Use ExecutorService to run the task in a background thread
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateTaskSub(jobScheduleId, taskId, status));
+        executorService.execute(new ApiUpdateTaskSub(accessToken,jobScheduleId, taskId, status));
     }
 
     private static class ApiUpdateTaskSub implements Runnable {
@@ -27,8 +27,9 @@ public class UpdateSubTaskApiManager {
         private String jobScheduleId;
         private String taskId;
         private String status;
-
-        public ApiUpdateTaskSub(String jobScheduleId, String taskId, String status) {
+        String accessToken;
+        public ApiUpdateTaskSub(String accessToken, String jobScheduleId, String taskId, String status) {
+            this.accessToken = accessToken;
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
             this.status = status;
@@ -40,7 +41,7 @@ public class UpdateSubTaskApiManager {
             // Updated base URL and endpoint with the new format
             String baseUrl = "https://aws.customquoter.co.uk";
             String endpoint = "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskId;
-            String token = "3864|1HFH2WjQnby84sFvd0I24UjXPmThdaYhOyV0W7lI";
+            String token = accessToken;
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             String url = baseUrl + endpoint;
 

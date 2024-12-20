@@ -18,10 +18,10 @@ public class SkippedApiManager {
 
     }
 
-    public static void fetchApiDataPaginated(int page, int pageSize, ApiResponseCallback callback) {
+    public static void fetchApiDataPaginated(String accessToken, int page, int pageSize, ApiResponseCallback callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=skipped";
-        String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
+        String token = accessToken;//"3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         // Construct the full URL with pagination parameters
         String url = String.format("%s%s?page=%d&per_page=%d&status=skipped", baseUrl, endpoint, page, pageSize);

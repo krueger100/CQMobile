@@ -5,6 +5,9 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,6 +22,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 
 import java.net.URL;
@@ -38,6 +42,21 @@ public class TaskActivity extends AppCompatActivity {
         String title_1 = intent.getStringExtra("title");
         String description_1 = intent.getStringExtra("description");
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(TaskActivity.this);
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("TaskActivitySharedPreff", "Retrieved User Data: ");
+        Log.d("TaskActivitySharedPreff", "Access Token: " + accessToken);
+        Log.d("TaskActivitySharedPreff", "User ID: " + userId);
+        Log.d("TaskActivitySharedPreff", "First Name: " + firstName);
+        Log.d("TaskActivitySharedPreff", "Last Name: " + lastName);
+        Log.d("TaskActivitySharedPreff", "Email: " + email);
+
+
         Log.d("TaskActivity", "Received jobId: " + jobId + ", taskId: " + taskId);
         Log.d("TaskActivity", "Received title: " + title_1);
         Log.d("TaskActivity", "Received description: " + description_1);
@@ -51,7 +70,8 @@ public class TaskActivity extends AppCompatActivity {
         TextView endDateTextView = findViewById(R.id.endDateTextView);
         TextView assigneeTextView = findViewById(R.id.assigneeTextView);
         RecyclerView recycler_view = findViewById(R.id.recycler_view);
-        LinearLayout assigneeAvatarLayout = findViewById(R.id.linearLayout2);  // The container for avatars
+        LinearLayout assigneeAvatarLayout = findViewById(R.id.linearLayout2);
+        assigneeAvatarLayout.setOrientation(LinearLayout.HORIZONTAL);
 
         // Initialize RecyclerView
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
@@ -72,7 +92,7 @@ public class TaskActivity extends AppCompatActivity {
         manager.fetchTask(
                 Integer.parseInt(jobId), // job_schedule_id
                 taskId,                  // task_id
-                "3864|1HFH2WjQnby84sFvd0I24UjXPmThdaYhOyV0W7lI", // token
+                accessToken, // token
                 "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
                 new TaskActivityManager.TaskFetchCallback() {
                     @Override
@@ -93,7 +113,7 @@ public class TaskActivity extends AppCompatActivity {
                         } else {
                             descriptionTextView.setText(description);
                         }
-                        // priorityTextView.setText(priority);  // Uncomment if required
+                         priorityTextView.setText(priority);  // Uncomment if required
                         // statusTextView.setText(status);      // Uncomment if required
                         // startDateTextView.setText(startDate); // Uncomment if required
                         endDateTextView.setText(endDate);
@@ -104,56 +124,8 @@ public class TaskActivity extends AppCompatActivity {
 
                         // Dynamically create and add ImageViews for each assignee
                         String[] assigneeData = assigneeInfo.split("\n"); // Split assigneeInfo into lines
-
-                        for (int i = 0; i < assigneeData.length; i++) {
-                            // Extract the avatar URL directly from the assignee data
-                            String avatarUrl = getAvatarUrlFromAssigneeData(assigneeData[i]);
-
-                            if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                                Log.d("TaskActivity", "Loading avatar URL: " + avatarUrl);
-
-                                // Create a new ImageView for each assignee
-                                ImageView imageView = new ImageView(TaskActivity.this);
-                                imageView.setLayoutParams(new LinearLayout.LayoutParams(
-                                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                                        LinearLayout.LayoutParams.WRAP_CONTENT
-                                ));
-
-                                try {
-
-                                     URL avatarUrlObject = new URL(avatarUrl);
-                                    Glide.with(TaskActivity.this)
-                                            .load(avatarUrlObject)
-                                            .circleCrop()  // Ensures the image is displayed as a circle
-                                            .into(imageView);
-
-                                } catch (Exception e) {
-                                    // Handle any potential error if the URL is invalid
-                                    Log.e("TaskActivity", "Error loading avatar image: " + e.getMessage());
-                                }
-
-                                // Add the ImageView to your LinearLayout container
-                                assigneeAvatarLayout.addView(imageView);
-                            } else {
-                                // If the URL is invalid, load a default image
-                                Log.d("TaskActivity", "Loading default avatar image");
-
-                                // Use a default image for invalid URLs
-                                ImageView imageView = new ImageView(TaskActivity.this);
-                                imageView.setLayoutParams(new LinearLayout.LayoutParams(
-                                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                                        LinearLayout.LayoutParams.WRAP_CONTENT
-                                ));
-
-                                Glide.with(TaskActivity.this)
-                                        .load(R.drawable.round_account_circle_24)  // Default image
-                                        .circleCrop()
-                                        .into(imageView);
-
-                                // Add the ImageView to your LinearLayout container
-                                assigneeAvatarLayout.addView(imageView);
-                            }
-                        }
+                        // Use TaskAvatarManager to handle avatar loading
+                        TaskAvatarManager.loadAvatars(TaskActivity.this, assigneeInfo, assigneeAvatarLayout);
 
                         // Log each assignee's detailed data
                         Log.d("TaskActivity", "Assignees Details:");

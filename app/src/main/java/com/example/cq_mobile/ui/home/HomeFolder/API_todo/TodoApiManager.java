@@ -9,6 +9,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import java.io.IOException;
 import java.util.List;
+
 public class TodoApiManager {
 
     public interface ApiResponseCallback {
@@ -16,10 +17,10 @@ public class TodoApiManager {
         void onError(String error);
     }
 
-    public static void fetchApiDataPaginated(int page, int pageSize, ApiResponseCallback callback) {
+    public static void fetchApiDataPaginated(String accessToken, int page, int pageSize, ApiResponseCallback callback) {
         String baseUrl = "https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/today";
-        String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
+        String token = accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
         // Construct the full URL with pagination parameters

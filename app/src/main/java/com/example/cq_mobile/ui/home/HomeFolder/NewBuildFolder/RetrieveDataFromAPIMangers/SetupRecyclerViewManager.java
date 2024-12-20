@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -11,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskAdapter;
@@ -66,8 +68,21 @@ public class SetupRecyclerViewManager {
     private void fetchPage(int page) {
         isLoading = true;
 
-        // Fetch secondary data for the current page
-        NewBuildApiManager.fetchSecondaryApiData(jobId, page, pageSize, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("SetupRecyclerViewManagerrSharedPreff", "Retrieved User Data: ");
+        Log.d("SetupRecyclerViewManagerrSharedPreff", "Access Token: " + accessToken);
+        Log.d("SetupRecyclerViewManagerrSharedPreff", "User ID: " + userId);
+        Log.d("SetupRecyclerViewManagerrSharedPreff", "First Name: " + firstName);
+        Log.d("SetupRecyclerViewManagerrSharedPreff", "Last Name: " + lastName);
+        Log.d("SetupRecyclerViewManagerrSharedPreff", "Email: " + email);
+
+        NewBuildApiManager.fetchSecondaryApiData(jobId, page, pageSize,accessToken, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
             @Override
             public void onDataFetched(List<SubTask> secondaryData) {
                 new Handler(Looper.getMainLooper()).post(() -> {
@@ -75,7 +90,7 @@ public class SetupRecyclerViewManager {
                         subTaskList.addAll(secondaryData); // Add the fetched data to the list
                         subTaskAdapter.notifyDataSetChanged();
                     } else {
-                        Toast.makeText(context, "No more data available.", Toast.LENGTH_SHORT).show(); // Show a message when there's no more data
+                        Log.d("No more data.", "No more data available.");
                     }
                     isLoading = false; // Set loading to false after the data is fetched
                 });

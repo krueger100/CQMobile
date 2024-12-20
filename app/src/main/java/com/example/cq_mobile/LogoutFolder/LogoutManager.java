@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 
 import android.content.Context;
@@ -26,6 +27,10 @@ public class LogoutManager {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear(); // Remove all keys from SharedPreferences
         editor.apply();
+
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        sharedPrefManager.clearUserData();
+        Log.d("SharedPrefManager", "All user data has been cleared from SharedPreferences.");
 
         // Make POST request to logout API
         String url = "https://aws.customquoter.co.uk/api/m/logout";

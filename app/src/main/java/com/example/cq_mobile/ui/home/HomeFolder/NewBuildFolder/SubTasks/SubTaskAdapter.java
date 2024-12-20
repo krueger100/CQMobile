@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
@@ -102,6 +103,23 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                 Log.d("SubTaskAdapter", "Invalid task priority: " + taskPriority);
             }
 
+            SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+            String accessToken = sharedPrefManager.getAccessToken();
+            String userId = sharedPrefManager.getUserId();
+            String firstName = sharedPrefManager.getFirstName();
+            String lastName = sharedPrefManager.getLastName();
+            String email = sharedPrefManager.getEmail();
+
+            Log.d("SubTaskAdapterManagerrSharedPreff", "Retrieved User Data: ");
+            Log.d("SubTaskAdapterManagerrSharedPreff", "Access Token: " + accessToken);
+            Log.d("SubTaskAdapterManagerrSharedPreff", "User ID: " + userId);
+            Log.d("SubTaskAdapterManagerrSharedPreff", "First Name: " + firstName);
+            Log.d("SubTaskAdapterManagerrSharedPreff", "Last Name: " + lastName);
+            Log.d("SubTaskAdapterManagerrSharedPreff", "Email: " + email);
+
+
+
+
             // Handle task status and spinner setup
             String taskStatus = task.getStatus();
             taskStatus = taskStatus.replace("_", " ").trim().replaceAll("\\s+", " ");
@@ -124,8 +142,8 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                     jobId,
                     holder.spinner_task_imageBackground,
                     taskStatus,
-                    taskId.toString() // Pass taskId as string to the spinner adapter
-            );
+                    taskId.toString(), // Pass taskId as string to the spinner adapter
+                    accessToken );
 
             holder.taskSpinner.setAdapter(spinnerAdapter);
             int defaultIndex = options.indexOf(taskStatus);

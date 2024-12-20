@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.Done;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.DoneAdapter;
@@ -45,7 +46,19 @@ public class DoneFragment extends Fragment {
         doneAdapter = new DoneAdapter(getContext(), donelist);
         recyclerView.setAdapter(doneAdapter);
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
 
+        Log.d("DoneFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("DoneFragmentSharedPreff", "Access Token: " + accessToken);
+        Log.d("DoneFragmentSharedPreff", "User ID: " + userId);
+        Log.d("DoneFragmentSharedPreff", "First Name: " + firstName);
+        Log.d("DoneFragmentSharedPreff", "Last Name: " + lastName);
+        Log.d("DoneFragmentSharedPreff", "Email: " + email);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
@@ -57,13 +70,13 @@ public class DoneFragment extends Fragment {
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
-                        loadMessages();
+                        loadMessages(accessToken);
                     }
                 }
             }
         });
 
-        loadMessages();
+        loadMessages(accessToken);
         clockout_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -77,12 +90,12 @@ public class DoneFragment extends Fragment {
         return view;
     }
 
-    private void loadMessages() {
+    private void loadMessages(String accessToken) {
         if (isLoading) return; // Prevent multiple calls while already loading
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
-        DoneApiManager.fetchDoneApiData(currentPage, PAGE_SIZE, new DoneApiManager.ApiResponseCallback() {
+        DoneApiManager.fetchDoneApiData(accessToken,currentPage, PAGE_SIZE, new DoneApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Done> data) {
                 if (getActivity() == null) return;
@@ -100,7 +113,7 @@ public class DoneFragment extends Fragment {
                     if (donelist.size() >= 100 && currentPage == 1) {
                         // If data reaches 100, skip to page 2 directly, if we are still on page 1
                         currentPage = 1;
-                        loadMessages(); // Recurse to load data from page 2
+                        loadMessages(accessToken); // Recurse to load data from page 2
                     } else {
                         // Check if this is the last page
                         if (data.size() < PAGE_SIZE) {
