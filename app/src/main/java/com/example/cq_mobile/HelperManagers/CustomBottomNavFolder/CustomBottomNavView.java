@@ -1,6 +1,5 @@
 package com.example.cq_mobile.HelperManagers.CustomBottomNavFolder;
 
-// CustomBottomNavView.java
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
