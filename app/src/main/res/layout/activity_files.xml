@@ -54,6 +54,18 @@
 
     </FrameLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerview_files"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="@+id/fragment_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/files_back" />
+
+
     <com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav
         android:id="@+id/nfds_bottom"
         android:layout_width="match_parent"

@@ -83,7 +83,7 @@ public class TaskActivity extends AppCompatActivity {
                 "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
                 new TaskActivityManager.TaskFetchCallback() {
                     @Override
-                    public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName) {
+                    public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, String string) {
                         // Log the task details
                         Log.d("TaskActivity", "Task Fetched Successfully:");
                         Log.d("TaskActivity", "Title: " + title);

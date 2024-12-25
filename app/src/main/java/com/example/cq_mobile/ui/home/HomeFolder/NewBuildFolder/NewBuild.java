@@ -67,7 +67,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     ProgressBar progress_circular;
 TextView category_todo;
 ImageView statusImageView;
-
+    private int taskId;
 LinearLayout notes,folder,docs,sheets;
     private NewBuildButtonManager newBuildButtonManager;
 
@@ -75,7 +75,8 @@ LinearLayout notes,folder,docs,sheets;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
-         customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
+
+        customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
         category_todo = findViewById(R.id.category_todo);
@@ -94,6 +95,8 @@ LinearLayout notes,folder,docs,sheets;
         docs = findViewById(R.id.docs);
         sheets  = findViewById(R.id.sheets);
         newBuildButtonManager = new NewBuildButtonManager(notes, folder, docs, sheets);
+
+
 
         newBuildButtonManager.setButtonsVisibility(true);
         newBuildButtonManager.setButtonClickListener(view -> {

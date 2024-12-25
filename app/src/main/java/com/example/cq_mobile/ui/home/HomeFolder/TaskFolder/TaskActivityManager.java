@@ -14,7 +14,7 @@ public class TaskActivityManager {
     private final TaskApi taskApi;
 
     public interface TaskFetchCallback {
-        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName);
+        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, String string);
         void onTaskFetchError(String errorMessage);
     }
 
@@ -37,6 +37,7 @@ public class TaskActivityManager {
 
                     // Check if task.getData() is not null before accessing it
                     if (task.getData() != null) {
+                        String id = String.valueOf(task.getData().getId());
                         String title = task.getData().getTitle();
                         String description = task.getData().getDescription();
                         String priority = task.getData().getPriority();
@@ -53,7 +54,7 @@ public class TaskActivityManager {
                         if (assignees != null && assignees.length > 0) {
                             for (Task.Data.Assignee assignee : assignees) {
                                 // Add assignee info to list
-                                assigneeInfoList.add("Assignee ID: " + assignee.getId() + ", Name: " + assignee.getName() + ", Avatar: " + assignee.getAvatar());
+                                assigneeInfoList.add("Assignee ID: " +id + ", Name: " + assignee.getName() + ", Avatar: " + assignee.getAvatar());
                                 assigneeNamesList.add(assignee.getName());  // Store names for later use
                                 assigneeAvatarsList.add(assignee.getAvatar());  // Store avatars for later use
                             }
@@ -77,7 +78,7 @@ public class TaskActivityManager {
                         }
 
                         // Notify via callback with task details and assignee data
-                        callback.onTaskFetched(title, description, priority, status, startDate, endDate, assigneeInfo.toString(), assigneeNames.toString());
+                        callback.onTaskFetched(id,title, description, priority, status, startDate, endDate, assigneeInfo.toString(), assigneeNames.toString());
                     } else {
                         callback.onTaskFetchError("Error: Task data is null.");
                     }

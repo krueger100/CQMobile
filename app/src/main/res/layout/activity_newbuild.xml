@@ -314,7 +314,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Folder"/>
+                            android:text="Files"/>
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 

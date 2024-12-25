@@ -3,7 +3,6 @@ package com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,7 +14,6 @@ import com.example.cq_mobile.R;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
 
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
     private List<Note> notesList;
@@ -36,6 +34,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         Note note = notesList.get(position);
         holder.noteTitle.setText(note.getUser().getName());
         holder.noteContent.setText(note.getNote());
+        holder.note_timeStamp.setText(note.getDate());
 
         Glide.with(holder.itemView.getContext())
                 .load(note.getUser().getAvatar())
@@ -57,7 +56,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     }
 
     static class NotesViewHolder extends RecyclerView.ViewHolder {
-        TextView noteTitle, noteContent;
+        TextView noteTitle, noteContent,note_timeStamp;
         CircleImageView noteImage;
 
         public NotesViewHolder(@NonNull View itemView) {
@@ -65,6 +64,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
             noteTitle = itemView.findViewById(R.id.note_name);
             noteContent = itemView.findViewById(R.id.note_content);
             noteImage = itemView.findViewById(R.id.image1);
+            note_timeStamp = itemView.findViewById(R.id.note_timeStamp);
         }
     }
 }

@@ -52,7 +52,14 @@
             android:textSize="14sp"
             android:textColor="@color/black"
             android:layout_marginTop="8dp" />
-
+        <TextView
+            android:id="@+id/note_timeStamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="date/time"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+            android:layout_marginTop="8dp" />
         <!-- Assignee Avatars Section -->
         <LinearLayout
             android:id="@+id/assignee_avatar_layout"
@@ -62,6 +69,8 @@
             android:layout_marginTop="10dp"
             android:gravity="start">
         </LinearLayout>
+
+
 
     </LinearLayout>
 
