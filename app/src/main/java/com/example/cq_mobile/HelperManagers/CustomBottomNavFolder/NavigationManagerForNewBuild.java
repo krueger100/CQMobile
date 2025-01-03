@@ -10,11 +10,11 @@ import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.ui.chat.ChatFragment;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFragment;
+import com.example.cq_mobile.ui.home.myJobsFolder.myJobs;
 import com.example.cq_mobile.ui.map.MapFragment;
-import com.example.cq_mobile.ui.myJob.myJobFragment;
+import com.example.cq_mobile.ui.MoreInFragment.MoreFragment;
 import com.example.cq_mobile.ui.ticket.TicketFragment;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class NavigationManagerForNewBuild {
 
@@ -43,7 +43,10 @@ public class NavigationManagerForNewBuild {
 
             @Override
             public void onMyJobsSelected() {
-                switchFragment(new myJobFragment());
+            //    switchFragment(new MoreFragment());
+                Intent intent = new Intent(activity, myJobs.class);
+                activity.startActivity(intent);
+                activity.finish();
             }
             @Override
             public void onTicketSelected() {

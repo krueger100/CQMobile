@@ -1,15 +1,14 @@
-package com.example.cq_mobile.Clock.ViewListFolder;
+package com.example.cq_mobile.ui.home.myJobsFolder;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.example.cq_mobile.ui.home.HomeFolder.DoneFragment;
 
-public class ViewPagerAdapter extends FragmentStateAdapter {
+public class myJobAdapter extends FragmentStateAdapter {
 
-    public ViewPagerAdapter(@NonNull AppCompatActivity activity) {
+    public myJobAdapter(@NonNull AppCompatActivity activity) {
         super(activity);
     }
 
@@ -18,11 +17,11 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch (position) {
             case 0:
-                return new ViewListTodoFragment();
+                return new myJobFragment();
             case 1:
-                return new ViewListDoneFragment();
+                return new myJobDoneFragment();
             default:
-                return new ViewListTodoFragment();
+                return new myJobFragment();
         }
     }
 

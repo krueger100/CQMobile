@@ -12,11 +12,6 @@
         android:title="@string/nav_Map" />
 
     <item
-        android:id="@+id/navigation_my_jobs"
-        android:icon="@drawable/nav_todo"
-        android:title="@string/nav_my_jobs" />
-
-    <item
         android:id="@+id/navigation_ticket"
         android:icon="@drawable/nav_ticket"
         android:title="@string/nav_tickets" />
@@ -25,5 +20,8 @@
         android:icon="@drawable/nav_chat"
         android:title="@string/nav_chat" />
 
-
+    <item
+        android:id="@+id/navigation_more"
+        android:icon="@drawable/more__1__2"
+        android:title="@string/nav_my_jobs" />
 </menu>

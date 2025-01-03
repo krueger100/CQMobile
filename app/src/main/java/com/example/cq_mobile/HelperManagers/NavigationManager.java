@@ -36,7 +36,7 @@ public class NavigationManager {
     public void setupNavigation() {
         // Set up the AppBarConfiguration for top-level destinations
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_map, R.id.navigation_my_jobs,
+                R.id.navigation_home, R.id.navigation_map, R.id.navigation_more,
                 R.id.navigation_ticket, R.id.navigation_chat) // Bottom navigation IDs
                 .setOpenableLayout(drawerLayout) // Enable drawer swipe gesture
                 .build();
@@ -68,8 +68,8 @@ public class NavigationManager {
             } else if (id == R.id.navigation_map) {
                 navController.navigate(R.id.navigation_map);
                 return true;
-            } else if (id == R.id.navigation_my_jobs) {
-                navController.navigate(R.id.navigation_my_jobs);
+            } else if (id == R.id.navigation_more) {
+                navController.navigate(R.id.navigation_more);
                 return true;
             } else if (id == R.id.navigation_ticket) {
                 navController.navigate(R.id.navigation_ticket);

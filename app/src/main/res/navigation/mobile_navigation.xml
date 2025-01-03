@@ -18,10 +18,10 @@
         tools:layout="@layout/fragment_map" />
 
     <fragment
-        android:id="@+id/navigation_my_jobs"
-        android:name="com.example.cq_mobile.ui.myJob.myJobFragment"
+        android:id="@+id/navigation_more"
+        android:name="com.example.cq_mobile.ui.MoreInFragment.MoreFragment"
         android:label="@string/nav_my_jobs"
-        tools:layout="@layout/fragment_my_jobs" />
+        tools:layout="@layout/fragment_more" />
 
 
     <fragment

@@ -10,8 +10,9 @@ import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFragment;
 import com.example.cq_mobile.ui.home.HomeFragment;
+import com.example.cq_mobile.ui.home.myJobsFolder.myJobs;
 import com.example.cq_mobile.ui.map.MapFragment;
-import com.example.cq_mobile.ui.myJob.myJobFragment;
+import com.example.cq_mobile.ui.MoreInFragment.MoreFragment;
 import com.example.cq_mobile.ui.ticket.TicketFragment;
 
 public class NavigationManagerForTask {
@@ -39,7 +40,9 @@ public class NavigationManagerForTask {
 
             @Override
             public void onMyJobsSelected() {
-                switchToFragment(new myJobFragment());
+              //  switchToFragment(new MoreFragment());
+                Intent intent = new Intent(context, myJobs.class);
+                context.startActivity(intent);
                 back2.setVisibility(View.VISIBLE);
             }
 
