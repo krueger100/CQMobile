@@ -3,6 +3,9 @@ package com.example.cq_mobile.ui.home.HomeFolder.TaskFolder;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -10,9 +13,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,7 +88,7 @@ public class TaskActivity extends AppCompatActivity {
                 "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
                 new TaskActivityManager.TaskFetchCallback() {
                     @Override
-                    public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, String string) {
+                    public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName) {
                         // Log the task details
                         Log.d("TaskActivity", "Task Fetched Successfully:");
                         Log.d("TaskActivity", "Title: " + title);
@@ -100,7 +105,7 @@ public class TaskActivity extends AppCompatActivity {
                         } else {
                             descriptionTextView.setText(description);
                         }
-                         priorityTextView.setText(priority);  // Uncomment if required
+                        priorityTextView.setText(priority);  // Uncomment if required
                         // statusTextView.setText(status);      // Uncomment if required
                         // startDateTextView.setText(startDate); // Uncomment if required
                         endDateTextView.setText(endDate);
@@ -111,8 +116,82 @@ public class TaskActivity extends AppCompatActivity {
 
                         // Dynamically create and add ImageViews for each assignee
                         String[] assigneeData = assigneeInfo.split("\n"); // Split assigneeInfo into lines
-                        // Use TaskAvatarManager to handle avatar loading
-                        TaskAvatarManager.loadAvatars(TaskActivity.this, assigneeInfo, assigneeAvatarLayout);
+
+                        for (int i = 0; i < assigneeData.length; i++) {
+                            // Extract the avatar URL directly from the assignee data
+                            String avatarUrl = getAvatarUrlFromAssigneeData(assigneeData[i]);
+
+                            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                                Log.d("TaskActivityImage", "Loading avatar URL: " + avatarUrl);
+
+                                // Create a new ImageView for each assignee
+                                ImageView imageView = new ImageView(TaskActivity.this);
+                                int width = (int) TypedValue.applyDimension(
+                                        TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+                                int height = (int) TypedValue.applyDimension(
+                                        TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+
+                                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, height);
+                                layoutParams.setMargins(2, 0, 2, 0);
+                                imageView.setLayoutParams(layoutParams);
+
+                                try {
+
+                                    URL avatarUrlObject = new URL(avatarUrl);
+
+                                    if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                                        Glide.with(TaskActivity.this)
+                                                .load(avatarUrl)
+                                                .circleCrop()
+                                                .placeholder(R.drawable.baseline_circle)
+                                                .error(R.drawable.emptyglide)
+                                                .into(imageView); // Target ImageView
+                                    } else {
+                                        // If avatar URL is invalid, set a default image
+                                        Glide.with(TaskActivity.this)
+                                                .load(avatarUrlObject)
+                                                .circleCrop()
+                                                .placeholder(R.drawable.baseline_circle)
+                                                .error(R.drawable.emptyglide)
+                                                .into(imageView);
+
+                                    }
+
+                                } catch (Exception e) {
+                                    // Handle any potential error if the URL is invalid
+                                    Log.e("TaskActivityImage", "Error loading avatar image: " + e.getMessage());
+
+                                }
+
+                                // Add the ImageView to your LinearLayout container
+                                assigneeAvatarLayout.addView(imageView);
+                            } else {
+                                // If the URL is invalid, load a default image
+                                Log.d("TaskActivityImage", "Loading default avatar image");
+
+                                // Use a default image for invalid URLs
+                                ImageView imageView = new ImageView(TaskActivity.this);
+                                int width = (int) TypedValue.applyDimension(
+                                        TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+                                int height = (int) TypedValue.applyDimension(
+                                        TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics());
+
+                                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, height);
+                                layoutParams.setMargins(8, 0, 8, 0);
+                                imageView.setLayoutParams(layoutParams);
+
+
+                                Glide.with(TaskActivity.this)
+                                        .load(R.drawable.baseline_people_24)  // Default image
+                                        .circleCrop()
+                                        .into(imageView);
+
+                                // Add the ImageView to your LinearLayout container
+                                assigneeAvatarLayout.addView(imageView);
+
+
+                            }
+                        }
 
                         // Log each assignee's detailed data
                         Log.d("TaskActivity", "Assignees Details:");

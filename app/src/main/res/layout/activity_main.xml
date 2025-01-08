@@ -14,7 +14,6 @@
         android:layout_height="match_parent">
 
 
-
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/nav_view"
             android:layout_width="0dp"
@@ -39,6 +38,8 @@
             app:navGraph="@navigation/mobile_navigation" />
 
 
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
@@ -49,6 +50,7 @@
         android:fitsSystemWindows="true"
 
         app:menu="@menu/drawer_menu" />
+
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

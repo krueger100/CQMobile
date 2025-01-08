@@ -55,8 +55,11 @@ public class ClockActivity extends AppCompatActivity {
         boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
         Log.d("ClockActivity", "isLoggedIn: " + isLoggedIn);
 
+
+
         initializeViews();
     }
+
 
     private void getAccessToken(AccessTokenRequest request) {
         // Create an instance of the API service

@@ -1,8 +1,5 @@
 package com.example.cq_mobile.ui.home.HomeFolder.TaskFolder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -14,7 +11,7 @@ public class TaskActivityManager {
     private final TaskApi taskApi;
 
     public interface TaskFetchCallback {
-        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, String string);
+        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName);
         void onTaskFetchError(String errorMessage);
     }
 
@@ -37,7 +34,6 @@ public class TaskActivityManager {
 
                     // Check if task.getData() is not null before accessing it
                     if (task.getData() != null) {
-                        String id = String.valueOf(task.getData().getId());
                         String title = task.getData().getTitle();
                         String description = task.getData().getDescription();
                         String priority = task.getData().getPriority();
@@ -47,38 +43,26 @@ public class TaskActivityManager {
 
                         // Extract assignee data with null check for assignees
                         Task.Data.Assignee[] assignees = task.getData().getAssignees();
-                        List<String> assigneeInfoList = new ArrayList<>();
-                        List<String> assigneeNamesList = new ArrayList<>();
-                        List<String> assigneeAvatarsList = new ArrayList<>();
+                        StringBuilder assigneeInfo = new StringBuilder();
+                        StringBuilder assigneeName = new StringBuilder();
+
 
                         if (assignees != null && assignees.length > 0) {
                             for (Task.Data.Assignee assignee : assignees) {
-                                // Add assignee info to list
-                                assigneeInfoList.add("Assignee ID: " +id + ", Name: " + assignee.getName() + ", Avatar: " + assignee.getAvatar());
-                                assigneeNamesList.add(assignee.getName());  // Store names for later use
-                                assigneeAvatarsList.add(assignee.getAvatar());  // Store avatars for later use
+                                assigneeInfo.append("Assignee ID: ").append(assignee.getId()).append(", ")
+                                        .append("Name: ").append(assignee.getName()).append(", ")
+                                        .append("Avatar: ").append(assignee.getAvatar()).append("\n");
+
+                                assigneeName.append(assignee.getName());
+
                             }
                         } else {
-                            assigneeInfoList.add("No assignees found.");
+                            assigneeInfo.append("No assignees found.\n");
                         }
 
-                        // Combine assignee names for the callback
-                        StringBuilder assigneeNames = new StringBuilder();
-                        for (String name : assigneeNamesList) {
-                            assigneeNames.append(name).append(", ");
-                        }
-                        if (assigneeNames.length() > 0) {
-                            assigneeNames.setLength(assigneeNames.length() - 2);  // Remove the trailing comma and space
-                        }
-
-                        // Combine assignee info for the callback
-                        StringBuilder assigneeInfo = new StringBuilder();
-                        for (String info : assigneeInfoList) {
-                            assigneeInfo.append(info).append("\n");
-                        }
-
-                        // Notify via callback with task details and assignee data
-                        callback.onTaskFetched(id,title, description, priority, status, startDate, endDate, assigneeInfo.toString(), assigneeNames.toString());
+                        // Notify via callback with assignee info
+                        callback.onTaskFetched(title, description, priority, status, startDate, endDate, assigneeInfo.toString()
+                        ,assigneeName.toString());
                     } else {
                         callback.onTaskFetchError("Error: Task data is null.");
                     }

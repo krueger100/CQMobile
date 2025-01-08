@@ -6,7 +6,7 @@
 
 
         <ImageView
-            android:id="@+id/nav_drawer"
+            android:id="@+id/header_logo"
             android:layout_width="200dp"
             android:layout_height="58dp"
             android:layout_margin="15dp"
@@ -16,8 +16,9 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="28dp"
+            android:id="@+id/header_Notification"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="10dp"
             android:src="@drawable/bell"
@@ -25,6 +26,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/darkBlue" />
+
+        <ImageView
+            android:id="@+id/Notification_indication_on"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/indicator_on"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/header_Notification"
+            app:layout_constraintEnd_toEndOf="@+id/header_Notification"
+            app:tint="#F57C00" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

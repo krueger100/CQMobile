@@ -2,6 +2,8 @@ package com.example.cq_mobile.HelperManagers;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -119,62 +121,7 @@ public class NavigationManager {
         NavController navController = Navigation.findNavController(activity, R.id.nav_host_fragment_activity_main);
         return NavigationUI.navigateUp(navController, drawerLayout) || activity.onSupportNavigateUp();
     }
+
+
 }
 
-
-/*
-
-public class MainActivity extends AppCompatActivity {
-
-    private ActivityMainBinding binding;
-    private DrawerLayout drawerLayout;
-    private NavigationManager navigationManager;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // Inflate layout using ViewBinding
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        // Initialize Firebase and set status bar appearance
-        FirebaseApp.initializeApp(this);
-        StatusBarManager.setStatusBarLight(this);
-
-        // Initialize NavigationManager with required parameters
-        drawerLayout = binding.drawerLayout;
-        navigationManager = new NavigationManager(
-                this,
-                binding.navView,
-                binding.navViewDrawer,
-                drawerLayout
-        );
-
-        // Register a back press callback
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (navigationManager != null) {
-                    navigationManager.handleBackPress();
-                } else {
-                    finish();
-                }
-            }
-        });
-
-        navigationManager.setupNavigation();
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        return navigationManager.onSupportNavigateUp();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        StatusBarManager.setStatusBarDefault(this);
-    }
-}
- */

@@ -112,6 +112,11 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
+        <activity android:name=".NotificationData.ShowNotificationActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
