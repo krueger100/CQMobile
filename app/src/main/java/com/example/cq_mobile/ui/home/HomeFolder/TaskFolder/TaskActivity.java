@@ -10,11 +10,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.R;
 
 import java.net.URL;
@@ -50,6 +53,9 @@ public class TaskActivity extends AppCompatActivity {
 
 
         Log.d("TaskActivity", "Received jobId: " + jobId + ", taskId: " + taskId);
+
+
+
         Log.d("TaskActivity", "Received title: " + title_1);
         Log.d("TaskActivity", "Received description: " + description_1);
 
@@ -60,13 +66,13 @@ public class TaskActivity extends AppCompatActivity {
         TextView statusTextView = findViewById(R.id.statusTextView);
         TextView startDateTextView = findViewById(R.id.startDateTextView);
         TextView endDateTextView = findViewById(R.id.endDateTextView);
-        TextView assigneeTextView = findViewById(R.id.assigneeTextView);
         RecyclerView recycler_view = findViewById(R.id.recycler_view);
         LinearLayout assigneeAvatarLayout = findViewById(R.id.linearLayout2);
         assigneeAvatarLayout.setOrientation(LinearLayout.HORIZONTAL);
 
         // Initialize RecyclerView
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
+
 
         // Dummy task list
         List<String> taskList = new ArrayList<>();
@@ -78,7 +84,7 @@ public class TaskActivity extends AppCompatActivity {
         recycler_view.setAdapter(taskAdapter);
 
         // Initialize TaskActivityManager
-        TaskActivityManager manager = new TaskActivityManager();
+     TaskActivityManager manager = new TaskActivityManager();
 
         // Fetch task using TaskActivityManager
         manager.fetchTask(
@@ -105,14 +111,23 @@ public class TaskActivity extends AppCompatActivity {
                         } else {
                             descriptionTextView.setText(description);
                         }
+
+                        if ("Low".equalsIgnoreCase(priority)) {
+                            priorityTextView.setBackgroundResource(R.drawable.button_blue);
+                            priorityTextView.setTextColor(ContextCompat.getColor(TaskActivity.this, R.color.textBtnBlue));
+                        } else if ("Medium".equalsIgnoreCase(priority)) {
+                            priorityTextView.setBackgroundResource(R.drawable.button_green);
+                            priorityTextView.setTextColor(ContextCompat.getColor(TaskActivity.this, R.color.textBtnGreen));
+                        } else if ("High".equalsIgnoreCase(priority)) {
+                            priorityTextView.setBackgroundResource(R.drawable.button_red);
+                            priorityTextView.setTextColor(ContextCompat.getColor(TaskActivity.this, R.color.textBtnRed));
+                        }
+
+
                         priorityTextView.setText(priority);  // Uncomment if required
                         // statusTextView.setText(status);      // Uncomment if required
                         // startDateTextView.setText(startDate); // Uncomment if required
                         endDateTextView.setText(endDate);
-
-                        // Log Assignee info (from assigneeInfo passed in the callback)
-                        Log.d("TaskActivity", "Assignee Info: " + assigneeInfo);
-                        assigneeTextView.setText(assigneeInfo);  // Display assignee info in the TextView
 
                         // Dynamically create and add ImageViews for each assignee
                         String[] assigneeData = assigneeInfo.split("\n"); // Split assigneeInfo into lines
@@ -209,6 +224,7 @@ public class TaskActivity extends AppCompatActivity {
                     }
                 }
         );
+
     }
 
     private String getAvatarUrlFromAssigneeData(String assigneeData) {

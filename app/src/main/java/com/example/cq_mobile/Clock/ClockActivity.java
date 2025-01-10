@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ViewListFolder.ViewListActivity;
@@ -36,6 +35,7 @@ public class ClockActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private TextView checkInButton, viewListButton;
     ImageView nav_drawer;
+    String password;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,15 +45,37 @@ public class ClockActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        String email = "richard.anthony.wetherell@gmail.com";
-        String password = "123456";
-        AccessTokenRequest request = new AccessTokenRequest(email, password);
-        getAccessToken(request);
+        Intent intent = getIntent();
+        String accessToken = intent.getStringExtra("accessToken");
+        int userId = intent.getIntExtra("userId", -1);  // Default value is -1 if not found
+        String firstName = intent.getStringExtra("firstName");
+        String lastName = intent.getStringExtra("lastName");
+        String email1 = intent.getStringExtra("email");
+        String password1 = intent.getStringExtra("password");
 
-        // Retrieve the SharedPreferences data
-        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
-        Log.d("ClockActivity", "isLoggedIn: " + isLoggedIn);
+
+
+
+        // If any of the intent values are null, retrieve from SharedPreferences
+        if (accessToken == null || firstName == null || lastName == null || email1 == null || password1 == null) {
+            SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+            String saved_accessToken = sharedPreferences.getString("accessToken", null);
+            String saved_userId = sharedPreferences.getString("userId", null);
+            String saved_firstName = sharedPreferences.getString("firstName", null);
+            String saved_lastName = sharedPreferences.getString("lastName", null);
+            String saved_email = sharedPreferences.getString("email", null);
+            String saved_password = sharedPreferences.getString("password", null);
+            String email =  saved_email;
+             password = saved_password;
+            AccessTokenRequest request = new AccessTokenRequest(email, password);
+            getAccessToken(request);
+        } else {
+            String email =  email1;
+             password = password1;
+            AccessTokenRequest request = new AccessTokenRequest(email, password);
+            getAccessToken(request);
+        }
 
 
 
@@ -90,6 +112,7 @@ public class ClockActivity extends AppCompatActivity {
                         String email = accessTokenResponse.getUser().getEmail() != null
                                 ? accessTokenResponse.getUser().getEmail()
                                 : "N/A";
+                        String avatarUrl = accessTokenResponse.getUser().getAvatar();
 
                         if (userId > 0) {
                             Log.d("ClockActivity", "Access Token: " + accessToken);
@@ -97,10 +120,18 @@ public class ClockActivity extends AppCompatActivity {
                             Log.d("ClockActivity", "User First Name: " + firstName);
                             Log.d("ClockActivity", "User Last Name: " + lastName);
                             Log.d("ClockActivity", "User Email: " + email);
+                            Log.d("ClockActivity", "avatarUrl: " + avatarUrl);
 
                             // Save user data to SharedPreferences
                             SharedPrefManager sharedPrefManager = new SharedPrefManager(ClockActivity.this);
-                            sharedPrefManager.saveUserData(accessToken, String.valueOf(userId), firstName, lastName, email);
+                            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                                sharedPrefManager.saveUserData(accessToken, String.valueOf(userId), firstName, lastName, email, avatarUrl, password);
+                            } else {
+                                String defaultAvatarUrl = "2/uploads/contacts/avatars/colleague_avatar_31734941421.png";
+                                sharedPrefManager.saveUserData(accessToken, String.valueOf(userId), firstName, lastName, email, defaultAvatarUrl, password);
+                            }
+
+
                         } else {
                             Log.e("ClockActivity", "Invalid user ID: " + userId);
                         }
@@ -121,6 +152,9 @@ public class ClockActivity extends AppCompatActivity {
 
 
     }
+
+
+
 
     private void initializeViews() {
         // Initialize views using findViewById
@@ -155,3 +189,4 @@ public class ClockActivity extends AppCompatActivity {
         });
     }
 }
+

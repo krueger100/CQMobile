@@ -38,7 +38,7 @@ public class FilesActivity extends AppCompatActivity {
     private String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
     private String baseUrl = "https://aws.customquoter.co.uk";
     private int jobScheduleId;
-    private String taskId = "772";
+    private String taskId ;
     private String accessToken;
     private TextView files_back, files_back2;
     private NavigationManagerForTask navigationManager;
@@ -51,7 +51,7 @@ public class FilesActivity extends AppCompatActivity {
         // Retrieve Intent extras
         Intent intent = getIntent();
         jobScheduleId = Integer.parseInt(intent.getStringExtra("job_id"));
-
+        taskId = getIntent().getStringExtra("task_id");
         // Initialize UI components
         files_back = findViewById(R.id.files_back);
         files_back2 = findViewById(R.id.files_back2);

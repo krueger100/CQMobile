@@ -41,7 +41,7 @@
 
 
             <ImageView
-                android:id="@+id/image1"
+                android:id="@+id/image_profile"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"

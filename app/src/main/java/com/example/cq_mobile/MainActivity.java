@@ -194,6 +194,9 @@ public class MainActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
         }
 
+        // Generate a unique notification ID for each notification
+        int notificationId = (int) System.currentTimeMillis(); // Use current time in milliseconds as a unique ID
+
         // Load the image using Glide
         Glide.with(context)
                 .asBitmap()
@@ -210,8 +213,8 @@ public class MainActivity extends AppCompatActivity {
                                 .setAutoCancel(true)
                                 .build();
 
-                        // Display the notification
-                        notificationManager.notify(1, notification);
+                        // Display the notification with a unique ID
+                        notificationManager.notify(notificationId, notification);
                     }
 
                     @Override
@@ -224,29 +227,36 @@ public class MainActivity extends AppCompatActivity {
                                 .setAutoCancel(true)
                                 .build();
 
-                        notificationManager.notify(1, notification);
+                        notificationManager.notify(notificationId, notification);
                     }
                 });
     }
 
     private void showNotification(Context context, List<String> titles, List<String> avatars) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            // Find ImageView by ID
             ImageView notificationIndicator = findViewById(R.id.Notification_indication_on);
             ImageView header_Notification = findViewById(R.id.header_Notification);
 
-            // Make notification indicator visible
-            notificationIndicator.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Notification indicator set to VISIBLE because there are notifications");
+            // Check if the ImageView is found
+            if (notificationIndicator != null) {
+                notificationIndicator.setVisibility(View.VISIBLE);
+                Log.d(TAG, "Notification indicator set to VISIBLE because there are notifications");
+            } else {
+                Log.e(TAG, "Notification indicator not found in the layout");
+            }
 
-            header_Notification.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            // Set up click listener if header_Notification is found
+            if (header_Notification != null) {
+                header_Notification.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
                         RetrieveStoredNoticationData(context, accessToken, userId, header_Notification, titles, avatars);
-                }
-            });
-
-
-
+                    }
+                });
+            } else {
+                Log.e(TAG, "Header notification not found in the layout");
+            }
         }, 1000);
     }
 
@@ -264,97 +274,30 @@ public class MainActivity extends AppCompatActivity {
 
 
 /*
-    // Call the method to show notifications
-    //    showNotification(getApplicationContext(), accessToken, userId);
+            getUserData(email,password);
 
+    private void getUserData(String email, String password) {
 
-    private void showNotification(Context context, String accessToken, String userId) {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            ImageView notificationIndicator = findViewById(R.id.Notification_indication_on);
-            ImageView header_Notification = findViewById(R.id.header_Notification);
+        GetUserInfoManager getUserInfoManager = new GetUserInfoManager(this);
+        // Use the retrieved email and password
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(email, password);
 
-            if (notificationIndicator != null) {
-                // Toggle the visibility of the notification indicator
-                if (notificationIndicator.getVisibility() == View.VISIBLE) {
-                    notificationIndicator.setVisibility(View.INVISIBLE);
-                    Log.d(TAG, "Notification indicator set to INVISIBLE because there are no notifications");
-                    fetchNotificationData(context, accessToken, userId, header_Notification);
-                } else {
-                    notificationIndicator.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Notification indicator set to VISIBLE because there are notifications");
-                    fetchNotificationData(context, accessToken, userId, header_Notification);
-                }
-            } else {
-                Log.e(TAG, "Notification indicator not found in the layout!");
-            }
-        }, 1000);
-    }
-
-    private void fetchNotificationData(Context context, String accessToken, String userId, ImageView header_Notification) {
-        // ExecutorService to handle background tasks
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-        executorService.submit(() -> {
-            NotificationApiManager.fetchApiDataPaginated(context, accessToken, userId, 1, 10, new NotificationApiManager.ApiResponseCallback() {
-                @Override
-                public void onDataFetched(List<NotificationResponse.NotificationData> data) {
-                    // Now, post the UI update to the main thread
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        if (data != null && !data.isEmpty()) {
-                            for (NotificationResponse.NotificationData notification : data) {
-                                if (notification != null) {
-                                    Log.d(TAG, "Notification Data: " + notification.toString());
-                                    notification_data = notification.toString();
-                                } else {
-                                    Log.e(TAG, "Received a null notification data");
-                                }
-                            }
-                        } else {
-                            Log.d(TAG, "No data received or data is empty");
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(String error) {
-                    // Handle the error
-                    Log.e(TAG, "Error fetching data: " + error);
-                }
-            });
-        });
-
-        header_Notification.setOnClickListener(new View.OnClickListener() {
+        // Step 3: Call the method with a callback implementation
+        getUserInfoManager.getAccessToken(accessTokenRequest, new GetUserInfoManager.AccessTokenCallback() {
             @Override
-            public void onClick(View v) {
-                if (notification_data != null) {
-                    Log.d(TAG, "Notification Data: " + notification_data);
-                    RetrieveStoredNoticationData(context);
-                } else {
-                    Log.d(TAG, "Notification data is null when clicked");
-                    RetrieveStoredNoticationData(context);
-                }
+            public void onSuccess(AccessTokenResponse response) {
+                // Handle the successful response
+                String accessToken = response.getAccessToken();
+                Log.d("MoreAct", "Access Token: " + accessToken);
+                Log.d("MoreAct", "User Email: " + response.getUser().getEmail());
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                // Handle the failure
+                Log.e("MainActivity", "Error: " + errorMessage);
             }
         });
     }
 
-
-    private void RetrieveStoredNoticationData(Context context) {
-        SharedPreffForNotification sharedPreffManager = new SharedPreffForNotification(context);
-
-        // Retrieve team-related data from SharedPreferences
-        List<String> teamNames = sharedPreffManager.getTeamNames();
-        List<String> teamAvatars = sharedPreffManager.getTeamAvatars();
-        List<String> teamInitials = sharedPreffManager.getTeamInitials();
-        List<String> teamColors = sharedPreffManager.getTeamColors();
-
-        Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
-
-        // Pass team-related data to ShowNotificationActivity via Intent
-        intent.putStringArrayListExtra("teamNames", new ArrayList<>(teamNames));
-        intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(teamAvatars));
-        intent.putStringArrayListExtra("teamInitials", new ArrayList<>(teamInitials));
-        intent.putStringArrayListExtra("teamColors", new ArrayList<>(teamColors));
-
-        startActivity(intent);
-    }
  */

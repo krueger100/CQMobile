@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SetupMainTaskSpinnerAdapter;
@@ -200,6 +201,7 @@ public class SetupMainTaskManager {
                                         ? selectedTask.getAddress().getAddress()
                                         : "No address";
                                 taskLocationView.setText(address);
+
 
 
                             } else {

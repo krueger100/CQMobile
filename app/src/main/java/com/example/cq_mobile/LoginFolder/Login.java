@@ -5,22 +5,19 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cq_mobile.Clock.ClockActivity;
-import com.example.cq_mobile.HelperManagers.FullscreenManager;
-import com.example.cq_mobile.MainActivity;
+import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
+import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
+import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
 import com.example.cq_mobile.R;
 
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -30,6 +27,9 @@ public class Login extends AppCompatActivity {
     private EditText emailField, passwordField;
     private TextView loginButton;
     private ProgressBar progressBar;
+    String email;
+    String password;
+    private static final String BASE_URL = "https://aws.customquoter.co.uk/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,31 +40,105 @@ public class Login extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
-        // Check if user is already logged in
-        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
 
-        if (isLoggedIn) {
-            // If user is logged in, navigate to the home screen
-            navigateToHome();
-        } else {
-            // Initialize UI components for the login screen
-            emailField = findViewById(R.id.emailInput);
-            passwordField = findViewById(R.id.passwordInput);
-            loginButton = findViewById(R.id.loginButton);
-            progressBar = findViewById(R.id.progressBar);
+        // Initialize UI components for the login screen
+        emailField = findViewById(R.id.emailInput);
+        passwordField = findViewById(R.id.passwordInput);
+        loginButton = findViewById(R.id.loginButton);
+        progressBar = findViewById(R.id.progressBar);
 
-            // Set login button click listener
-            loginButton.setOnClickListener(v -> {
-                String email = emailField.getText().toString().trim();
-                String password = passwordField.getText().toString().trim();
+        // Set login button click listener
+        loginButton.setOnClickListener(v -> {
+             email = emailField.getText().toString().trim();
+             password = passwordField.getText().toString().trim();
+            AccessTokenRequest request = new AccessTokenRequest(email, password);
+            progressBar.setVisibility(View.VISIBLE);
+            if (validateInputs(email, password)) {
+                getAccessToken(request);
 
-                if (validateInputs(email, password)) {
-                    performLogin(email, password);
-                }
-            });
-        }
+            }
+        });
+
+
+
     }
+
+    private void getAccessToken(AccessTokenRequest request) {
+        // Create an instance of the API service
+        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
+
+        // Call the API
+        Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
+
+        // Enqueue the call to execute asynchronously
+        call.enqueue(new Callback<AccessTokenResponse>() {
+            @Override
+            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    AccessTokenResponse accessTokenResponse = response.body();
+
+                    String accessToken = accessTokenResponse.getAccessToken() != null
+                            ? accessTokenResponse.getAccessToken()
+                            : "N/A";
+
+                    if (accessTokenResponse.getUser() != null) {
+                        int userId = accessTokenResponse.getUser().getId();
+                        String firstName = accessTokenResponse.getUser().getFirstName() != null
+                                ? accessTokenResponse.getUser().getFirstName()
+                                : "N/A";
+                        String lastName = accessTokenResponse.getUser().getLastName() != null
+                                ? accessTokenResponse.getUser().getLastName()
+                                : "N/A";
+                        String email = accessTokenResponse.getUser().getEmail() != null
+                                ? accessTokenResponse.getUser().getEmail()
+                                : "N/A";
+
+                        if (userId > 0) {
+                            Log.d("Login", "Access Token: " + accessToken);
+                            Log.d("Login", "User ID: " + userId);
+                            Log.d("Login", "User First Name: " + firstName);
+                            Log.d("Login", "User Last Name: " + lastName);
+                            Log.d("Login", "User Email: " + email);
+
+                            // Save user data to SharedPreferences
+                            SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putBoolean("isLoggedIn", true);
+                            editor.putString("accessToken", accessToken);
+                            editor.putString("userId", String.valueOf(userId));
+                            editor.putString("firstName", firstName);
+                            editor.putString("lastName", lastName);
+                            editor.putString("email", email);
+                            editor.putString("password", password);
+                            editor.putBoolean("isLoggedIn", true);
+                            editor.apply();
+
+                            navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar);  // Pass data here
+
+                        } else {
+                            Log.e("Login", "Invalid user ID: " + userId);
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    } else {
+                        Log.e("Login", "User data is null");
+                        progressBar.setVisibility(View.GONE);
+                    }
+                } else {
+                    Log.e("Login", "Error: " + response.message());
+                    progressBar.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
+                // Log the failure (e.g., network error)
+                Log.e("Login", "Failure: " + t.getMessage());
+            }
+        });
+
+
+    }
+
 
     private boolean validateInputs(String email, String password) {
         if (email.isEmpty()) {
@@ -78,67 +152,17 @@ public class Login extends AppCompatActivity {
         return true;
     }
 
-    private void performLogin(String email, String password) {
-        // Show progress bar
-        progressBar.setVisibility(View.VISIBLE);
 
-        // Create Retrofit instance and make the login call
-        ApiService apiService = RetrofitClient.getRetrofitInstance().create(ApiService.class);
-        Call<ResponseBody> call = apiService.loginUser(email, password);
-
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                // Hide progress bar
-                progressBar.setVisibility(View.GONE);
-
-                if (response.isSuccessful() && response.body() != null) {
-
-
-                    // Save cookies and CSRF token in SharedPreferences
-                    SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean("isLoggedIn", true);  // Store the login status
-                    editor.apply();
-
-                    // Navigate to home screen
-                    Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                    navigateToHome();
-                } else {
-                    // Handle server errors
-                    String errorBody = null;
-                    try {
-                        if (response.errorBody() != null) {
-                            errorBody = response.errorBody().string();
-                        }
-                    } catch (IOException e) {
-                        Log.e("LoginActivity", "Error reading error body", e);
-                    }
-                    Log.e("LoginActivity", "Server error: " + response.code() + " - " + errorBody);
-                    Toast.makeText(Login.this, "Server error: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                // Hide progress bar
-                progressBar.setVisibility(View.GONE);
-
-                // Log the error
-                Log.e("LoginActivity", "Request failed", t);
-
-                // Show failure message
-                Toast.makeText(Login.this, "Request failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void navigateToHome() {
-        // Navigate to the home screen or dashboard
+    private void navigateToHome(String accessToken, int userId, String firstName, String lastName, String email, String password, ProgressBar progressBar) {
+        progressBar.setVisibility(View.GONE);
         Intent intent = new Intent(this, ClockActivity.class);
+        intent.putExtra("accessToken", accessToken);
+        intent.putExtra("userId", userId);
+        intent.putExtra("firstName", firstName);
+        intent.putExtra("lastName", lastName);
+        intent.putExtra("email", email);
+        intent.putExtra("password", password);
         startActivity(intent);
         finish();
     }
 }
-
-

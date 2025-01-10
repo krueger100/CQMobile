@@ -42,6 +42,9 @@ public class AccessTokenResponse {
         @SerializedName("email")
         private String email;
 
+        @SerializedName("avatar")  // Assuming the avatar is provided via a URL
+        private String avatar;  // Avatar field added
+
         // Getter and Setter methods for user fields
         public int getId() {
             return id;
@@ -73,6 +76,14 @@ public class AccessTokenResponse {
 
         public void setEmail(String email) {
             this.email = email;
+        }
+
+        public String getAvatar() {
+            return avatar;
+        }
+
+        public void setAvatar(String avatar) {
+            this.avatar = avatar;
         }
     }
 }

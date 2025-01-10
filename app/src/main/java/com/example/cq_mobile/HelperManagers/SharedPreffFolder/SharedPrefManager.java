@@ -2,6 +2,7 @@ package com.example.cq_mobile.HelperManagers.SharedPreffFolder;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
 public class SharedPrefManager {
     private static final String PREF_NAME = "UserPreferences";
     private static final String KEY_ACCESS_TOKEN = "access_token"; // Corrected the key
@@ -9,7 +10,8 @@ public class SharedPrefManager {
     private static final String KEY_FIRST_NAME = "first_name";
     private static final String KEY_LAST_NAME = "last_name";
     private static final String KEY_EMAIL = "email";
-
+    private static final String KEY_PASSWORD = "password";
+    private static final String KEY_AVATAR = "avatarUrl";
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
@@ -19,12 +21,14 @@ public class SharedPrefManager {
     }
 
     // Save user data
-    public void saveUserData(String accessToken, String userId, String firstName, String lastName, String email) {
+    public void saveUserData(String accessToken, String userId, String firstName, String lastName, String email, String avatarUrl,String password) {
         editor.putString(KEY_ACCESS_TOKEN, accessToken);
         editor.putString(KEY_USER_ID, userId);
         editor.putString(KEY_FIRST_NAME, firstName);
         editor.putString(KEY_LAST_NAME, lastName);
         editor.putString(KEY_EMAIL, email);
+        editor.putString(KEY_PASSWORD, password);
+        editor.putString(KEY_AVATAR, avatarUrl);
         editor.apply();
     }
 
@@ -47,6 +51,14 @@ public class SharedPrefManager {
 
     public String getEmail() {
         return sharedPreferences.getString(KEY_EMAIL, null);
+    }
+    public String getPassword() {
+        return sharedPreferences.getString(KEY_PASSWORD, null);
+    }
+
+
+    public String getAvatarUrl() {
+        return sharedPreferences.getString(KEY_AVATAR, null);
     }
 
     // Clear user data

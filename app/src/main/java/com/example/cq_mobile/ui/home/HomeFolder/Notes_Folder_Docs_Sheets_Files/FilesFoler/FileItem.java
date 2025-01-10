@@ -26,4 +26,24 @@ public class FileItem {
     public String getMime_type() {
         return mime_type;
     }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    public void setFilesize(int filesize) {
+        this.filesize = filesize;
+    }
+
+    public void setMime_type(String mime_type) {
+        this.mime_type = mime_type;
+    }
 }

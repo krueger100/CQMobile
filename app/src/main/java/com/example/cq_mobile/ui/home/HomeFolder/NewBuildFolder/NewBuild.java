@@ -23,6 +23,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
@@ -31,6 +32,7 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsFolder.DocsActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FileItem;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsFolder.SheetsAcitivy;
@@ -45,6 +47,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+
+import java.util.List;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
     private int currentPage = 1; // Start from page 1
@@ -67,9 +71,12 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     ProgressBar progress_circular;
 TextView category_todo;
 ImageView statusImageView;
-    private int taskId;
+
 LinearLayout notes,folder,docs,sheets;
     private NewBuildButtonManager newBuildButtonManager;
+
+    String taskId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,11 +90,24 @@ LinearLayout notes,folder,docs,sheets;
         progress_circular = findViewById(R.id.progress_circular);
         statusImageView = findViewById(R.id.statusImageView);
 
+
+
         String jobId = getIntent().getStringExtra("job_id");
         if (jobId != null) {
-            Log.d("job ID ->", "Received Todo ID: " + jobId);
+            setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
+            setupRecyclerViewManager.setupRecyclerView(jobId);
         } else {
             Log.e("job ID ->", "No Todo ID received!");
+        }
+        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
+        setupRecyclerViewManager.setupRecyclerView(jobId);
+
+        SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
+         taskId = sharedPrefTaskADandJobID.getTaskId();
+        if (taskId != null) {
+            Log.d("TASKID", "Task ID: " + taskId);
+        } else {
+            Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
         }
 
         notes  = findViewById(R.id.notes);
@@ -95,6 +115,8 @@ LinearLayout notes,folder,docs,sheets;
         docs = findViewById(R.id.docs);
         sheets  = findViewById(R.id.sheets);
         newBuildButtonManager = new NewBuildButtonManager(notes, folder, docs, sheets);
+
+
 
 
 
@@ -106,9 +128,14 @@ LinearLayout notes,folder,docs,sheets;
                 intent.putExtra("job_id", jobId);
                 this.startActivity(intent);
             } else if (view == folder) {
-                Intent intent = new Intent(this, FilesActivity.class);
-                intent.putExtra("job_id", jobId);
-                this.startActivity(intent);
+                if (jobId != null) {
+                    Intent intent = new Intent(NewBuild.this, FilesActivity.class);
+                    intent.putExtra("job_id", jobId);
+                    intent.putExtra("task_id", taskId);
+                    startActivity(intent);
+                }
+
+
             } else if (view == docs) {
                 Intent intent = new Intent(this, DocsActivity.class);
                 intent.putExtra("job_id", jobId);
@@ -177,8 +204,6 @@ LinearLayout notes,folder,docs,sheets;
             setupMainTaskManager.setupMainTask(jobId);
         }
 
-        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
-        setupRecyclerViewManager.setupRecyclerView(jobId);
 
         // Check location permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)

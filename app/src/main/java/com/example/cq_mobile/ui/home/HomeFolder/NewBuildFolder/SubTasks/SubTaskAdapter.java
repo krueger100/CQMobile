@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
@@ -77,6 +78,9 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             }
 
             Log.d("taskId", "taskId " + taskId);
+
+            SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(context);
+            sharedPrefTaskADandJobID.saveUserjobANDtaskID(String.valueOf(taskId));
 
             // Apply background and text color based on priority
             if (taskPriority != null && !taskPriority.isEmpty()) {

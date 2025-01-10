@@ -18,7 +18,7 @@ public class AccessTokenInterceptor implements Interceptor {
         // Log raw response body
         if (response.body() != null) {
             String responseBody = response.body().string();
-            Log.d("LoginActivity", "Raw Response: " + responseBody);
+            Log.d("ClockActivity", "Raw Response: " + responseBody);
 
             // Recreate the response with the body to pass further down the chain
             return response.newBuilder()
