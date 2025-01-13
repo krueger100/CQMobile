@@ -29,6 +29,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FilesActivity extends AppCompatActivity {
+    private TextView files_back, files_back2;
+    private NavigationManagerForTask navigationManager;
+
     private RecyclerView recyclerView;
     private FilesAdapter filesAdapter;
     private List<FileItem> filesList;
@@ -40,8 +43,7 @@ public class FilesActivity extends AppCompatActivity {
     private int jobScheduleId;
     private String taskId ;
     private String accessToken;
-    private TextView files_back, files_back2;
-    private NavigationManagerForTask navigationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,12 +76,12 @@ public class FilesActivity extends AppCompatActivity {
             backIntent.putExtra("job_id", jobId);
             startActivity(backIntent);
         });
-
         files_back2.setOnClickListener(v -> {
             Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);
             backIntent.putExtra("job_id", jobId);
             startActivity(backIntent);
         });
+
 
         // RecyclerView setup
         recyclerView = findViewById(R.id.recyclerview_files);

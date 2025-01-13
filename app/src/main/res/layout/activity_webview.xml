@@ -1,0 +1,27 @@
+<!-- activity_main.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="bottom"
+    android:padding="16dp">
+
+    <!-- This is where the WebView will be loaded dynamically -->
+    <FrameLayout
+        android:id="@+id/webview_container"
+        android:layout_width="match_parent"
+        android:layout_height="630dp" />
+
+    <!-- Button to open the WebView in Dialog -->
+    <Button
+        android:id="@+id/openWebViewBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Open WebView"
+        android:layout_marginTop="5dp"
+        android:layout_gravity="center"
+        />
+
+
+
+</LinearLayout>

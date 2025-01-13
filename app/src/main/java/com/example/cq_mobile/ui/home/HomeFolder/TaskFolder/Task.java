@@ -7,6 +7,10 @@ class Task {
     public Data getData() {
         return data;
     }
+    // Setter for Data
+    public void setData(Data data) {
+        this.data = data;
+    }
 
     class Data {
         private int id;
@@ -18,6 +22,7 @@ class Task {
         private String end_date;
         private Assignee[] assignees;
         private boolean is_checked;
+        private Checklist[] checklist; // Added checklist array
 
         // Getters
         public int getId() {
@@ -56,12 +61,24 @@ class Task {
             return is_checked;
         }
 
+        public void setChecklist(Checklist[] checklist) {
+            this.checklist = checklist;
+        }
+
+        public Checklist[] getChecklist() {
+            return checklist; // Getter for checklist
+
+
+        }
+
+
         class Assignee {
             private int id;
             private int user_id;
             private String name;
             private String avatar;
             private String colleague_group_id;
+
             // Getters
             public int getId() {
                 return id;
@@ -108,7 +125,38 @@ class Task {
             }
         }
 
+        class Checklist {
+            private int id;
+            private String name;
+            private String checked;
+
+            // Getters
+            public int getId() {
+                return id;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+
+            public void setId(int id) {
+                this.id = id;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getChecked() {
+                return checked;
+            }
+
+            public void setChecked(String checked) {
+                this.checked = checked;
+            }
+        }
+
+
     }
 }
-
-

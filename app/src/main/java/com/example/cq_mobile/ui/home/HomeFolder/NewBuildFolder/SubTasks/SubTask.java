@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks;
 
+
 public class SubTask {
     private int id;
     private String title;
@@ -8,6 +9,7 @@ public class SubTask {
     private String status;
     private String start_date;
     private String end_date;
+    private boolean is_checked;
 
     // Getters and Setters for each field
     public Integer getId() {
@@ -65,4 +67,43 @@ public class SubTask {
     public void setEndDate(String end_date) {
         this.end_date = end_date;
     }
+
+    public boolean isChecked() {
+        return is_checked;
+    }
+
+
 }
+/*
+    // Checklist inner class
+    public class Checklist {
+        private int id;
+        private String name;
+        private boolean checked;
+
+        // Getters and Setters for Checklist fields
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public boolean isChecked() {
+            return checked;
+        }
+
+        public void setChecked(boolean checked) {
+            this.checked = checked;
+        }
+    }
+ */

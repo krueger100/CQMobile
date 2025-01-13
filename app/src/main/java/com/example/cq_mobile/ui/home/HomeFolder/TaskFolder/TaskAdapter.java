@@ -6,22 +6,35 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateMainTaskApiManagerCheckBox;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateSubTaskApiManagerCheckBox;
 
 import java.util.List;
 
+
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
-    private List<String> taskList;  // A list of task names (or any other data you want to display)
+    private List<String> taskList;
+    private List<String> checked_List;
+    List<String> checked_Id;
     private Context context;
-
-    public TaskAdapter(Context context, List<String> taskList) {
+    String accessToken;
+    String jobId;
+    int taskId;
+    public TaskAdapter(Context context, List<String> taskList, List<String> checked_List, List<String> checked_Id, String accessToken, String jobId, int taskId) {
         this.context = context;
         this.taskList = taskList;
+        this.checked_List = checked_List;
+        this.checked_Id = checked_Id;
+        this.accessToken = accessToken;
+        this.jobId = jobId;
+        this.taskId = taskId;
     }
 
     @Override
@@ -32,17 +45,36 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     @Override
     public void onBindViewHolder(TaskViewHolder holder, int position) {
-        String task = taskList.get(position);
-        holder.taskNameTextView.setText(task);
+        String name = taskList.get(position);
+        String checked = checked_List.get(position);
+        String Id = checked_Id.get(position);
 
-        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Handle the CheckBox change event, e.g., mark task as completed
-            if (isChecked) {
-                Log.d("TaskAdapter", task + " is completed.");
-            } else {
-                Log.d("TaskAdapter", task + " is not completed.");
+
+        holder.taskNameTextView.setText(name);
+        Log.d("TaskAdapter", "Displaying name: " + name +" checked: "+checked);
+        if (checked.equals("1")){
+          holder.checkBox.setChecked(true);
+        }else {
+            holder.checkBox.setChecked(false);
+        }
+        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // Update the local variable to reflect the new state
+                boolean isChecked_task = isChecked;
+                // Log the state of the checkbox for debugging
+                Log.d("checkBoxData", "Selected checkBox " + (isChecked_task ? "checked" : "unchecked"));
+
+                // Get the checklist item ID and pass it to the API
+                String checklistItemId = String.valueOf(Id); // Replace with actual checklist item ID
+
+                // Call the API to update the task status
+                UpdateMainTaskApiManagerCheckBox.updateMainTaskApiManager(accessToken, jobId, String.valueOf(taskId), checklistItemId, isChecked_task);
+                UpdateSubTaskApiManagerCheckBox.updateSub_TaskApiManager(accessToken, jobId, String.valueOf(taskId), checklistItemId, isChecked_task);
             }
         });
+
+
     }
 
     @Override

@@ -23,6 +23,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
@@ -32,11 +33,11 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsFolder.DocsActivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FileItem;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsFolder.SheetsAcitivy;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
+import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivityManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,8 +48,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
-import java.util.List;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
     private int currentPage = 1; // Start from page 1
@@ -69,54 +68,54 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     BitmapDescriptor customMarkerIcon;
     MapCameraManager mapCameraManager;
     ProgressBar progress_circular;
+    ProgressBar progress_circular_2;
 TextView category_todo;
 ImageView statusImageView;
-
 LinearLayout notes,folder,docs,sheets;
     private NewBuildButtonManager newBuildButtonManager;
-
     String taskId;
-
-
+    String jobId;
+    String accessToken;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
+         jobId = getIntent().getStringExtra("job_id");
+        SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
+        taskId = sharedPrefTaskADandJobID.getTaskId();
+        if (taskId != null) {
+            Log.d("TASKID", "Task ID: " + taskId);
+            Log.d("TASKID", "Job ID: " + jobId);
+        } else {
+            Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
+        }
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
+         accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String email = sharedPrefManager.getEmail();
+
+        Log.d("NewBuild", "Retrieved User Data: ");
+        Log.d("NewBuild", "Access Token: " + accessToken);
+        Log.d("NewBuild", "User ID: " + userId);
 
         customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
+
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
         category_todo = findViewById(R.id.category_todo);
         progress_circular = findViewById(R.id.progress_circular);
+        progress_circular_2 = findViewById(R.id.progress_circular_2);
         statusImageView = findViewById(R.id.statusImageView);
 
 
-
-        String jobId = getIntent().getStringExtra("job_id");
-        if (jobId != null) {
-            setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
-            setupRecyclerViewManager.setupRecyclerView(jobId);
-        } else {
-            Log.e("job ID ->", "No Todo ID received!");
-        }
-        setupRecyclerViewManager = new SetupRecyclerViewManager(this, findViewById(R.id.recycler_view));
-        setupRecyclerViewManager.setupRecyclerView(jobId);
-
-        SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
-         taskId = sharedPrefTaskADandJobID.getTaskId();
-        if (taskId != null) {
-            Log.d("TASKID", "Task ID: " + taskId);
-        } else {
-            Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
-        }
 
         notes  = findViewById(R.id.notes);
         folder = findViewById(R.id.folder);
         docs = findViewById(R.id.docs);
         sheets  = findViewById(R.id.sheets);
         newBuildButtonManager = new NewBuildButtonManager(notes, folder, docs, sheets);
-
-
 
 
 
@@ -134,16 +133,19 @@ LinearLayout notes,folder,docs,sheets;
                     intent.putExtra("task_id", taskId);
                     startActivity(intent);
                 }
-
-
             } else if (view == docs) {
-                Intent intent = new Intent(this, DocsActivity.class);
-                intent.putExtra("job_id", jobId);
-                this.startActivity(intent);
+                if (jobId != null) {
+                    Intent intent = new Intent(NewBuild.this, DocsActivity.class);
+                    intent.putExtra("job_id", jobId);
+                    intent.putExtra("task_id", taskId);
+                    startActivity(intent);
+                }
+
             } else if (view == sheets) {
                 Intent intent = new Intent(this, SheetsAcitivy.class);
                 intent.putExtra("job_id", jobId);
-                this.startActivity(intent);
+                intent.putExtra("task_id", taskId);
+                startActivity(intent);
             }
         });
 
@@ -189,20 +191,17 @@ LinearLayout notes,folder,docs,sheets;
     }
 
 
+
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.googleMap = googleMap;
         routeNewBuildManager.setGoogleMap(googleMap);
 
-        // Initialize the SetupMainTaskManager only after googleMap is ready
-        setupMainTaskManager = new SetupMainTaskManager(this, googleMap, findViewById(R.id.task_title),
-                findViewById(R.id.task_description), findViewById(R.id.task_location), findViewById(R.id.task_number),
-                findViewById(R.id.spinner_task), this,category_todo,statusImageView);  // Pass listener for coordinates
+        setupRecyclerViewManager = new SetupRecyclerViewManager(NewBuild.this, findViewById(R.id.recycler_view));
+        setupMainTaskManager = new SetupMainTaskManager(NewBuild.this, googleMap, findViewById(R.id.task_title), findViewById(R.id.task_description), findViewById(R.id.task_location)
+                , findViewById(R.id.task_number), findViewById(R.id.spinner_task), NewBuild.this,category_todo,statusImageView);  // Pass listener for coordinates
 
-        String jobId = getIntent().getStringExtra("job_id");
-        if (jobId != null) {
-            setupMainTaskManager.setupMainTask(jobId);
-        }
+        checkBoxData(jobId,accessToken,taskId,progress_circular_2);
 
 
         // Check location permissions
@@ -286,6 +285,7 @@ LinearLayout notes,folder,docs,sheets;
                 mapCameraManager.setDestination(userLocation, taskLatLng);
                 progress_circular.setVisibility(View.GONE);
 
+
             } else {
                 Log.e("onCoordinatesReceived", "Invalid LatLng: " + latitude + ", " + longitude);
                 progress_circular.setVisibility(View.GONE);
@@ -297,6 +297,58 @@ LinearLayout notes,folder,docs,sheets;
 
         }
     }
+
+
+    private void checkBoxData(String jobId, String accessToken, String taskId,ProgressBar progress_circular_2) {
+        TaskActivityManager manager = new TaskActivityManager();
+
+        if (jobId != null) {
+
+            manager.fetchTask(
+                    Integer.parseInt(jobId), // job_schedule_id
+                    Integer.parseInt(taskId),                  // task_id
+                    accessToken, // token
+                    "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
+                    new TaskActivityManager.TaskFetchCallback() {
+                        @Override
+                        public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
+                                                  String checklistsName, String checklistsInfo) {
+
+                            Log.d("checkBoxData", "Task Fetched Successfully:");
+                            Log.d("checkBoxData", "Is Checked: " + isChecked);
+
+                            if (jobId != null) {
+                                setupMainTaskManager.setupMainTask(jobId);
+                                setupRecyclerViewManager.setupRecyclerView(jobId,isChecked,accessToken,taskId);
+                                progress_circular_2.setVisibility(View.GONE);
+                            }
+
+                        }
+
+                        @Override
+                        public void onTaskFetchError(String errorMessage) {
+                            Log.e("checkBoxData", "Error fetching task: " + errorMessage);
+
+                            if (jobId != null) {
+                                setupMainTaskManager.setupMainTask(jobId);
+                                setupRecyclerViewManager.setupRecyclerView(jobId, Boolean.parseBoolean("false"), accessToken, taskId);
+                                progress_circular_2.setVisibility(View.GONE);
+                            }
+                        }
+
+                    }
+            );
+
+
+        } else {
+            Log.e("job ID ->", "No Todo ID received!");
+        }
+
+
+
+
+    }
+
 
 
     public void switchFragment(Fragment fragment) {

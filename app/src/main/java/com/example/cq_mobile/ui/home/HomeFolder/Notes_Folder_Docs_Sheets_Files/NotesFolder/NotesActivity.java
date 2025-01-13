@@ -2,6 +2,7 @@ package com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForTask;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +34,13 @@ public class NotesActivity extends AppCompatActivity {
     private boolean isLoading = false;
     private int currentPage = 1;
     private final int pageSize = 10; // Matches the API's "per_page" parameter
-    private String token = "4118|UkUAHYqaFsqPoHtlEosF1ocYbuSpT57AvfRnj0TF";
     private String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
     private String baseUrl = "https://aws.customquoter.co.uk";
     private int jobScheduleId;
-
+    private String taskId ;
     TextView notes_back, notes_back2;
     private NavigationManagerForTask navigationManager;
-
+   String token;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,9 +48,16 @@ public class NotesActivity extends AppCompatActivity {
 
         notes_back = findViewById(R.id.notes_back);
         notes_back2 = findViewById(R.id.notes_back2);
-        Intent intent1 = getIntent();
-        String jobId = intent1.getStringExtra("job_id");
-        jobScheduleId = Integer.parseInt(jobId);
+
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(NotesActivity.this);
+        token = sharedPrefManager.getAccessToken();
+        Log.d("NotesActivity", "Access Token: " + token);
+
+
+        Intent intent = getIntent();
+        jobScheduleId = Integer.parseInt(intent.getStringExtra("job_id"));
+        taskId = getIntent().getStringExtra("task_id");
+
 
         Notes_Files_Docs_Sheets_nav bottomNavView = findViewById(R.id.nfds_bottom);
         navigationManager = new NavigationManagerForTask(this);
@@ -60,6 +69,7 @@ public class NotesActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(notesAdapter);
+        String jobId = String.valueOf(jobScheduleId);
 
         loadNotes(currentPage);
 
@@ -77,15 +87,15 @@ public class NotesActivity extends AppCompatActivity {
         });
 
         notes_back.setOnClickListener(v -> {
-            Intent intent = new Intent(NotesActivity.this, NewBuild.class);
-            intent.putExtra("job_id", jobId);
-            startActivity(intent);
+            Intent intent1 = new Intent(NotesActivity.this, NewBuild.class);
+            intent1.putExtra("job_id", jobId);
+            startActivity(intent1);
         });
 
         notes_back2.setOnClickListener(v -> {
-            Intent intent = new Intent(NotesActivity.this, NewBuild.class);
-            intent.putExtra("job_id", jobId);
-            startActivity(intent);
+            Intent intent2 = new Intent(NotesActivity.this, NewBuild.class);
+            intent2.putExtra("job_id", jobId);
+            startActivity(intent2);
         });
     }
 

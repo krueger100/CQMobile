@@ -46,9 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
-    String notification_data;
     String accessToken,userId;
-    private static final String NOTIFICATION_CHANNEL_ID = "default_channel";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,31 +120,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void NotifFilter() {
-        FilterNotificationManager.fetchApiDataFilterUserNotification(this, accessToken, userId, 1, 10, new FilterNotificationManager.ApiResponseCallback() {
-            @Override
-            public void onDataFetched(List<FilteredNotificationResponse.NotificationData> data) {
-                // Handle the success response
-                Log.d("FilterNotification", "Data fetched successfully: USER " + data);
-                for (FilteredNotificationResponse.NotificationData notification : data) {
-                    Log.d("NotificationUSER", "Title: " + notification.getTitle());
-                    Log.d("NotificationUSER", "Description " + notification.getDescription());
-                    Log.d("NotificationUSER", "Avatar URL: " + notification.getAvatar()); // Log avatar
-
-                    String avatarUrl = notification.getAvatar();
-                    String title = notification.getTitle();
-                    String message = notification.getDescription();
-
-                    displayNotification(MainActivity.this, title, message, avatarUrl);
-
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                // Handle the error
-                Log.e("FilterNotification", "Error fetching data: " + error);
-            }
-        });
 
         FilterNotificationManager.fetchApiDataFilterGroupNotification(this, accessToken, userId, 1, 10, new FilterNotificationManager.ApiResponseCallback() {
             @Override
@@ -182,55 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private static void displayNotification(Context context, String title, String message, String avatarUrl) {
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    NOTIFICATION_CHANNEL_ID,
-                    "Default Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        // Generate a unique notification ID for each notification
-        int notificationId = (int) System.currentTimeMillis(); // Use current time in milliseconds as a unique ID
-
-        // Load the image using Glide
-        Glide.with(context)
-                .asBitmap()
-                .load(avatarUrl)
-                .into(new SimpleTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                        // When the image is ready, create the notification
-                        Notification notification = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
-                                .setContentTitle(title)
-                                .setContentText(message)
-                                .setSmallIcon(R.drawable.android12splash_orange)
-                                .setLargeIcon(resource) // Set the large icon as the avatar
-                                .setAutoCancel(true)
-                                .build();
-
-                        // Display the notification with a unique ID
-                        notificationManager.notify(notificationId, notification);
-                    }
-
-                    @Override
-                    public void onLoadFailed(Drawable errorDrawable) {
-                        // Handle failure (fallback to default icon)
-                        Notification notification = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
-                                .setContentTitle(title)
-                                .setContentText(message)
-                                .setSmallIcon(R.drawable.android12splash_orange)
-                                .setAutoCancel(true)
-                                .build();
-
-                        notificationManager.notify(notificationId, notification);
-                    }
-                });
-    }
 
     private void showNotification(Context context, List<String> titles, List<String> avatars) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {

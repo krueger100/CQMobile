@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -16,12 +18,13 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateMainTaskApiManagerCheckBox;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateSubTaskApiManagerCheckBox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +36,17 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     private final List<String> taskIdList = new ArrayList<>(); // List to store task IDs
     String title;
     String description;
-    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId) {
+    boolean isChecked;
+    boolean isChecked_subTask;
+    String accessToken;
+    String taskId;
+    String taskStatus;
+    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId, boolean isChecked, String accessToken, String taskId) {
         this.context = context;
         this.jobId = jobId;
+        this.accessToken = accessToken;
+        this.isChecked = isChecked;
+        this.taskId = taskId;
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
         initializeTaskIdList(); // Initialize taskId list
     }
@@ -61,13 +72,18 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     @Override
     public void onBindViewHolder(@NonNull SecondaryViewHolder holder, @SuppressLint("RecyclerView") int position) {
         SubTask task = secondaryDataList.get(position);
-
         if (task != null) {
             // Set title and description
             holder.textViewTitle.setText(task.getTitle());
             holder.textViewDescription.setText(task.getDescription());
             title = task.getTitle();
             description = task.getDescription();
+
+            isChecked_subTask  = task.isChecked();
+            isChecked  = task.isChecked();
+            Log.d("checkBoxData", "SUBTASK " + isChecked_subTask);
+            Log.d("checkBoxData", "MAINTASK " + isChecked);
+
 
             String taskPriority = task.getPriority() != null ? task.getPriority().trim().toLowerCase() : "No Category";
             holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
@@ -122,10 +138,8 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             Log.d("SubTaskAdapterManagerrSharedPreff", "Email: " + email);
 
 
-
-
             // Handle task status and spinner setup
-            String taskStatus = task.getStatus();
+             taskStatus = task.getStatus();
             taskStatus = taskStatus.replace("_", " ").trim().replaceAll("\\s+", " ");
             taskStatus = taskStatus.substring(0, 1).toUpperCase() + taskStatus.substring(1).toLowerCase();
 
@@ -138,16 +152,10 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             if (!taskStatus.equals("Under inspection")) options.add("Under inspection");
             if (!taskStatus.equals("Done")) options.add("Done");
 
+
+
             // Create spinner adapter
-            SubTaskSpinnerAdapter spinnerAdapter = new SubTaskSpinnerAdapter(
-                    context,
-                    R.layout.task_spinner_item,
-                    options,
-                    jobId,
-                    holder.spinner_task_imageBackground,
-                    taskStatus,
-                    taskId.toString(), // Pass taskId as string to the spinner adapter
-                    accessToken );
+            SubTaskSpinnerAdapter spinnerAdapter = new SubTaskSpinnerAdapter(context, R.layout.task_spinner_item, options, jobId, holder.spinner_task_imageBackground, taskStatus, taskId.toString(),accessToken);
 
             holder.taskSpinner.setAdapter(spinnerAdapter);
             int defaultIndex = options.indexOf(taskStatus);
@@ -174,6 +182,23 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                     // No action
                 }
             });
+
+            String is_check_singleData = String.valueOf(isChecked);
+            String is_check_listData = String.valueOf(isChecked_subTask);
+
+            if (is_check_singleData.equals("true") && is_check_listData.equals(true)){
+                holder.checkBox.setChecked(false);
+                Log.d("checkBoxData", "is_check1->>>>>" + is_check_singleData);
+                Log.d("checkBoxData", "is_check2->>>>>" + is_check_listData);
+            }else {
+                holder.checkBox.setChecked(true);
+                Log.d("checkBoxData", "is_check1->>>>>" + is_check_singleData);
+                Log.d("checkBoxData", "is_check2->>>>>" + is_check_listData);
+            }
+            holder.checkBox.setEnabled(false);
+          holder.checkBox.setChecked(isChecked);
+
+
 
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -209,7 +234,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
         TextView textViewTitle, textViewDescription, priority;
         Spinner taskSpinner;
         ImageView spinner_task_imageBackground;
-
+CheckBox checkBox;
         public SecondaryViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewTitle = itemView.findViewById(R.id.secondary_item_title);
@@ -217,6 +242,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             taskSpinner = itemView.findViewById(R.id.spinner_task);
             priority = itemView.findViewById(R.id.priority);
             spinner_task_imageBackground = itemView.findViewById(R.id.spinner_task_imageBackground);
+            checkBox = itemView.findViewById(R.id.checkBox);
         }
     }
 }

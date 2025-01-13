@@ -4,27 +4,35 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
-import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FileItem;
+import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FileAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FilesManager;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TaskActivity extends AppCompatActivity {
+    private RecyclerView filesRecyclerView;
+    private FileAdapter filesAdapter;
+    private List<FileItem> filesList;
+    private int currentPage = 1;
+    private final int pageSize = 10;
+    private FilesManager filesManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,14 +58,17 @@ public class TaskActivity extends AppCompatActivity {
         Log.d("TaskActivitySharedPreff", "First Name: " + firstName);
         Log.d("TaskActivitySharedPreff", "Last Name: " + lastName);
         Log.d("TaskActivitySharedPreff", "Email: " + email);
-
-
         Log.d("TaskActivity", "Received jobId: " + jobId + ", taskId: " + taskId);
-
-
-
         Log.d("TaskActivity", "Received title: " + title_1);
         Log.d("TaskActivity", "Received description: " + description_1);
+
+
+
+        // Initialize FilesManager
+        String baseUrl = "https://aws.customquoter.co.uk";
+        String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
+        filesManager = new FilesManager(this, baseUrl, apiKey);
+
 
         // Initialize UI components
         TextView titleTextView = findViewById(R.id.task_title);
@@ -67,21 +78,34 @@ public class TaskActivity extends AppCompatActivity {
         TextView startDateTextView = findViewById(R.id.startDateTextView);
         TextView endDateTextView = findViewById(R.id.endDateTextView);
         RecyclerView recycler_view = findViewById(R.id.recycler_view);
+        RecyclerView filesRecyclerView = findViewById(R.id.filesRecyclerView);
         LinearLayout assigneeAvatarLayout = findViewById(R.id.linearLayout2);
         assigneeAvatarLayout.setOrientation(LinearLayout.HORIZONTAL);
-
-        // Initialize RecyclerView
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
 
 
-        // Dummy task list
-        List<String> taskList = new ArrayList<>();
-        taskList.add("Task 1");
-        taskList.add("Task 2");
-        taskList.add("Task 3");
+        int numColumns = 2;
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, numColumns);
+        filesRecyclerView.setLayoutManager(gridLayoutManager);
+        filesList = new ArrayList<>();
+        filesAdapter = new FileAdapter(this, filesList, baseUrl, accessToken, apiKey);
+        filesRecyclerView.setAdapter(filesAdapter);
+        loadFiles(Integer.parseInt(jobId), String.valueOf(taskId), accessToken);
+        filesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
 
-        TaskAdapter taskAdapter = new TaskAdapter(this, taskList);
-        recycler_view.setAdapter(taskAdapter);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (!isLoading() && layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() == filesList.size() - 1) {
+                    currentPage++;
+                    loadFiles(Integer.parseInt(jobId), String.valueOf(taskId), accessToken);
+                }
+            }
+        });
+
+
+
 
         // Initialize TaskActivityManager
      TaskActivityManager manager = new TaskActivityManager();
@@ -94,7 +118,8 @@ public class TaskActivity extends AppCompatActivity {
                 "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
                 new TaskActivityManager.TaskFetchCallback() {
                     @Override
-                    public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName) {
+                    public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
+                                              String checklistsName, String checklistsInfo) {
                         // Log the task details
                         Log.d("TaskActivity", "Task Fetched Successfully:");
                         Log.d("TaskActivity", "Title: " + title);
@@ -124,10 +149,15 @@ public class TaskActivity extends AppCompatActivity {
                         }
 
 
-                        priorityTextView.setText(priority);  // Uncomment if required
-                        // statusTextView.setText(status);      // Uncomment if required
-                        // startDateTextView.setText(startDate); // Uncomment if required
+                        priorityTextView.setText(priority);
+                        // statusTextView.setText(status);
+                        // startDateTextView.setText(startDate);
                         endDateTextView.setText(endDate);
+
+                        //   List<String> checkDataList = new ArrayList<>(Arrays.asList(checklistsInfo.split("\n")));
+                        String[] checkDataList = checklistsInfo.split("\n"); // Split assigneeInfo into lines
+                        checkInfoDATA(checkDataList, recycler_view,accessToken,jobId,taskId);
+
 
                         // Dynamically create and add ImageViews for each assignee
                         String[] assigneeData = assigneeInfo.split("\n"); // Split assigneeInfo into lines
@@ -162,13 +192,13 @@ public class TaskActivity extends AppCompatActivity {
                                                 .error(R.drawable.emptyglide)
                                                 .into(imageView); // Target ImageView
                                     } else {
-                                        // If avatar URL is invalid, set a default image
+
                                         Glide.with(TaskActivity.this)
                                                 .load(avatarUrlObject)
                                                 .circleCrop()
                                                 .placeholder(R.drawable.baseline_circle)
                                                 .error(R.drawable.emptyglide)
-                                                .into(imageView);
+                                                .into(imageView); // Target ImageView
 
                                     }
 
@@ -217,6 +247,7 @@ public class TaskActivity extends AppCompatActivity {
                         Log.d("TaskActivity", "Assignee Name (Concatenated): " + assigneeName);
                     }
 
+
                     @Override
                     public void onTaskFetchError(String errorMessage) {
                         Log.e("TaskActivity", "Error fetching task: " + errorMessage);
@@ -225,6 +256,57 @@ public class TaskActivity extends AppCompatActivity {
                 }
         );
 
+    }
+    private void checkInfoDATA(String[] checkData, RecyclerView recycler_view, String accessToken, String jobId, int taskId) {
+        List<String> checked_Id = new ArrayList<>();
+        List<String> namesList = new ArrayList<>();
+        List<String> checked_List = new ArrayList<>();
+
+        // Extract names from the input data
+        for (String data : checkData) {
+            String name = getNamesFromCheckedData(data);
+            String checkStats = getCheckedStatusFromData(data); //
+            String checkID = getCheckedIDFromData(data);
+            if (name != null && !name.isEmpty()) {
+                if (checkStats != null && !checkStats.isEmpty()) {
+                    if (checkID != null && !checkID.isEmpty()) {
+                        namesList.add(name);
+                        checked_List.add(checkStats);
+                        checked_Id.add(checkID);
+                        Log.d("checkInfoDATA", "Loading name: " + name +"  Checked: "+checked_List);
+                    }
+                }
+            }
+        }
+
+        // Create an adapter with the populated names list
+        TaskAdapter taskAdapter = new TaskAdapter(this, namesList,checked_List,checked_Id,accessToken,jobId,taskId);
+        recycler_view.setAdapter(taskAdapter);
+
+        // Set a layout manager for the RecyclerView
+        recycler_view.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+
+
+
+    private void loadFiles(int jobScheduleId, String taskId, String accessToken) {
+        filesManager.loadFiles(jobScheduleId, taskId, currentPage, pageSize, accessToken, new FilesManager.FilesCallback() {
+            @Override
+            public void onFilesLoaded(List<FileItem> files) {
+                filesAdapter.addData(files);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("TaskActivity", "Error loading files: " + errorMessage);
+                Toast.makeText(TaskActivity.this, "Error loading files: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private boolean isLoading() {
+        return currentPage > filesList.size() / pageSize;
     }
 
     private String getAvatarUrlFromAssigneeData(String assigneeData) {
@@ -242,4 +324,53 @@ public class TaskActivity extends AppCompatActivity {
         }
         return null;
     }
+
+
+    private String getCheckedIDFromData(String checkedData) {
+        // Example: "Assignee ID: 1, Name: checkList sample 3, Checked: 0"
+        String CheckedIDPrefix = "Id: ";
+        if (checkedData.contains(CheckedIDPrefix)) {
+            int startIndex = checkedData.indexOf(CheckedIDPrefix) + CheckedIDPrefix.length();
+            int endIndex = checkedData.indexOf(",", startIndex); // Find the end of "Checked:" status
+            if (endIndex == -1) {
+                endIndex = checkedData.length(); // In case there's no comma after Checked:
+            }
+            String checkedStatus = checkedData.substring(startIndex, endIndex).trim();
+            Log.d("TaskActivity", "Extracted Checked Status: " + checkedStatus);
+            return checkedStatus;
+        }
+        return null;
+    }
+
+    private String getCheckedStatusFromData(String checkedData) {
+        // Example: "Assignee ID: 1, Name: checkList sample 3, Checked: 0"
+        String CheckedPrefix = "Checked: ";
+        if (checkedData.contains(CheckedPrefix)) {
+            int startIndex = checkedData.indexOf(CheckedPrefix) + CheckedPrefix.length();
+            int endIndex = checkedData.indexOf(",", startIndex); // Find the end of "Checked:" status
+            if (endIndex == -1) {
+                endIndex = checkedData.length(); // In case there's no comma after Checked:
+            }
+            String checkedStatus = checkedData.substring(startIndex, endIndex).trim();
+            Log.d("TaskActivity", "Extracted Checked Status: " + checkedStatus);
+            return checkedStatus;
+        }
+        return null;
+    }
+    private String getNamesFromCheckedData(String checkedData) {
+        String NamePrefix = "Name: ";
+        if (checkedData.contains(NamePrefix)) {
+            int startIndex = checkedData.indexOf(NamePrefix) + NamePrefix.length();
+            int endIndex = checkedData.indexOf(", Checked:", startIndex);
+            if (endIndex == -1) {
+                endIndex = checkedData.length();
+            }
+            String name = checkedData.substring(startIndex, endIndex).trim();
+            Log.d("TaskActivity", "Extracted Name: " + name);
+            return name;
+        }
+        return null;
+    }
+
+
 }

@@ -3,6 +3,7 @@ package com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -16,9 +17,12 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.R;
 import java.util.List;
 import com.bumptech.glide.Glide;
+import com.example.cq_mobile.TestFolder.WebViewActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 
 public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHolder> {
     private Context context;
@@ -59,11 +63,11 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
         Log.d("FilesAdapter", "MimeType for file " + file.getFilename() + ": " + mimeType);
 
         if (mimeType == null) {
-            mimeType = "unknown";  // Fallback mimeType
+            mimeType = "unknown";
             Log.d("FilesAdapter", "Fallback mimeType for file " + file.getFilename() + ": " + mimeType);
         }
-        holder.filePreview.getLayoutParams().width = 300;  // Set a fixed width
-        holder.filePreview.getLayoutParams().height = 300; // Set a fixed height
+        holder.filePreview.getLayoutParams().width = 300;
+        holder.filePreview.getLayoutParams().height = 300;
 
 
         GlideUrl glideUrl = null;
@@ -87,14 +91,31 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
             // Load image into the ImageView using Glide
             Glide.with(holder.itemView.getContext())
                     .load(fileUrl)  // Use the glideUrl with headers
-                    .placeholder(R.drawable.circular_background)
-                    .error(R.drawable.baseline_image_not_supported_24)
                     .into(holder.filePreview);  // Load the image into ImageView
-        } else {
+        } else if (mimeType.endsWith("rtf")){
+            Glide.with(holder.itemView.getContext())
+                    .load(fileUrl)
+                    .placeholder(R.drawable.circular_background)
+                    .error(R.drawable.rtf)
+                    .into(holder.filePreview);
+        }else  if ((mimeType.endsWith("docx"))){
+            Glide.with(holder.itemView.getContext())
+                    .load(fileUrl)
+                    .placeholder(R.drawable.circular_background)
+                    .error(R.drawable.doc_1)
+                    .into(holder.filePreview);
+        }else  if ((mimeType.endsWith("pdf"))) {
+            Glide.with(holder.itemView.getContext())
+                    .load(fileUrl)
+                    .placeholder(R.drawable.circular_background)
+                    .error(R.drawable.pdf)
+                    .into(holder.filePreview);
+        }else {
             Log.d("FilesAdapter", "MimeType is not a valid image type: " + mimeType);
             Glide.with(holder.itemView.getContext())
                     .load(glideUrl)
                     .placeholder(R.drawable.circular_background)
+                    .error(R.drawable.new_document_2)
                     .into(holder.filePreview);
         }
 
@@ -135,7 +156,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
         Glide.with(context)
                 .load(glideUrl)
                 .placeholder(R.drawable.circular_background)
-                .error(R.drawable.baseline_image_not_supported_24)
+                .error(R.drawable.new_document_2)
                 .into(imageView);
 
         AlertDialog dialog = builder.create();
@@ -150,6 +171,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
         backButton.setOnClickListener(v -> {
             Log.d("FilesAdapter", "Back Button Clicked");
             dialog.dismiss();
+
         });
 
         dialog.show();
@@ -220,3 +242,10 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
         }
     }
 }
+
+
+/*
+         Intent intent = new Intent(context, WebViewActivity.class);
+            intent.putExtra("url", fileUrl);
+            context.startActivity(intent);
+ */

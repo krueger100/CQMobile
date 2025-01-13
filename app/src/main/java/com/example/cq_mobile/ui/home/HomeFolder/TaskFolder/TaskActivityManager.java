@@ -1,5 +1,7 @@
 package com.example.cq_mobile.ui.home.HomeFolder.TaskFolder;
 
+import android.util.Log;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -11,7 +13,8 @@ public class TaskActivityManager {
     private final TaskApi taskApi;
 
     public interface TaskFetchCallback {
-        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName);
+        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked
+        ,  String checklistsName, String checklistsInfo);
         void onTaskFetchError(String errorMessage);
     }
 
@@ -46,6 +49,27 @@ public class TaskActivityManager {
                         StringBuilder assigneeInfo = new StringBuilder();
                         StringBuilder assigneeName = new StringBuilder();
 
+                        Task.Data.Checklist[] checklists = task.getData().getChecklist();
+                        StringBuilder checklistsInfo = new StringBuilder();
+                        StringBuilder checklistsName = new StringBuilder();
+
+
+                        if (checklists != null && checklists.length > 0) {
+                            for (Task.Data.Checklist checklist : checklists) {
+                                checklistsInfo.append("Id: ").append(checklist.getId()).append(", ")
+                                        .append("Name: ").append(checklist.getName()).append(", ")
+                                        .append("Checked: ").append(checklist.getChecked()).append("\n");
+                                checklistsName.append(checklist.getName());
+
+                            }
+                        } else {
+                            checklistsInfo.append("No checklistsInfo found.\n");
+                        }
+
+
+
+                        boolean isChecked = task.getData().isChecked();
+                        Log.d("TaskActivityManager", "isChecked: " + isChecked);
 
                         if (assignees != null && assignees.length > 0) {
                             for (Task.Data.Assignee assignee : assignees) {
@@ -62,7 +86,8 @@ public class TaskActivityManager {
 
                         // Notify via callback with assignee info
                         callback.onTaskFetched(title, description, priority, status, startDate, endDate, assigneeInfo.toString()
-                        ,assigneeName.toString());
+                        ,assigneeName.toString(), isChecked,checklistsName.toString(),checklistsInfo.toString());
+
                     } else {
                         callback.onTaskFetchError("Error: Task data is null.");
                     }
@@ -79,4 +104,6 @@ public class TaskActivityManager {
             }
         });
     }
+
+
 }

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,21 +30,27 @@ public class SetupRecyclerViewManager {
     private int currentPage = 1; // Start from page 1
     private final int pageSize = 10; // Number of items per page (updated to 10)
     private String jobId;
+    boolean isChecked;
+    String accessToken;
+ String taskId;
 
     public SetupRecyclerViewManager(Context context, RecyclerView recyclerView) {
         this.context = context;
         this.recyclerView = recyclerView;
     }
 
-    public void setupRecyclerView(String jobId) {
+    public void setupRecyclerView(String jobId, boolean isChecked, String accessToken, String taskId) {
         this.jobId = jobId;
-
+        this.isChecked = isChecked;
+        this.accessToken = accessToken;
+        this.taskId = taskId;
+        //
         // Set up RecyclerView
         layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
-        subTaskAdapter = new SubTaskAdapter(subTaskList, context, jobId);
+        subTaskAdapter = new SubTaskAdapter(subTaskList, context, jobId,isChecked,accessToken,taskId);
         recyclerView.setAdapter(subTaskAdapter);
-
+        Log.d("checkBoxData", "isChecked From SetupRecyclerViewManager: " + isChecked);
         // Fetch the first page of data
         fetchPage(currentPage);
 
