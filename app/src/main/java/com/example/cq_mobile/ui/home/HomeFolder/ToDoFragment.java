@@ -26,6 +26,7 @@ import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class ToDoFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -69,7 +70,6 @@ public class ToDoFragment extends Fragment {
         Log.d("ToDoFragmentSharedPreff", "Last Name: " + lastName);
         Log.d("ToDoFragmentSharedPreff", "Email: " + email);
 
-
         // Add scroll listener for pagination
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -101,7 +101,6 @@ public class ToDoFragment extends Fragment {
             }
         });
 
-
         return view;
     }
 
@@ -110,7 +109,7 @@ public class ToDoFragment extends Fragment {
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
-        TodoApiManager.fetchApiDataPaginated(accessToken,currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
+        TodoApiManager.fetchApiDataPaginated(accessToken, currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Todo> data) {
                 if (getActivity() == null) return;
@@ -127,7 +126,7 @@ public class ToDoFragment extends Fragment {
                         // Check if total data count has reached 100
                         if (joblist.size() >= 100 && currentPage == 1) {
                             // If data reaches 100, skip to page 2 directly, if we are still on page 1
-                            currentPage = 1;
+                            currentPage = 2; // Move to page 2
                             loadMessages(accessToken); // Recurse to load data from page 2
                         } else {
                             // Check if this is the last page

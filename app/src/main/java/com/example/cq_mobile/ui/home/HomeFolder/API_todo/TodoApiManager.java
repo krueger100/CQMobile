@@ -1,6 +1,9 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_todo;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -43,21 +46,28 @@ public class TodoApiManager {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     String jsonResponse = response.body().string();
+                    Log.d("API Response", jsonResponse);  // Log the raw response
+
                     Gson gson = new Gson();
 
-                    // Parse the JSON into a TodoResponse object
-                    TodoResponse todoResponse = gson.fromJson(jsonResponse, TodoResponse.class);
+                    try {
+                        // Try to parse the response into the expected object
+                        TodoResponse todoResponseObject = gson.fromJson(jsonResponse, TodoResponse.class);
 
-                    // Pass the paginated list of Todo objects to the callback
-                    if (todoResponse != null && todoResponse.getData() != null && !todoResponse.getData().isEmpty()) {
-                        callback.onDataFetched(todoResponse.getData());
-                    } else {
-                        callback.onError("No jobs found.");
+                        if (todoResponseObject != null && todoResponseObject.getData() != null && !todoResponseObject.getData().isEmpty()) {
+                            callback.onDataFetched(todoResponseObject.getData());
+                        } else {
+                            callback.onError("No jobs found.");
+                        }
+                    } catch (JsonSyntaxException e) {
+                        Log.e("JSON Error", "Failed to parse JSON response: " + jsonResponse);
+                        callback.onError("JSON parsing error: " + e.getMessage());
                     }
                 } else {
                     callback.onError("Request Failed: " + response.code());
                 }
             }
+
         });
     }
 }

@@ -76,6 +76,7 @@ LinearLayout notes,folder,docs,sheets;
     String taskId;
     String jobId;
     String accessToken;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +88,8 @@ LinearLayout notes,folder,docs,sheets;
             Log.d("TASKID", "Task ID: " + taskId);
             Log.d("TASKID", "Job ID: " + jobId);
         } else {
+            taskId = "782";
+            jobId = "5703";
             Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
         }
         SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
@@ -299,54 +302,55 @@ LinearLayout notes,folder,docs,sheets;
     }
 
 
-    private void checkBoxData(String jobId, String accessToken, String taskId,ProgressBar progress_circular_2) {
+    private void checkBoxData(String jobId, String accessToken, String taskId, ProgressBar progress_circular_2) {
         TaskActivityManager manager = new TaskActivityManager();
 
-        if (jobId != null) {
+        if (jobId != null && !jobId.isEmpty() && taskId != null && !taskId.isEmpty()) {
+            try {
+                int parsedJobId = Integer.parseInt(jobId); // job_schedule_id
+                int parsedTaskId = Integer.parseInt(taskId); // task_id
 
-            manager.fetchTask(
-                    Integer.parseInt(jobId), // job_schedule_id
-                    Integer.parseInt(taskId),                  // task_id
-                    accessToken, // token
-                    "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
-                    new TaskActivityManager.TaskFetchCallback() {
-                        @Override
-                        public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
-                                                  String checklistsName, String checklistsInfo) {
+                manager.fetchTask(
+                        parsedJobId,
+                        parsedTaskId,
+                        accessToken, // token
+                        "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2", // api_key
+                        new TaskActivityManager.TaskFetchCallback() {
+                            @Override
+                            public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
+                                                      String checklistsName, String checklistsInfo) {
+                                Log.d("checkBoxData", "Task Fetched Successfully:");
+                                Log.d("checkBoxData", "Is Checked: " + isChecked);
 
-                            Log.d("checkBoxData", "Task Fetched Successfully:");
-                            Log.d("checkBoxData", "Is Checked: " + isChecked);
-
-                            if (jobId != null) {
-                                setupMainTaskManager.setupMainTask(jobId);
-                                setupRecyclerViewManager.setupRecyclerView(jobId,isChecked,accessToken,taskId);
-                                progress_circular_2.setVisibility(View.GONE);
+                                if (jobId != null) {
+                                    setupMainTaskManager.setupMainTask(jobId);
+                                    setupRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
+                                    progress_circular_2.setVisibility(View.GONE);
+                                }
                             }
 
-                        }
+                            @Override
+                            public void onTaskFetchError(String errorMessage) {
+                                Log.e("checkBoxData", "Error fetching task: " + errorMessage);
 
-                        @Override
-                        public void onTaskFetchError(String errorMessage) {
-                            Log.e("checkBoxData", "Error fetching task: " + errorMessage);
-
-                            if (jobId != null) {
-                                setupMainTaskManager.setupMainTask(jobId);
-                                setupRecyclerViewManager.setupRecyclerView(jobId, Boolean.parseBoolean("false"), accessToken, taskId);
-                                progress_circular_2.setVisibility(View.GONE);
+                                if (jobId != null) {
+                                    setupMainTaskManager.setupMainTask(jobId);
+                                    setupRecyclerViewManager.setupRecyclerView(jobId, false, accessToken, taskId);
+                                    progress_circular_2.setVisibility(View.GONE);
+                                }
                             }
                         }
-
-                    }
-            );
-
-
+                );
+            } catch (NumberFormatException e) {
+                Log.e("checkBoxData", "Invalid Job ID or Task ID: " + jobId + ", " + taskId);
+                progress_circular_2.setVisibility(View.GONE);
+                Toast.makeText(this, "Invalid Job or Task ID format", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Log.e("job ID ->", "No Todo ID received!");
+            Log.e("checkBoxData", "Job ID or Task ID is null or empty.");
+            progress_circular_2.setVisibility(View.GONE);
+            Toast.makeText(this, "Job ID or Task ID cannot be null or empty", Toast.LENGTH_SHORT).show();
         }
-
-
-
-
     }
 
 

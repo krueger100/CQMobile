@@ -34,7 +34,8 @@ public class SharedPrefTaskADandJobID {
         SharedPrefTaskADandJobID sharedPrefManagerSave = new SharedPrefTaskADandJobID(TaskActivity.this);
         sharedPrefManagerSave.saveUserjobANDtaskID(jobId, String.valueOf(taskId));
 
-
+       SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(context);
+            sharedPrefTaskADandJobID.saveUserjobANDtaskID(String.valueOf(taskId));
  */
 
 /*

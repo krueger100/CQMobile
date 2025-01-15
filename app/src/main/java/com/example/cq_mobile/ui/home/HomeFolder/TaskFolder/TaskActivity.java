@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,7 +18,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FileItem;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FileAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FilesManager;
 
@@ -32,7 +35,7 @@ public class TaskActivity extends AppCompatActivity {
     private int currentPage = 1;
     private final int pageSize = 10;
     private FilesManager filesManager;
-
+ TextView taskBack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,13 +80,22 @@ public class TaskActivity extends AppCompatActivity {
         TextView statusTextView = findViewById(R.id.statusTextView);
         TextView startDateTextView = findViewById(R.id.startDateTextView);
         TextView endDateTextView = findViewById(R.id.endDateTextView);
+        taskBack = findViewById(R.id.task_back);
         RecyclerView recycler_view = findViewById(R.id.recycler_view);
         RecyclerView filesRecyclerView = findViewById(R.id.filesRecyclerView);
         LinearLayout assigneeAvatarLayout = findViewById(R.id.linearLayout2);
         assigneeAvatarLayout.setOrientation(LinearLayout.HORIZONTAL);
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
 
-
+taskBack.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+        Intent backIntent = new Intent(TaskActivity.this, NewBuild.class);
+        backIntent.putExtra("job_id", jobId);
+        backIntent.putExtra("task_id", taskId);
+        startActivity(backIntent);
+    }
+});
         int numColumns = 2;
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, numColumns);
         filesRecyclerView.setLayoutManager(gridLayoutManager);
