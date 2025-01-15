@@ -130,7 +130,6 @@ public class FilterNotificationManager {
                     Log.d(TAG, "Full API Response: " + jsonResponse);
 
                     try {
-                        // Parse the JSON response
                         Gson gson = new Gson();
                         NotificationResponse notificationResponse = gson.fromJson(jsonResponse, NotificationResponse.class);
 
@@ -142,6 +141,8 @@ public class FilterNotificationManager {
                             data.setTitle(team.getName());
                             data.setDescription("Color: " + team.getColor());
                             notificationDataList.add(data);
+
+
                         }
 
                         callback.onDataFetched(notificationDataList);

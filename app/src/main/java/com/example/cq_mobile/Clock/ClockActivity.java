@@ -6,6 +6,7 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,6 +15,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
@@ -32,15 +35,18 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessT
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilterNotificationManager;
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotificationResponse;
+import com.example.cq_mobile.NotificationData.ShowNotificationActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
 import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
 
 
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -60,7 +66,7 @@ public class ClockActivity extends AppCompatActivity {
     int userId;
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
     private static final String NOTIFICATION_CHANNEL_ID = "default_channel";
-
+    private static final String TAG = "ClockActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,7 +78,7 @@ public class ClockActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String accessToken = intent.getStringExtra("accessToken");
-        int userId = intent.getIntExtra("userId", -1);  // Default value is -1 if not found
+         userId = intent.getIntExtra("userId", -1);  // Default value is -1 if not found
         String firstName = intent.getStringExtra("firstName");
         String lastName = intent.getStringExtra("lastName");
         String email1 = intent.getStringExtra("email");
@@ -269,6 +275,8 @@ public class ClockActivity extends AppCompatActivity {
                 Log.e("FilterNotification", "Error fetching data: " + error);
             }
         });
+
+
     }
 
     private static void displayNotification(Context context, String title, String message, String avatarUrl) {
@@ -282,9 +290,21 @@ public class ClockActivity extends AppCompatActivity {
             );
             notificationManager.createNotificationChannel(channel);
         }
+        int notificationId = (int) System.currentTimeMillis();
 
-        // Generate a unique notification ID for each notification
-        int notificationId = (int) System.currentTimeMillis(); // Use current time in milliseconds as a unique ID
+        Intent intent = new Intent(context, MainActivity.class);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("notification_displayed", true);
+        editor.apply();
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context,
+                notificationId,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         // Load the image using Glide
         Glide.with(context)
@@ -299,7 +319,8 @@ public class ClockActivity extends AppCompatActivity {
                                 .setContentText(message)
                                 .setSmallIcon(R.drawable.android12splash_orange)
                                 .setLargeIcon(resource) // Set the large icon as the avatar
-                                .setAutoCancel(true)
+                                .setContentIntent(pendingIntent) // Set the PendingIntent
+                                .setAutoCancel(true) // Automatically cancel the notification when clicked
                                 .build();
 
                         // Display the notification with a unique ID
@@ -313,6 +334,7 @@ public class ClockActivity extends AppCompatActivity {
                                 .setContentTitle(title)
                                 .setContentText(message)
                                 .setSmallIcon(R.drawable.android12splash_orange)
+                                .setContentIntent(pendingIntent) // Set the PendingIntent
                                 .setAutoCancel(true)
                                 .build();
 
@@ -320,7 +342,6 @@ public class ClockActivity extends AppCompatActivity {
                     }
                 });
     }
-
 
 
 }

@@ -1,14 +1,10 @@
 package com.example.cq_mobile;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,9 +19,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
@@ -37,28 +30,38 @@ import com.google.firebase.FirebaseApp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private DrawerLayout drawerLayout;
     private NavigationManager navigationManager;
-
+    SharedPreferences sharedPreferences;
     private static final String TAG = "MainActivity";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
     String accessToken,userId;
-
+    boolean isNotificationDisplayed;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Initialize Firebase and set status bar style
+         sharedPreferences = this.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
+         isNotificationDisplayed = sharedPreferences.getBoolean("notification_displayed", false);
+
+// Log all key-value pairs
+        Map<String, ?> allEntries = sharedPreferences.getAll();
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            Log.d("SharedPreferencesNotif", entry.getKey() + ": " + entry.getValue().toString());
+        }
+
+
+
         FirebaseApp.initializeApp(this);
         StatusBarManager.setStatusBarLight(this);
 
-        // Set up drawer and navigation manager
         drawerLayout = binding.drawerLayout;
         navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout);
 
@@ -81,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+
     private void initializeApp() {
         // Retrieve access token and user ID from shared preferences
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
@@ -91,15 +96,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Retrieved User Data: ");
         Log.d(TAG, "Access Token: " + accessToken);
         Log.d(TAG, "User ID: " + userId);
+         NotifFilter();
 
-        NotifFilter();
-
-        // Set up navigation manager
         navigationManager.setupNavigation();
     }
-
-
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -142,8 +142,17 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                // Display the notification using the lists
-                showNotification(getApplicationContext(), titles, avatars);
+                if (isNotificationDisplayed) {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("notification_displayed", false);
+                    editor.apply();
+                    new ArrayList<>(titles);
+                    new ArrayList<>(avatars) ;
+                    navigateToShowNotificationActivity(titles,avatars);
+                }else {
+                    showNotification(getApplicationContext(), titles, avatars);
+                }
+
             }
 
             @Override
@@ -154,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
 
     private void showNotification(Context context, List<String> titles, List<String> avatars) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -186,42 +194,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void RetrieveStoredNoticationData(Context context, String accessToken, String userId, ImageView header_Notification, List<String> titles, List<String> avatars) {
 
-        Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
-        intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));  // Pass titles list
-        intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));  // Pass avatars list
+            Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
+            intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
+            intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));
+            startActivity(intent);
 
-        // Start the activity with the intent
-        startActivity(intent);
+
     }
+
+    private void navigateToShowNotificationActivity(List<String> titles, List<String> avatars) {
+        Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
+        intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
+        intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));
+        startActivity(intent);
+        finish();
+    }
+
+
 
 }
 
 
-/*
-            getUserData(email,password);
-
-    private void getUserData(String email, String password) {
-
-        GetUserInfoManager getUserInfoManager = new GetUserInfoManager(this);
-        // Use the retrieved email and password
-        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(email, password);
-
-        // Step 3: Call the method with a callback implementation
-        getUserInfoManager.getAccessToken(accessTokenRequest, new GetUserInfoManager.AccessTokenCallback() {
-            @Override
-            public void onSuccess(AccessTokenResponse response) {
-                // Handle the successful response
-                String accessToken = response.getAccessToken();
-                Log.d("MoreAct", "Access Token: " + accessToken);
-                Log.d("MoreAct", "User Email: " + response.getUser().getEmail());
-            }
-
-            @Override
-            public void onFailure(String errorMessage) {
-                // Handle the failure
-                Log.e("MainActivity", "Error: " + errorMessage);
-            }
-        });
-    }
-
- */

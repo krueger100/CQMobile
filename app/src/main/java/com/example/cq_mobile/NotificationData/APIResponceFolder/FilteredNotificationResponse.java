@@ -426,6 +426,9 @@ public class FilteredNotificationResponse {
         public void setJob_schedule_events(List<JobScheduleEvent> job_schedule_events) {
             this.job_schedule_events = job_schedule_events;
         }
+
+        public void setOnClickListener(Object o) {
+        }
     }
 
     // Define the JobCategory class
