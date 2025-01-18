@@ -26,11 +26,19 @@ import com.example.cq_mobile.NotificationData.APIResponceFolder.FilterNotificati
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotificationResponse;
 import com.example.cq_mobile.NotificationData.ShowNotificationActivity;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.RetrofitClient;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistApi;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistUpdateRequest;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistResponse;
 import com.google.firebase.FirebaseApp;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,15 +56,14 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-         sharedPreferences = this.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
+        sharedPreferences = this.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
          isNotificationDisplayed = sharedPreferences.getBoolean("notification_displayed", false);
 
-// Log all key-value pairs
         Map<String, ?> allEntries = sharedPreferences.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
             Log.d("SharedPreferencesNotif", entry.getKey() + ": " + entry.getValue().toString());
-        }
 
+        }
 
 
         FirebaseApp.initializeApp(this);
@@ -143,14 +150,16 @@ public class MainActivity extends AppCompatActivity {
 
 
                 if (isNotificationDisplayed) {
+                    Log.d("SharedPreferencesNotif", "TRUE");
+
+                }else {
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putBoolean("notification_displayed", false);
                     editor.apply();
+                    Log.d("SharedPreferencesNotif", "FALSE");
                     new ArrayList<>(titles);
                     new ArrayList<>(avatars) ;
                     navigateToShowNotificationActivity(titles,avatars);
-                }else {
-                    showNotification(getApplicationContext(), titles, avatars);
                 }
 
             }
@@ -203,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToShowNotificationActivity(List<String> titles, List<String> avatars) {
+
         Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
         intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
         intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));

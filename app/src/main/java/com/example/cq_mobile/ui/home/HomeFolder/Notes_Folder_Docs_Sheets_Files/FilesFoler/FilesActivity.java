@@ -24,7 +24,7 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAddFilesApiManagerCheckBox;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateAddFilesApiManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -170,7 +170,7 @@ TextView add_files;
 
         // Start uploading the file
         new Thread(() -> {
-            boolean success = UpdateAddFilesApiManagerCheckBox.uploadTaskFiles(
+            boolean success = UpdateAddFilesApiManager.uploadTaskFiles(
                     accessToken,
                     String.valueOf(jobScheduleId),
                     String.valueOf(taskId),

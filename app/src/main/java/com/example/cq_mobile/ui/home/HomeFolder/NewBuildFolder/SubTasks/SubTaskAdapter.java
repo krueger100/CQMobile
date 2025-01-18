@@ -23,8 +23,7 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADan
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateMainTaskApiManagerCheckBox;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateSubTaskApiManagerCheckBox;
+
 
 import java.util.ArrayList;
 import java.util.List;

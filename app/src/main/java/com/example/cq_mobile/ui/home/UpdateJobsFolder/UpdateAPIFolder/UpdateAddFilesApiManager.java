@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.UpdateJobsFolder;
+package com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder;
 
 import android.util.Log;
 
@@ -13,7 +13,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class UpdateAddFilesApiManagerCheckBox {
+public class UpdateAddFilesApiManager {
     private static final String TAG = "UpdateAddFilesApi";
 
     public static boolean uploadTaskFiles(String accessToken, String jobScheduleId, String taskId, File[] files, String apiKey) {

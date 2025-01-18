@@ -12,10 +12,16 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateMainTaskApiManagerCheckBox;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateSubTaskApiManagerCheckBox;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.RetrofitClient;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistApi;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistResponse;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistUpdateRequest;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
@@ -47,8 +53,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(TaskViewHolder holder, int position) {
         String name = taskList.get(position);
         String checked = checked_List.get(position);
-        String Id = checked_Id.get(position);
-
+        String checklistId = checked_Id.get(position);
 
         holder.taskNameTextView.setText(name);
         Log.d("TaskAdapter", "Displaying name: " + name +" checked: "+checked);
@@ -63,14 +68,49 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 // Update the local variable to reflect the new state
                 boolean isChecked_task = isChecked;
                 // Log the state of the checkbox for debugging
-                Log.d("checkBoxData", "Selected checkBox " + (isChecked_task ? "checked" : "unchecked"));
+                Log.d("checkBoxData", "Selected checkBox " + (isChecked ? "checked" : "unchecked"));
 
                 // Get the checklist item ID and pass it to the API
-                String checklistItemId = String.valueOf(Id); // Replace with actual checklist item ID
+                String checklistItemId = String.valueOf(checklistId); // Replace with actual checklist item ID
 
-                // Call the API to update the task status
-                UpdateMainTaskApiManagerCheckBox.updateMainTaskApiManager(accessToken, jobId, String.valueOf(taskId), checklistItemId, isChecked_task);
-                UpdateSubTaskApiManagerCheckBox.updateSub_TaskApiManager(accessToken, jobId, String.valueOf(taskId), checklistItemId, isChecked_task);
+                Log.d("checkBoxData_task", "accessToken  " + accessToken);
+                Log.d("checkBoxData_task", "jobId " + jobId);
+                Log.d("checkBoxData_task", "taskId  " + taskId);
+                Log.d("checkBoxData_task", "checklistId  " + checklistItemId);
+                Log.d("checkBoxData_task", "isChecked  " + isChecked);
+                String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2"; // API Key
+
+                // ++++>>>>>>>>>>>
+
+                TaskChecklistUpdateRequest updateRequest = new TaskChecklistUpdateRequest(isChecked_task ? 1 : 0);
+                TaskChecklistApi api = RetrofitClient.getClient().create(TaskChecklistApi.class);
+                Call<TaskChecklistResponse> call = api.updateTaskChecklist(
+                        jobId, taskId, checklistItemId,
+                        "Bearer " + accessToken, apiKey,
+                        updateRequest
+                );
+                call.enqueue(new Callback<TaskChecklistResponse>() {
+                    @Override
+                    public void onResponse(Call<TaskChecklistResponse> call, Response<TaskChecklistResponse> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            TaskChecklistResponse updatedTask = response.body();
+                            Log.d("TaskData&Checklist",
+                                    "id: " + updatedTask.getData().getId() +
+                                            ", name: " + updatedTask.getData().getName() +
+                                            ", checked: " + updatedTask.getData().getChecked());
+                        } else {
+                            Log.e("TaskData&Checklist", "Response Error: " + response.code() + ", " + response.message());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<TaskChecklistResponse> call, Throwable t) {
+                        Log.e("TaskData&Checklist", "Network Error: " + t.getMessage());
+                    }
+                });
+
+                // ++++>>>>>>>>>>><<<<<<<<<<<<<<<<
+
             }
         });
 
@@ -93,3 +133,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         }
     }
 }
+
+/*
+  // Call the API to update the task status
+                UpdateMainTaskApiManagerCheckBox.updateMainTaskApiManager(accessToken, jobId, String.valueOf(taskId), checklistItemId, isChecked_task);
+
+
+ */

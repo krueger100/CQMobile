@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -20,7 +19,6 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FileItem;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FileAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FilesManager;
 
@@ -299,9 +297,6 @@ taskBack.setOnClickListener(new View.OnClickListener() {
         recycler_view.setLayoutManager(new LinearLayoutManager(this));
     }
 
-
-
-
     private void loadFiles(int jobScheduleId, String taskId, String accessToken) {
         filesManager.loadFiles(jobScheduleId, taskId, currentPage, pageSize, accessToken, new FilesManager.FilesCallback() {
             @Override
@@ -312,7 +307,7 @@ taskBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onError(String errorMessage) {
                 Log.e("TaskActivity", "Error loading files: " + errorMessage);
-                Toast.makeText(TaskActivity.this, "Error loading files: " + errorMessage, Toast.LENGTH_SHORT).show();
+
             }
         });
     }
@@ -369,6 +364,7 @@ taskBack.setOnClickListener(new View.OnClickListener() {
         }
         return null;
     }
+
     private String getNamesFromCheckedData(String checkedData) {
         String NamePrefix = "Name: ";
         if (checkedData.contains(NamePrefix)) {

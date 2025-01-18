@@ -1,61 +1,50 @@
-package com.example.cq_mobile.ui.home.UpdateJobsFolder;
+package com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder;
 
 import android.util.Log;
-
+import okhttp3.*;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+//                                UpdateJobApiManager.updateJobStatus(jobId, "373", categories);
+public class UpdateJobApiManager {
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+    private static final String TAG = "UpdateJobApiManager";
 
-
-public class UpdateSubTaskApiManager {
-    private static final String TAG = "UpdateSubTaskApiManager";
-
-    public static void updateSubTaskApiManager(String accessToken, String jobScheduleId, String taskId, String status) {
+    public static void updateJobStatus(String jobScheduleId, String taskId, String status, String accessToken) {
         // Use ExecutorService to run the task in a background thread
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateTaskSub(accessToken,jobScheduleId, taskId, status));
+        executorService.execute(new ApiUpdateJobTask(jobScheduleId, taskId, status, accessToken));
+
     }
 
-    private static class ApiUpdateTaskSub implements Runnable {
+    private static class ApiUpdateJobTask implements Runnable {
 
         private String jobScheduleId;
         private String taskId;
         private String status;
-        String accessToken;
-        public ApiUpdateTaskSub(String accessToken, String jobScheduleId, String taskId, String status) {
-            this.accessToken = accessToken;
+        private String accessToken;
+
+        public ApiUpdateJobTask(String jobScheduleId, String taskId, String status, String accessToken) {
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
             this.status = status;
+            this.accessToken = accessToken; // Pass the accessToken here
         }
 
         @Override
         public void run() {
 
-            // Updated base URL and endpoint with the new format
             String baseUrl = "https://aws.customquoter.co.uk";
-            String endpoint = "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskId;
-            String token = accessToken;
+            String endpoint = "/api/m/jobs/schedules/" + jobScheduleId;
+            String token =accessToken;//"3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             String url = baseUrl + endpoint;
-
-            // Update JSON body format to include task_id and status
             String jsonBody = String.format("{\"status\": \"%s\", \"task_id\": \"%s\"}", status, taskId);
-
-            // Create OkHttpClient instance
             OkHttpClient client = new OkHttpClient();
 
-            // Create request body with the JSON data
-            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            RequestBody body = RequestBody.create(
+                    MediaType.parse("application/json"), jsonBody);
 
-
-            // Build the PATCH request
             Request request = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + token)
