@@ -36,7 +36,10 @@ import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.D
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsFolder.SheetsAcitivy;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.DocsFilesManager;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.AllFileItem;
+import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.SheetsFilesManager;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivityManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -48,6 +51,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+
+import java.util.List;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
     private int currentPage = 1; // Start from page 1
@@ -76,22 +81,24 @@ LinearLayout notes,folder,docs,sheets;
     String taskId;
     String jobId;
     String accessToken;
+    String cqLocal = "https://aws.customquoter.co.uk";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
          jobId = getIntent().getStringExtra("job_id");
+
         SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
         taskId = sharedPrefTaskADandJobID.getTaskId();
         if (taskId != null) {
             Log.d("TASKID", "Task ID: " + taskId);
             Log.d("TASKID", "Job ID: " + jobId);
         } else {
-            taskId = "782";
-            jobId = "5703";
             Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
         }
+
+
         SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
          accessToken = sharedPrefManager.getAccessToken();
         String userId = sharedPrefManager.getUserId();
@@ -120,6 +127,48 @@ LinearLayout notes,folder,docs,sheets;
         sheets  = findViewById(R.id.sheets);
         newBuildButtonManager = new NewBuildButtonManager(notes, folder, docs, sheets);
 
+        String sheets_job = "sheets";
+        String docs_job = "docs";
+
+
+        // Handle Job ------------------>>
+        SheetsFilesManager sheetsFilesManager = new SheetsFilesManager(this, accessToken);
+        sheetsFilesManager.loadFiles(cqLocal, Integer.parseInt(jobId), 1, 10, sheets_job, new SheetsFilesManager.FilesCallback() {
+            @Override
+            public void onFilesLoaded(List<AllFileItem> files) {
+                // Handle the loaded files
+                for (AllFileItem file : files) {
+                    Log.d("SheetsFilesManager", "File ID: " + file.getId());
+                    Log.d("SheetsFilesManager", "File Title: " + file.getTitle());
+                    Log.d("SheetsFilesManager", "File Other_title: " + file.getOther_title());
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // Handle the error
+                Log.e("MainActivity", "Error: " + errorMessage);
+            }
+        });
+        DocsFilesManager docsFilesManager = new DocsFilesManager(this, accessToken);
+        docsFilesManager.loadFilesDocs(cqLocal, Integer.parseInt(jobId), 1, 10, docs_job, new DocsFilesManager.FilesDocsCallback() {
+            @Override
+            public void onFilesDocsLoaded(List<AllFileItem> files) {
+                // Handle the loaded files
+                for (AllFileItem file : files) {
+                    Log.d("DocsFilesManager", "File ID: " + file.getId());
+                    Log.d("DocsFilesManager", "File Title: " + file.getTitle());
+                    Log.d("DocsFilesManager", "File Other_title: " + file.getOther_title());
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // Handle the error
+                Log.e("MainActivity", "Error: " + errorMessage);
+            }
+        });
+        // Handle Job <<--------------------
 
 
         newBuildButtonManager.setButtonsVisibility(true);

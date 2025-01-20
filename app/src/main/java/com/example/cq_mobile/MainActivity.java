@@ -26,19 +26,11 @@ import com.example.cq_mobile.NotificationData.APIResponceFolder.FilterNotificati
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotificationResponse;
 import com.example.cq_mobile.NotificationData.ShowNotificationActivity;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.RetrofitClient;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistApi;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistUpdateRequest;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.CheckListFolder.TaskChecklistResponse;
 import com.google.firebase.FirebaseApp;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+
         FirebaseApp.initializeApp(this);
         StatusBarManager.setStatusBarLight(this);
 
@@ -90,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
     }
 
 
@@ -103,7 +97,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Retrieved User Data: ");
         Log.d(TAG, "Access Token: " + accessToken);
         Log.d(TAG, "User ID: " + userId);
-         NotifFilter();
+
+
+        NotifFilter();
 
         navigationManager.setupNavigation();
     }

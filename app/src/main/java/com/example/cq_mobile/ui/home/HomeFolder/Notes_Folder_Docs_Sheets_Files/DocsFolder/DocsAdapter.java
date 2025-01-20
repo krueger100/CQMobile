@@ -60,8 +60,12 @@ public class DocsAdapter extends RecyclerView.Adapter<DocsAdapter.DocsViewHolder
         holder.fileSize.setText(String.format("Size: %d KB", file.getFilesize() / 1024));
 
         Log.d("DocsAdapter", "Preview URL: " + fileUrl + "\nID->" + id);
+        Log.d("DocsAdapter", "Preview id: "+id);
+
         Log.d("DocsAdapter", "MimeType for file " + file.getFilename() + ": " + mimeType);
         String finalFileUrl = fileUrl;
+
+
         if (mimeType.endsWith("rtf")) {
             Glide.with(holder.itemView.getContext())
                     .load(fileUrl)

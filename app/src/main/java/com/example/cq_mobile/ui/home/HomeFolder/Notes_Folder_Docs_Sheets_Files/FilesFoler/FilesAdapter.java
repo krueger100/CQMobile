@@ -82,11 +82,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
             holder.filePreview.setVisibility(View.VISIBLE);  // Make ImageView visible
 
             // Construct Glide URL with headers
-            glideUrl = new GlideUrl(fileUrl, new LazyHeaders.Builder()
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .addHeader("x-api-key", apiKey)
-                    .addHeader("Accept", "application/json")
-                    .build());
+
 
             // Load image into the ImageView using Glide
             Glide.with(holder.itemView.getContext())
@@ -113,7 +109,7 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
         }else {
             Log.d("FilesAdapter", "MimeType is not a valid image type: " + mimeType);
             Glide.with(holder.itemView.getContext())
-                    .load(glideUrl)
+                    .load(fileUrl)
                     .placeholder(R.drawable.circular_background)
                     .error(R.drawable.new_document_2)
                     .into(holder.filePreview);

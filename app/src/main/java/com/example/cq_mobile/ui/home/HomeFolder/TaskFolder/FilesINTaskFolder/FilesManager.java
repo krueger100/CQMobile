@@ -64,3 +64,16 @@ public class FilesManager {
         });
     }
 }
+/*
+curl -X GET "https://aws.customquoter.co.uk/api/m/jobs/schedules/5675/tasks/805/files?page=1&per_page=10" \
+-H "Authorization: Bearer 5470|rewRTEGNCnsi7Bt8DQkyKRQQ0oi8TFDgriv74BBE" \
+-H "Postman-Token: <calculated_when_request_is_sent>" \
+-H "Host: aws.customquoter.co.uk" \
+-H "User-Agent: PostmanRuntime/7.43.0" \
+-H "Accept: " \  <--- get data rom postman
+-H "Accept-Encoding: gzip, deflate, br" \
+-H "Connection: keep-alive" \
+-H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
+-H "Accept: application/json" \
+-H "Content-Type: application/json"
+ */

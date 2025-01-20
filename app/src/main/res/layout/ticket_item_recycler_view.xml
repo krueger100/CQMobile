@@ -17,46 +17,84 @@
         android:layout_marginTop="10dp"
         android:padding="16dp">
 
-        <View
-            android:id="@+id/view"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginBottom="5dp"
-            android:background="#9AAAAAAA" />
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/item_text"
+            <ImageView
+                android:id="@+id/search_bar_btn_off"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ticket"
-                android:textStyle="bold" />
+                android:src="@drawable/nav_ticket"
+                android:layout_marginEnd="15dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=" "
-                tools:ignore="SpeakableTextPresentCheck" />
+                android:orientation="vertical"
+                android:gravity="center_vertical">
+                <TextView
+                    android:id="@+id/item_subject"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ticket"
+                    android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/info"
+                android:id="@+id/item_category"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="info"
                 android:textStyle="bold" />
+            </LinearLayout>
+
+
+
+
         </LinearLayout>
 
-        <View
-            android:id="@+id/view1"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginVertical="5dp"
-            android:background="#9AAAAAAA" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginEnd="10dp"
+        android:gravity="end|center">
+
+        <ImageView
+            android:id="@+id/indicator_green"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:src="@drawable/indicator_on"
+            android:layout_gravity="center"
+            android:layout_marginEnd="10dp"/>
+
+        <TextView
+            android:id="@+id/item_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open"
+            android:layout_gravity="end"
+            android:textStyle="normal" />
+
+        <TextView
+            android:id="@+id/item_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="July 8"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/doneColor"
+            android:layout_gravity="end"
+            android:textStyle="normal" />
+    </LinearLayout>
+
 
     </LinearLayout>
 

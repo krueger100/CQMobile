@@ -1,4 +1,4 @@
-package com.example.cq_mobile;
+package com.example.cq_mobile.TestFolder;
 
 import android.util.Log;
 
