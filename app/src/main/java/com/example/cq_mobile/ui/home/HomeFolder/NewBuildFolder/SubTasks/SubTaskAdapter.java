@@ -87,7 +87,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             String taskPriority = task.getPriority() != null ? task.getPriority().trim().toLowerCase() : "No Category";
             holder.priority.setText(taskPriority.substring(0, 1).toUpperCase() + taskPriority.substring(1).toLowerCase());
 
-            Integer taskId = task.getId(); // Now it's an Integer object, which can be null
+            Integer taskId = task.getId();
             if (taskId != null && !taskIdList.contains(taskId.toString())) {
                 taskIdList.add(taskId.toString());
             }

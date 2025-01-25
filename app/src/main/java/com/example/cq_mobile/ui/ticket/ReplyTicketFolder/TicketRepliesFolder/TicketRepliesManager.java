@@ -1,40 +1,44 @@
-package com.example.cq_mobile.ui.ticket.TicketsFolder;
+package com.example.cq_mobile.ui.ticket.ReplyTicketFolder.TicketRepliesFolder;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
-import android.view.View;
 
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
-import com.example.cq_mobile.HelperManagers.getAccessToken.GetUserInfoManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchAPIItem;
+import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchAPIResponse;
+import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchApi;
+import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchManager;
+import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
+import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIResponse;
+
 
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class TicketManager {
+public class TicketRepliesManager {
     private final String baseUrl = "https://aws.customquoter.co.uk/";  // Base URL
     private String accessToken;  // Store the access token
     private final Context context;
     Call<AccessTokenResponse> call;
     Call<TicketAPIResponse> call2 ;
-    public TicketManager(Context context) {
+
+    public TicketRepliesManager(Context context) {
         this.context = context;
     }
-
-    // Method to get the access token and notify the caller via a callback
     public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
         // Create an instance of the API service
         AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
 
         // Call the API
-       call = apiService.AccessTokenUser(request);
+        call = apiService.AccessTokenUser(request);
 
         // Enqueue the call to execute asynchronously
         call.enqueue(new Callback<AccessTokenResponse>() {
@@ -64,8 +68,47 @@ public class TicketManager {
         });
     }
 
-    // Method to load tickets using the access token
-    public void loadTickets(int page, int pageSize, final AllTicketsCallback callback) {
+
+    public void loadRepliesTickets(int page, int pageSize, final TicketRepliesManager.RepliesTicketsCallback callback) {
+        if (accessToken == null) {
+            callback.onError("Access token is missing.");
+            return;
+        }
+        String url = baseUrl + "api/m/tickets/" + "?page=" + page + "&per_page=" + pageSize;
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        TicketSearchApi ticketApi = retrofit.create(TicketSearchApi.class);
+
+        // Making the API call with additional parameters
+        Call<TicketSearchAPIResponse> call = ticketApi.getSearchTickets( page, pageSize, accessToken, "Bearer " + accessToken);
+
+        call.enqueue(new Callback<TicketSearchAPIResponse>() {
+            @Override
+            public void onResponse(Call<TicketSearchAPIResponse> call, Response<TicketSearchAPIResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Successfully received the tickets
+                    callback.onRepliesTicketsLoaded(response.body().getData());
+                } else {
+                    // Handle the error
+                    String errorMessage = response.message() != null ? response.message() : "Unknown error";
+                    callback.onError(errorMessage);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TicketSearchAPIResponse> call, Throwable t) {
+                // Handle the failure
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+
+
+    public void loadTicketsReplies(int page, int pageSize, final AllTicketsCallback callback) {
         if (accessToken == null) {
             callback.onError("Access token is missing.");
             return;
@@ -79,10 +122,10 @@ public class TicketManager {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        TicketApi ticketApi = retrofit.create(TicketApi.class);
+        TricketRepliesAPI ticketApi = retrofit.create(TricketRepliesAPI.class);
 
         // Making the API call with additional parameters
-       call2 = ticketApi.getTickets(page, pageSize, accessToken, "Bearer " + accessToken);
+        call2 = ticketApi.getReplies(page, pageSize, accessToken, "Bearer " + accessToken);
 
         call2.enqueue(new Callback<TicketAPIResponse>() {
             @Override
@@ -134,21 +177,13 @@ public class TicketManager {
         void onError(String errorMessage);
     }
 
+    public interface RepliesTicketsCallback {
+        void onRepliesTicketsLoaded(List<TicketSearchAPIItem> tickets);
+        void onError(String errorMessage);
+    }
+
     public interface AllTicketsCallback {
         void onAllTicketsLoaded(List<TicketAPIItem> tickets);
         void onError(String errorMessage);
     }
 }
-/*
-curl -X GET "https://aws.customquoter.co.uk/api/m/tickets/117" \
--H "Authorization: Bearer 5623|qi1c6mlU56torLCTinGwoaeyqqm9Ocxn0nTZX63W" \
--H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
--H "Accept: application/json" \
--H "Content-Type: application/json" \
--H "User-Agent: PostmanRuntime/7.43.0" \
--H "Accept-Encoding: gzip, deflate, br" \
--H "Connection: keep-alive"
-
-
-
- */

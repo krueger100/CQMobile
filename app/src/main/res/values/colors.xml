@@ -23,10 +23,10 @@
     <color name="textBtnGreen">#2AC76F</color>
     <color name="textBtnGrey">#827B7B</color>
 
-    <color name="color_inspection">#2F80ED</color>
+    <color name="color_inspection">#4C1879</color>
     <color name="color_done">#00796B</color>
     <color name="todoColor">#FF8102</color>
-    <color name="skippedColor">#1976D2</color>
+    <color name="skippedColor">#6D52B6</color>
     <color name="doneColor">#2AC76F</color>
 
         <color name="route_color_1">#E626ABF4</color>

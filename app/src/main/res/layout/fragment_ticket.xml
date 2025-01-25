@@ -19,14 +19,15 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/include">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
+            android:gravity="center"
             android:orientation="horizontal">
 
 
@@ -45,13 +46,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end|center"
-            android:padding="10dp">
+            android:gravity="end|center">
 
             <ImageView
                 android:id="@+id/search_bar_btn_off"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:elevation="5dp"
+                android:layout_marginHorizontal="5dp"
+                android:layout_marginVertical="5dp"
+                android:background="@drawable/background_white"
                 android:src="@drawable/search_1"
                 android:layout_marginEnd="15dp"/>
 
@@ -61,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/search_1"
                 android:layout_marginEnd="15dp"
-                android:background="@drawable/button_background"
+                android:background="@drawable/background_blue"
                 android:visibility="gone"
                 app:tint="@color/white" />
 
@@ -70,19 +74,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/filter_1"
+                android:elevation="5dp"
+                android:layout_marginHorizontal="5dp"
+                android:layout_marginVertical="5dp"
+                android:background="@drawable/background_white"
                 android:layout_marginEnd="15dp"/>
             <ImageView
                 android:id="@+id/filter_btn_off"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/button_background"
+                android:background="@drawable/background_blue"
                 app:tint="@color/white"
                 android:src="@drawable/filter_1"
                 android:visibility="gone"
                 android:layout_marginEnd="15dp"/>
 
             <TextView
-                android:id="@+id/item_btn"
+                android:id="@+id/create_ticket"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Compose Ticket"
@@ -126,13 +134,13 @@
                 android:textSize="16sp"
                 android:paddingHorizontal="5dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/imageView5"
+                app:layout_constraintEnd_toStartOf="@+id/search_icon"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="TouchTargetSizeCheck" />
 
             <ImageView
-                android:id="@+id/imageView5"
+                android:id="@+id/search_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/search_1"
@@ -159,6 +167,7 @@
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:paddingBottom="50dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -173,7 +182,7 @@
     <LinearLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="400dp"
         android:orientation="vertical"
         android:background="@color/white"
         app:behavior_hideable="false"

@@ -8,7 +8,6 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface TicketApi {
- //   @GET("api/m/tickets/categories")
    @GET("api/m/tickets")
     @Headers({
             "Accept: application/json",

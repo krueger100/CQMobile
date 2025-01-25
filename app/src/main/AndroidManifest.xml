@@ -126,6 +126,17 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
+        <activity android:name=".ui.ticket.ReplyTicketFolder.ReplyTicket"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
+
+        <activity android:name=".ui.ticket.CreateFolder.CreateTicket"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:hardwareAccelerated="true"
+            android:theme="@style/AppTheme"/>
 
 
         <meta-data

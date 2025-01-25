@@ -14,7 +14,7 @@ public class TicketCategoryManager {
     private final String baseUrl = "https://aws.customquoter.co.uk/";  // Base URL
     private final String accessToken;  // Store the access token
     private final Context context;
-
+    private Call<TicketAPICategoryResponse> currentCall;
     // Updated constructor to accept accessToken
     public TicketCategoryManager(Context context, String accessToken) {
         this.context = context;
@@ -33,11 +33,11 @@ public class TicketCategoryManager {
         TicketCategoryApi ticketCategoryApi = retrofit.create(TicketCategoryApi.class);
 
         // Making the API call with additional parameters
-        Call<TicketAPICategoryResponse> call = ticketCategoryApi.getTickets(page, pageSize, accessToken, "Bearer " + accessToken);
+        currentCall = ticketCategoryApi.getTickets(page, pageSize, accessToken, "Bearer " + accessToken);
 
-        call.enqueue(new Callback<TicketAPICategoryResponse>() {
+        currentCall.enqueue(new Callback<TicketAPICategoryResponse>() {
             @Override
-            public void onResponse(Call<TicketAPICategoryResponse> call, Response<TicketAPICategoryResponse> response) {
+            public void onResponse(Call<TicketAPICategoryResponse> currentCall, Response<TicketAPICategoryResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     // Successfully received the tickets
                     callback.onTicketsLoaded(response.body().getData());
@@ -55,9 +55,16 @@ public class TicketCategoryManager {
             }
         });
     }
+    public void cancelLoading() {
+        if (currentCall != null && !currentCall.isCanceled()) {
+            currentCall.cancel();
+        }
+    }
+
 
     public interface TicketsCallback {
         void onTicketsLoaded(List<TicketAPICategoryItems> tickets);
         void onError(String errorMessage);
     }
+
 }

@@ -95,6 +95,8 @@ LinearLayout notes,folder,docs,sheets;
             Log.d("TASKID", "Task ID: " + taskId);
             Log.d("TASKID", "Job ID: " + jobId);
         } else {
+            taskId = "782";
+            jobId = "5703";
             Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
         }
 

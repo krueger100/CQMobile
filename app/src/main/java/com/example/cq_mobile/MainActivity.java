@@ -145,18 +145,18 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                if (isNotificationDisplayed) {
-                    Log.d("SharedPreferencesNotif", "TRUE");
-
-                }else {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean("notification_displayed", false);
-                    editor.apply();
-                    Log.d("SharedPreferencesNotif", "FALSE");
-                    new ArrayList<>(titles);
-                    new ArrayList<>(avatars) ;
-                    navigateToShowNotificationActivity(titles,avatars);
-                }
+//                if (isNotificationDisplayed) {
+//                    Log.d("SharedPreferencesNotif", "TRUE");
+//
+//                }else {
+//                    SharedPreferences.Editor editor = sharedPreferences.edit();
+//                    editor.putBoolean("notification_displayed", false);
+//                    editor.apply();
+//                    Log.d("SharedPreferencesNotif", "FALSE");
+//                    new ArrayList<>(titles);
+//                    new ArrayList<>(avatars) ;
+//                    navigateToShowNotificationActivity(titles,avatars);
+//                }
 
             }
 

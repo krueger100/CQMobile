@@ -1,6 +1,7 @@
 package com.example.cq_mobile.ui.ticket;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,6 +18,7 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
+import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketCategoryManager;
 import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchAPIItem;
@@ -25,6 +27,7 @@ import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TicketFragment extends Fragment {
@@ -40,7 +43,6 @@ public class TicketFragment extends Fragment {
     private ItemAdapter itemAdapter;
     private CategoryAdapter categoryAdapter;
     private BottomSheetBehavior<View> bottomSheetBehavior;
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -55,6 +57,17 @@ public class TicketFragment extends Fragment {
         ticketCategoryManager = new TicketCategoryManager(context, accessToken);
 
         setupBottomSheet();
+if (binding != null) {
+
+    binding.createTicket.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(context, CreateTicket.class);
+            startActivity(intent);
+
+        }
+    });
+
 
         binding.searchBarBtnOff.setOnClickListener(v -> {
             binding.searchBarBtnOn.setVisibility(View.VISIBLE);
@@ -81,21 +94,39 @@ public class TicketFragment extends Fragment {
             showBottomSheet(); // Show the BottomSheet
         });
 
-    binding.progressBar.setVisibility(View.VISIBLE);
+    binding.searchIcon.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // Get the text from the search bar
+            String searchQuery = binding.searchBar.getText().toString();
+            String email = "richard.anthony.wetherell@gmail.com";
+            String password = "123456";
+
+            loadSearchTickets(email,password);
+
+//            // Optionally, you can handle the case where the search bar is empty
+//            if (searchQuery.isEmpty()) {
+//                Log.d("Search", "Search query is empty");
+//            } else {
+//                Log.d("Search", "Search query: " + searchQuery);
+//            }
+        }
+    });
+
+    if (binding != null) {  // Check if the binding is still valid
+            binding.progressBar.setVisibility(View.VISIBLE);
+        }
         loadCategoryTickets(accessToken);
 
-
+}
         return root;
     }
-
-
-
     private void loadCategoryTickets(String accessToken) {
         if (isLoading) return; // Prevent multiple simultaneous loads
         isLoading = true;
-
-        binding.progressBar.setVisibility(View.VISIBLE);
-
+        if (binding != null) {
+            binding.progressBar.setVisibility(View.VISIBLE);
+        }
         ticketCategoryManager.loadCategoryTickets(currentPage, pageSize, new TicketCategoryManager.TicketsCallback() {
             @Override
             public void onTicketsLoaded(List<TicketAPICategoryItems> tickets) {
@@ -125,7 +156,8 @@ public class TicketFragment extends Fragment {
                     new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            loadSearchTickets(accessToken);
+                            //     loadSearchTickets(accessToken);
+                            loadTickets();
                         }
                     }, 1000);
 
@@ -146,115 +178,140 @@ public class TicketFragment extends Fragment {
         });
     }
 
-    private void loadSearchTickets(String accessToken) {
-        if (isLoading) return; // Prevent multiple simultaneous loads
+    private void loadTickets() {
+        if (isLoading) return; // Prevent multiple loads
         isLoading = true;
 
-        // Ensure ticketManager is initialized
-        if (ticketSearchManager == null) {
-            ticketSearchManager = new TicketSearchManager(requireContext(), accessToken); // Initialize ticketManager if it's null
+        setProgressBarVisibility(true); // Show progress bar
+
+        String email = "richard.anthony.wetherell@gmail.com";
+        String password = "123456";
+
+        AccessTokenRequest request = new AccessTokenRequest(email, password);
+
+        // Lazy initialization of ticketManager
+        if (ticketManager == null) {
+            ticketManager = new TicketManager(requireContext());
         }
 
-        binding.progressBar.setVisibility(View.VISIBLE);
-
-        ticketSearchManager.loadSearchTickets(currentPage, pageSize, new TicketSearchManager.SearchTicketsCallback() {
+        // Fetch Access Token
+        ticketManager.getAccessToken(request, new TicketManager.AccessTokenCallback() {
             @Override
-            public void onSearchTicketsLoaded(List<TicketSearchAPIItem> tickets) {
-                binding.progressBar.setVisibility(View.GONE);
+            public void onAccessTokenReceived(String token) {
+                loadTicketsWithToken(token);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                setProgressBarVisibility(false);
+                isLoading = false;
+                Log.e("TicketFragment", "Access Token Error: " + errorMessage);
+            }
+        });
+    }
+
+    private void loadTicketsWithToken(String token) {
+        ticketManager.loadTickets(currentPage, pageSize, new TicketManager.AllTicketsCallback() {
+            @Override
+            public void onAllTicketsLoaded(List<TicketAPIItem> tickets) {
+                setProgressBarVisibility(false);
                 isLoading = false;
 
-                // Log the received ticket data
                 if (tickets != null && !tickets.isEmpty()) {
-                    for (TicketSearchAPIItem ticket : tickets) {
-                        Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
-                        Log.d("loadSearchTickets", "Ticket Name: " + ticket.getCategory().getName());
-                        Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
-                        Log.d("loadSearchTickets", "Ticket Status: " + ticket.getStatus());
-
-                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                loadTickets();
-                            }
-                        }, 2000);
-                    }
-
-
+                    displayTickets(tickets, token);
                 } else {
-                    Log.d("loadTickets", "No tickets received.");
+                    Log.d("TicketFragment", "No tickets received.");
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
-                binding.progressBar.setVisibility(View.GONE);
+                setProgressBarVisibility(false);
                 isLoading = false;
-                Log.e("loadTickets", "Error loading tickets: " + errorMessage);
+                Log.e("TicketFragment", "Ticket Loading Error: " + errorMessage);
             }
         });
     }
 
-    private void loadTickets() {
-        if (isLoading) return; // Prevent multiple simultaneous loads
-        isLoading = true;
+    private void displayTickets(List<TicketAPIItem> tickets, String token) {
+        List<Integer> ticketIDs = new ArrayList<>();
 
-        binding.progressBar.setVisibility(View.VISIBLE);
-
-        String email = "richard.anthony.wetherell@gmail.com";
-        String password = "123456";
-        AccessTokenRequest request = new AccessTokenRequest(email, password);
-
-        // Ensure ticketManager is initialized
-        if (ticketManager == null) {
-            ticketManager = new TicketManager(requireContext()); // Initialize ticketManager if it's null
+        for (TicketAPIItem ticket : tickets) {
+            ticketIDs.add(ticket.getId());
+            Log.d("TicketFragment", "Ticket ID: " + ticket.getId());
         }
 
-        // Get the access token
-        ticketManager.getAccessToken(request, new TicketManager.AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String token) {
-                // Now load the tickets with the received access token
-                ticketManager.loadTickets(currentPage, pageSize, new TicketManager.AllTicketsCallback() {
-                    @Override
-                    public void onAllTicketsLoaded(List<TicketAPIItem> tickets) {
-                        binding.progressBar.setVisibility(View.GONE);
-                        isLoading = false;
 
-                        // Log the received ticket data
-                        if (tickets != null && !tickets.isEmpty()) {
-                            for (TicketAPIItem ticket : tickets) {
-                                Log.d("loadTickets", "Ticket ID: " + ticket.getId());
-                                Log.d("loadTickets", "Ticket Name: " + ticket.getCategory().getName());
-                                Log.d("loadTickets", "Ticket getSubject: " + ticket.getSubject());
-                            }
-
-                            // Set up the RecyclerView LayoutManager
-                            binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-                            itemAdapter = new ItemAdapter(context, token, tickets);
-                            binding.recyclerView.setAdapter(itemAdapter);
-                        } else {
-                            Log.d("loadTickets", "No tickets received.");
-                        }
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        binding.progressBar.setVisibility(View.GONE);
-                        isLoading = false;
-                        Log.e("loadTickets", "Error loading tickets: " + errorMessage);
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                binding.progressBar.setVisibility(View.GONE);
-                isLoading = false;
-                Log.e("loadTickets", "Error getting access token: " + errorMessage);
-            }
-        });
+        // Initialize RecyclerView
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        itemAdapter = new ItemAdapter(context, token, tickets);
+        binding.recyclerView.setAdapter(itemAdapter);
     }
 
+
+
+
+private void loadSearchTickets(String email, String password) {
+    // Log the access token for debugging
+    Log.d("loadReplies", "Email: " + email + ", Password: " + password);
+
+    // Ensure ticketSearchManager is initialized
+    if (ticketSearchManager == null) {
+        ticketSearchManager = new TicketSearchManager(context);
+    }
+
+    // Get the access token first
+    ticketSearchManager.getAccessToken(email, password, new TicketSearchManager.AccessTokenCallback() {
+        @Override
+        public void onAccessTokenReceived(String token) {
+            Log.d("loadReplies", "Access Token received: " + token);
+
+            // Now load the tickets with the received access token
+            ticketSearchManager.loadSearchTickets(1, 10, new TicketSearchManager.SearchTicketsCallback() {
+                @Override
+                public void onSearchTicketsLoaded(List<TicketSearchAPIItem> tickets) {
+                    // Log the received ticket data
+                    if (tickets != null && !tickets.isEmpty()) {
+                        List<TicketAPIItem.Message> newReplies = new ArrayList<>();
+                        for (TicketSearchAPIItem ticket : tickets) {
+                            Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
+                            Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
+
+                            // Assuming you get messages from each ticket
+                            for (TicketSearchAPIItem.Message searchMessage : ticket.getMessages()) {
+                                Log.d("loadSearchTickets", "ID: " + searchMessage.getUser().getId());
+                                Log.d("loadSearchTickets", "Name: " + searchMessage.getUser().getName());
+                            }
+                        }
+
+                    } else {
+                        Log.d("loadTickets", "No tickets received.");
+                    }
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+
+                    Log.e("loadTickets", "Error loading tickets: " + errorMessage);
+                }
+            });
+        }
+
+        @Override
+        public void onError(String errorMessage) {
+
+            Log.e("loadReplies", "Error getting access token: " + errorMessage);
+        }
+    });
+
+        }
+
+
+    private void setProgressBarVisibility(boolean isVisible) {
+        if (binding != null) {
+            binding.progressBar.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        }
+    }
 
     private void setupBottomSheet() {
         View bottomSheet = binding.getRoot().findViewById(R.id.bottomSheet);
@@ -277,12 +334,14 @@ public class TicketFragment extends Fragment {
         }
     }
 
-
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
+    public void onDestroy() {
+        super.onDestroy();
+        ticketManager.cancelAllCalls();
     }
+
+
+
 }
 
 
