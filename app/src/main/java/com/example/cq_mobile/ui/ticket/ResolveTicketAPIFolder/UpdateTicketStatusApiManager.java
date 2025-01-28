@@ -1,23 +1,25 @@
-package com.example.cq_mobile.ui.ticket.CreateFolder.TicketCreateFolder;
+package com.example.cq_mobile.ui.ticket.ResolveTicketAPIFolder;
 
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
-public class TicketCreateApiManager {
+public class UpdateTicketStatusApiManager {
 
-    private static final String TAG = "TicketCreateApiManager";
+    private static final String TAG = "UpdateTicketStatusApiManager";
 
     // Define the callback interface
     public interface ApiCallback {
@@ -25,23 +27,21 @@ public class TicketCreateApiManager {
         void onFailure(String error);
     }
 
-    public static void createTicket(String subject, String body, int categoryId, ProgressBar progressBar, ApiCallback callback) {
+    public static void updateTicketStatus(int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiCreateTicketTask(subject, body, categoryId, progressBar, callback));
+        executorService.execute(new ApiUpdateTicketStatusTask(ticketId, status, progressBar, callback));
     }
 
-    private static class ApiCreateTicketTask implements Runnable {
+    private static class ApiUpdateTicketStatusTask implements Runnable {
 
-        private final String subject;
-        private final String body;
-        private final int categoryId;
+        private final int ticketId;
+        private final String status;
         ProgressBar progressBar;
         private final ApiCallback callback;
 
-        public ApiCreateTicketTask(String subject, String body, int categoryId, ProgressBar progressBar, ApiCallback callback) {
-            this.subject = subject;
-            this.body = body;
-            this.categoryId = categoryId;
+        public ApiUpdateTicketStatusTask(int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
+            this.ticketId = ticketId;
+            this.status = status;
             this.progressBar = progressBar;
             this.callback = callback;
         }
@@ -49,26 +49,26 @@ public class TicketCreateApiManager {
         @Override
         public void run() {
             String baseUrl = "https://aws.customquoter.co.uk";
-            String endpoint = "/api/m/tickets";
+            String endpoint = "/api/m/tickets/" + ticketId + "/status";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             String accessToken = "6331|n98FC0W7s7RlA4o5mnCmfxTDYlzWkWF2qg2B4c0m"; // Replace with dynamic retrieval if needed
 
-            // Create JSON body for ticket creation
-            String jsonBody = String.format(
-                    "{\"subject\": \"%s\", \"body\": \"%s\", \"category_id\": %d}",
-                    subject, body, categoryId
-            );
+            // Create JSON body for ticket status update
+            String jsonBody = String.format("{\"status\": \"%s\"}", status);
 
-            postCreateTicket(baseUrl, endpoint, accessToken, apiKey, jsonBody);
+            postUpdateTicketStatus(baseUrl, endpoint, accessToken, apiKey, jsonBody);
         }
 
-        private void postCreateTicket(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
+        private void postUpdateTicketStatus(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+          //  RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+
+
 
             Request request = new Request.Builder()
                     .url(baseUrl + endpoint)
@@ -79,23 +79,22 @@ public class TicketCreateApiManager {
                     .post(body)
                     .build();
 
-            client.newCall(request).enqueue(new okhttp3.Callback() {
+            client.newCall(request).enqueue(new Callback() {
                 @Override
-                public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                public void onResponse(Call call, Response response) throws IOException {
                     String responseBody = null;
                     try {
                         if (response.body() != null) {
                             responseBody = response.body().string();
                         }
                         if (response.isSuccessful()) {
-                            Log.d(TAG, "Ticket created successfully. Response: " + responseBody);
+                            Log.d(TAG, "Ticket status updated successfully. Response: " + responseBody);
 
                             // Update UI on the main thread
                             progressBar.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     progressBar.setVisibility(View.GONE);
-
                                 }
                             });
 
@@ -112,7 +111,7 @@ public class TicketCreateApiManager {
                                 }
                             });
 
-                            callback.onFailure("Failed to create ticket: " + responseBody);
+                            callback.onFailure("Failed to update ticket status: " + responseBody);
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Error reading response: " + e.getMessage(), e);
@@ -130,8 +129,8 @@ public class TicketCreateApiManager {
                 }
 
                 @Override
-                public void onFailure(okhttp3.Call call, IOException e) {
-                    Log.e(TAG, "Error creating ticket: " + e.getMessage(), e);
+                public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "Error updating ticket status: " + e.getMessage(), e);
 
                     // Update UI on the main thread
                     progressBar.post(new Runnable() {
@@ -141,7 +140,7 @@ public class TicketCreateApiManager {
                         }
                     });
 
-                    callback.onFailure("Error creating ticket: " + e.getMessage());
+                    callback.onFailure("Error updating ticket status: " + e.getMessage());
                 }
             });
         }
@@ -151,16 +150,13 @@ public class TicketCreateApiManager {
 
 
 /*
-
-curl -v -X POST "https://aws.customquoter.co.uk/api/m/tickets" \
+curl -v -X POST "https://aws.customquoter.co.uk/api/m/tickets/178/status" \
 -H "Authorization: Bearer 6331|n98FC0W7s7RlA4o5mnCmfxTDYlzWkWF2qg2B4c0m" \
 -H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
 -H "Content-Type: application/json" \
 -H "Accept: application/json" \
 -d '{
-  "subject": "ticket from MOBILE APP",
-  "body": "<p>Ticket Create using CQ APP second Test</p>",
-  "category_id": 2
+  "status": "resolved"
 }'
 
  */

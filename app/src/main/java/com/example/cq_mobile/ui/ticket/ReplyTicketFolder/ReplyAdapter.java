@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
 import com.example.cq_mobile.ui.ticket.ReplyTicketFolder.DeleteMessageFolder.DeleteTicketMessageApiManager;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 
@@ -35,11 +35,13 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
     private final String accessToken;
     private final List<TicketAPIItem.Message> replyList; // List to store all reply messages
     int ticketID;
-    public ReplyAdapter(Context context, String accessToken, List<TicketAPIItem.Message> replyList, int ticketID) {
+    ProgressBar progressBar;
+    public ReplyAdapter(Context context, String accessToken, List<TicketAPIItem.Message> replyList, int ticketID, ProgressBar progressBar) {
         this.context = context;
         this.accessToken = accessToken;
         this.replyList = replyList;
         this.ticketID = ticketID;
+        this.progressBar = progressBar;
     }
 
     @NonNull
@@ -76,6 +78,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
 
 
         holder.itemView.setOnClickListener(v -> {
+            progressBar.setVisibility(View.VISIBLE);
             new AlertDialog.Builder(context)
                     .setTitle("Delete this Ticket reply")
                     .setMessage("Are you sure you want to delete this ticket reply?")
@@ -85,10 +88,10 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
                         executor.execute(() -> {
                             Log.d(TAG, "Starting delete operation for Ticket ID: " + ticketID + ", Message ID: " + reply.getId());
                             String response = DeleteTicketMessageApiManager.deleteTicketMessage(ticketID, reply.getId());
-                            // Run UI updates on the main thread
                             new Handler(Looper.getMainLooper()).post(() -> {
                                 if (!response.startsWith("Error:")) {
                                     Log.d(TAG, "Reply deleted successfully!" + response);
+                                    progressBar.setVisibility(View.GONE);
                                     Intent intent = new Intent(context, MainActivity.class);
                                     context.startActivity(intent);
                                     replyList.remove(position);
@@ -96,6 +99,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
                                 } else {
                                     Log.d(TAG, "Failed to delete reply: " + response);
                                     Toast.makeText(context, "Ticket reply deleted successfully!", Toast.LENGTH_SHORT).show();
+                                    progressBar.setVisibility(View.GONE);
                                     Intent intent = new Intent(context, MainActivity.class);
                                     context.startActivity(intent);
 

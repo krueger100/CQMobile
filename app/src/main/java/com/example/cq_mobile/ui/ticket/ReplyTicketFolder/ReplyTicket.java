@@ -5,12 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,8 +28,8 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
 import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
 import com.example.cq_mobile.ui.ticket.ItemAdapter;
+import com.example.cq_mobile.ui.ticket.ResolveTicketAPIFolder.UpdateTicketStatusApiManager;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketCategoryManager;
-import com.example.cq_mobile.ui.ticket.TicketFragment;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketManager;
 import com.google.common.reflect.TypeToken;
@@ -41,9 +44,10 @@ public class ReplyTicket extends AppCompatActivity {
     ImageView  indicator_green;
     ImageButton del_btn_on;
     ImageView back;
-    TextView create_ticket_category, item_title, resolve_ticket, reply, reply_off, reply_show;
+    TextView ticket_category, item_title, reply, reply_off, reply_show;
     CardView cardView4;
     EditText reply_body;
+    TextView resolve_ticket;
     private int ticketIDMain; // Class-level variable
     private String accessToken;
     private List<TicketAPIItem.Message> replyList = new ArrayList<>();
@@ -59,9 +63,8 @@ public class ReplyTicket extends AppCompatActivity {
     private boolean isLoading = false;
 
     private TicketCategoryManager ticketCategoryManager;
-    private TicketManager ticketManager;
-
-
+    ProgressBar progressBar;
+    String stats;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,14 +75,14 @@ public class ReplyTicket extends AppCompatActivity {
         indicator_green = findViewById(R.id.indicator_green);
         item_title = findViewById(R.id.item_title);
         resolve_ticket = findViewById(R.id.resolve_ticket);
-        create_ticket_category = findViewById(R.id.create_ticket_category);
+        ticket_category = findViewById(R.id.ticket_category);
         reply = findViewById(R.id.reply);
         reply_off = findViewById(R.id.reply_off);
         cardView4 = findViewById(R.id.cardView4);
         reply_body = findViewById(R.id.reply_body);
         reply_show = findViewById(R.id.reply_show);
         del_btn_on = findViewById(R.id.del_btn_on);
-
+        progressBar = findViewById(R.id.progressBar);
 
         // Retrieve data from the intent
         accessToken = getIntent().getStringExtra("token");
@@ -95,10 +98,54 @@ public class ReplyTicket extends AppCompatActivity {
         // Initialize the RecyclerView here
         repliesRecyclerView = findViewById(R.id.recyclerView_replies);
         repliesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        replyAdapter = new ReplyAdapter(this, accessToken, replyList,ticketID);
+        replyAdapter = new ReplyAdapter(this, accessToken, replyList,ticketID,progressBar);
         repliesRecyclerView.setAdapter(replyAdapter);
-        resolve_ticket.setText(status != null && status.equals("open") ? "Resolve Ticket" : "Resolved");
         back = findViewById(R.id.back);
+        ticketIDMain = ticketID;
+
+
+        stats = status;
+        Log.d("ResolveTicket", "stats:  " + stats);
+        resolve_ticket.setText(status != null && status.equals("open") ? "Resolve Ticket" : "Open");
+        resolve_ticket.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
+                String status;
+                if (stats.equals("open")) {
+                    status = "resolved";
+                } else {
+                    status = "open";
+                }
+                UpdateTicketStatusApiManager.updateTicketStatus(ticketIDMain, status, progressBar, new UpdateTicketStatusApiManager.ApiCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("ResolveTicket", "Ticket resolved successfully");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), "Ticket " + status, Toast.LENGTH_SHORT).show();
+                                resolve_ticket.setText(status.equals("resolved") ? "Open Ticket" : "Resolve Ticket");
+                                stats = status;
+                                progressBar.setVisibility(View.GONE);
+                            }
+                        });
+                    }
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("ResolveTicket", "Failed to resolve ticket: " + error);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), "Failed to resolve ticket", Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.GONE);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,15 +154,9 @@ public class ReplyTicket extends AppCompatActivity {
             }
         });
 
-        resolve_ticket.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
+        ticket_category.setText(categoryName);
 
 
-        // Deserialize message JSON
-        ticketIDMain = ticketID;
         if (messagesJsonList != null) {
             Gson gson = new Gson();
             Type listType = new TypeToken<List<TicketAPIItem.Message>>() {}.getType();
@@ -158,7 +199,7 @@ public class ReplyTicket extends AppCompatActivity {
 
         // Toggle delete button
         del_btn_on.setOnClickListener(v -> {
-            // Show an AlertDialog for confirmation
+            progressBar.setVisibility(View.VISIBLE);
             new AlertDialog.Builder(ReplyTicket.this)
                     .setTitle("Delete Ticket")
                     .setMessage("Are you sure you want to delete this ticket?")
@@ -169,14 +210,16 @@ public class ReplyTicket extends AppCompatActivity {
                             runOnUiThread(() -> {
                                 if (response.startsWith("Error:")) {
                                     Toast.makeText(ReplyTicket.this, "Ticket deleted successfully!", Toast.LENGTH_SHORT).show();
+                                    progressBar.setVisibility(View.GONE);
                                     Intent intent = new Intent(ReplyTicket.this, MainActivity.class);
                                     startActivity(intent);
                                     finish();
                                 } else {
+                                    progressBar.setVisibility(View.GONE);
                                     Toast.makeText(ReplyTicket.this, "Failed to delete ticket: " + response, Toast.LENGTH_LONG).show();
                                 }
                             });
-                        }).start(); // Run the API call in a background thread
+                        }).start();
                     })
                     .setNegativeButton("No", (dialog, which) -> {
                         // Dismiss the dialog
@@ -258,6 +301,14 @@ public class ReplyTicket extends AppCompatActivity {
             public void onSuccess() {
                 runOnUiThread(() -> Toast.makeText(ReplyTicket.this, "Reply sent successfully", Toast.LENGTH_SHORT).show());
                 closeKeyboard();
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(ReplyTicket.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }, 2000);
 
             }
 
