@@ -31,6 +31,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
 
     private String accessToken;
     private Context context;
+    View itemView;
+    TicketAPIItem item;
 
     public ItemAdapter(Context context, String accessToken, List<TicketAPIItem> itemList) {
         this.context = context;
@@ -85,6 +87,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, ReplyTicket.class);
+                intent.putExtra("token", accessToken);
                 intent.putExtra("subject", item.getSubject());
                 intent.putExtra("categoryName", item.getCategory().getName());
                 intent.putExtra("status", item.getStatus());

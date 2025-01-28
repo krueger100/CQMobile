@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.ticket.ReplyTicketFolder.TicketRepliesFolder;
+package com.example.cq_mobile.ui.ticket.CreateFolder.TicketCreateFolder;
 
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIResponse;
 
@@ -8,7 +8,7 @@ import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.Query;
 
-public interface  TricketRepliesAPI {
+public interface TricketCreateAPI {
     @GET("api/m/tickets")
     @Headers({
             "Accept: application/json",

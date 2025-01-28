@@ -1,6 +1,10 @@
 package com.example.cq_mobile.ui.ticket.ReplyTicketFolder;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,14 +15,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
+import com.example.cq_mobile.ui.ticket.ReplyTicketFolder.DeleteMessageFolder.DeleteTicketMessageApiManager;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
-import com.google.gson.Gson;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import android.util.Log;
+import android.widget.Toast;
 
 public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHolder> {
 
@@ -26,11 +34,12 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
     private final Context context;
     private final String accessToken;
     private final List<TicketAPIItem.Message> replyList; // List to store all reply messages
-
-    public ReplyAdapter(Context context, String accessToken, List<TicketAPIItem.Message> replyList) {
+    int ticketID;
+    public ReplyAdapter(Context context, String accessToken, List<TicketAPIItem.Message> replyList, int ticketID) {
         this.context = context;
         this.accessToken = accessToken;
-        this.replyList = replyList; // Pass the list during initialization
+        this.replyList = replyList;
+        this.ticketID = ticketID;
     }
 
     @NonNull
@@ -64,13 +73,49 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
         // Clean and bind reply body text
         String cleanBodyText = reply.getBody() != null ? reply.getBody().replaceAll("<[^>]*>", "") : "";
         holder.replyText.setText(cleanBodyText);
+
+
+        holder.itemView.setOnClickListener(v -> {
+            new AlertDialog.Builder(context)
+                    .setTitle("Delete this Ticket reply")
+                    .setMessage("Are you sure you want to delete this ticket reply?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        // Use ExecutorService for proper threading
+                        ExecutorService executor = Executors.newSingleThreadExecutor();
+                        executor.execute(() -> {
+                            Log.d(TAG, "Starting delete operation for Ticket ID: " + ticketID + ", Message ID: " + reply.getId());
+                            String response = DeleteTicketMessageApiManager.deleteTicketMessage(ticketID, reply.getId());
+                            // Run UI updates on the main thread
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                if (!response.startsWith("Error:")) {
+                                    Log.d(TAG, "Reply deleted successfully!" + response);
+                                    Intent intent = new Intent(context, MainActivity.class);
+                                    context.startActivity(intent);
+                                    replyList.remove(position);
+                                    notifyItemRemoved(position);
+                                } else {
+                                    Log.d(TAG, "Failed to delete reply: " + response);
+                                    Toast.makeText(context, "Ticket reply deleted successfully!", Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(context, MainActivity.class);
+                                    context.startActivity(intent);
+
+                                }
+                            });
+                        });
+                    })
+                    .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+
+
     }
 
     @Override
     public int getItemCount() {
         Log.d(TAG, "getItemCount called. Total replies: " + replyList.size());
-        return replyList.size(); // Return the size of the reply list
+        return replyList.size();
     }
+
 
     public static class ReplyViewHolder extends RecyclerView.ViewHolder {
         ImageView replyAvatar;

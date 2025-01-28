@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
@@ -43,9 +44,9 @@ public class TicketFragment extends Fragment {
     private ItemAdapter itemAdapter;
     private CategoryAdapter categoryAdapter;
     private BottomSheetBehavior<View> bottomSheetBehavior;
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTicketBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -57,52 +58,52 @@ public class TicketFragment extends Fragment {
         ticketCategoryManager = new TicketCategoryManager(context, accessToken);
 
         setupBottomSheet();
-if (binding != null) {
+        if (binding != null) {
 
-    binding.createTicket.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            Intent intent = new Intent(context, CreateTicket.class);
-            startActivity(intent);
+            binding.createTicket.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, CreateTicket.class);
+                    startActivity(intent);
 
-        }
-    });
+                }
+            });
 
 
-        binding.searchBarBtnOff.setOnClickListener(v -> {
-            binding.searchBarBtnOn.setVisibility(View.VISIBLE);
-            binding.searchBarBtnOff.setVisibility(View.GONE);
-            binding.cardView3.setVisibility(View.VISIBLE);
-        });
+            binding.searchBarBtnOff.setOnClickListener(v -> {
+                binding.searchBarBtnOn.setVisibility(View.VISIBLE);
+                binding.searchBarBtnOff.setVisibility(View.GONE);
+                binding.cardView3.setVisibility(View.VISIBLE);
+            });
 
-        binding.searchBarBtnOn.setOnClickListener(v -> {
-            binding.searchBarBtnOn.setVisibility(View.GONE);
-            binding.searchBarBtnOff.setVisibility(View.VISIBLE);
-            binding.cardView3.setVisibility(View.GONE);
-        });
+            binding.searchBarBtnOn.setOnClickListener(v -> {
+                binding.searchBarBtnOn.setVisibility(View.GONE);
+                binding.searchBarBtnOff.setVisibility(View.VISIBLE);
+                binding.cardView3.setVisibility(View.GONE);
+            });
 
-        // Handle filter buttons
-        binding.filterBtnOff.setOnClickListener(v -> {
-            binding.filterBtnOn.setVisibility(View.VISIBLE);
-            binding.filterBtnOff.setVisibility(View.GONE);
-            hideBottomSheet(); // Hide the BottomSheet
-        });
+            // Handle filter buttons
+            binding.filterBtnOff.setOnClickListener(v -> {
+                binding.filterBtnOn.setVisibility(View.VISIBLE);
+                binding.filterBtnOff.setVisibility(View.GONE);
+                hideBottomSheet(); // Hide the BottomSheet
+            });
 
-        binding.filterBtnOn.setOnClickListener(v -> {
-            binding.filterBtnOn.setVisibility(View.GONE);
-            binding.filterBtnOff.setVisibility(View.VISIBLE);
-            showBottomSheet(); // Show the BottomSheet
-        });
+            binding.filterBtnOn.setOnClickListener(v -> {
+                binding.filterBtnOn.setVisibility(View.GONE);
+                binding.filterBtnOff.setVisibility(View.VISIBLE);
+                showBottomSheet(); // Show the BottomSheet
+            });
 
-    binding.searchIcon.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            // Get the text from the search bar
-            String searchQuery = binding.searchBar.getText().toString();
-            String email = "richard.anthony.wetherell@gmail.com";
-            String password = "123456";
+            binding.searchIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Get the text from the search bar
+                    String searchQuery = binding.searchBar.getText().toString();
+                    String email = "richard.anthony.wetherell@gmail.com";
+                    String password = "123456";
 
-            loadSearchTickets(email,password);
+                    loadSearchTickets(email, password);
 
 //            // Optionally, you can handle the case where the search bar is empty
 //            if (searchQuery.isEmpty()) {
@@ -110,17 +111,25 @@ if (binding != null) {
 //            } else {
 //                Log.d("Search", "Search query: " + searchQuery);
 //            }
-        }
-    });
+                }
+            });
 
-    if (binding != null) {  // Check if the binding is still valid
-            binding.progressBar.setVisibility(View.VISIBLE);
-        }
-        loadCategoryTickets(accessToken);
+            binding.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    loadCategoryTickets(accessToken);
+                }
+            });
 
-}
+            if (binding != null) {  // Check if the binding is still valid
+                binding.progressBar.setVisibility(View.VISIBLE);
+            }
+            loadCategoryTickets(accessToken);
+
+        }
         return root;
     }
+
     private void loadCategoryTickets(String accessToken) {
         if (isLoading) return; // Prevent multiple simultaneous loads
         isLoading = true;
@@ -142,8 +151,6 @@ if (binding != null) {
                     }
 
 
-
-
                     // Set up the RecyclerView LayoutManager
                     binding.filterRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
@@ -160,8 +167,6 @@ if (binding != null) {
                             loadTickets();
                         }
                     }, 1000);
-
-
 
 
                 } else {
@@ -216,14 +221,12 @@ if (binding != null) {
             public void onAllTicketsLoaded(List<TicketAPIItem> tickets) {
                 setProgressBarVisibility(false);
                 isLoading = false;
-
                 if (tickets != null && !tickets.isEmpty()) {
                     displayTickets(tickets, token);
                 } else {
                     Log.d("TicketFragment", "No tickets received.");
                 }
             }
-
             @Override
             public void onError(String errorMessage) {
                 setProgressBarVisibility(false);
@@ -233,6 +236,7 @@ if (binding != null) {
         });
     }
 
+
     private void displayTickets(List<TicketAPIItem> tickets, String token) {
         List<Integer> ticketIDs = new ArrayList<>();
 
@@ -241,70 +245,67 @@ if (binding != null) {
             Log.d("TicketFragment", "Ticket ID: " + ticket.getId());
         }
 
-
-        // Initialize RecyclerView
+         binding.swipeRefreshLayout.setRefreshing(false);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         itemAdapter = new ItemAdapter(context, token, tickets);
         binding.recyclerView.setAdapter(itemAdapter);
     }
 
 
+    private void loadSearchTickets(String email, String password) {
+        // Log the access token for debugging
+        Log.d("loadReplies", "Email: " + email + ", Password: " + password);
 
+        // Ensure ticketSearchManager is initialized
+        if (ticketSearchManager == null) {
+            ticketSearchManager = new TicketSearchManager(context);
+        }
 
-private void loadSearchTickets(String email, String password) {
-    // Log the access token for debugging
-    Log.d("loadReplies", "Email: " + email + ", Password: " + password);
+        // Get the access token first
+        ticketSearchManager.getAccessToken(email, password, new TicketSearchManager.AccessTokenCallback() {
+            @Override
+            public void onAccessTokenReceived(String token) {
+                Log.d("loadReplies", "Access Token received: " + token);
 
-    // Ensure ticketSearchManager is initialized
-    if (ticketSearchManager == null) {
-        ticketSearchManager = new TicketSearchManager(context);
-    }
+                // Now load the tickets with the received access token
+                ticketSearchManager.loadSearchTickets(1, 10, new TicketSearchManager.SearchTicketsCallback() {
+                    @Override
+                    public void onSearchTicketsLoaded(List<TicketSearchAPIItem> tickets) {
+                        // Log the received ticket data
+                        if (tickets != null && !tickets.isEmpty()) {
+                            List<TicketAPIItem.Message> newReplies = new ArrayList<>();
+                            for (TicketSearchAPIItem ticket : tickets) {
+                                Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
+                                Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
 
-    // Get the access token first
-    ticketSearchManager.getAccessToken(email, password, new TicketSearchManager.AccessTokenCallback() {
-        @Override
-        public void onAccessTokenReceived(String token) {
-            Log.d("loadReplies", "Access Token received: " + token);
-
-            // Now load the tickets with the received access token
-            ticketSearchManager.loadSearchTickets(1, 10, new TicketSearchManager.SearchTicketsCallback() {
-                @Override
-                public void onSearchTicketsLoaded(List<TicketSearchAPIItem> tickets) {
-                    // Log the received ticket data
-                    if (tickets != null && !tickets.isEmpty()) {
-                        List<TicketAPIItem.Message> newReplies = new ArrayList<>();
-                        for (TicketSearchAPIItem ticket : tickets) {
-                            Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
-                            Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
-
-                            // Assuming you get messages from each ticket
-                            for (TicketSearchAPIItem.Message searchMessage : ticket.getMessages()) {
-                                Log.d("loadSearchTickets", "ID: " + searchMessage.getUser().getId());
-                                Log.d("loadSearchTickets", "Name: " + searchMessage.getUser().getName());
+                                // Assuming you get messages from each ticket
+                                for (TicketSearchAPIItem.Message searchMessage : ticket.getMessages()) {
+                                    Log.d("loadSearchTickets", "ID: " + searchMessage.getUser().getId());
+                                    Log.d("loadSearchTickets", "Name: " + searchMessage.getUser().getName());
+                                }
                             }
+
+                        } else {
+                            Log.d("loadTickets", "No tickets received.");
                         }
-
-                    } else {
-                        Log.d("loadTickets", "No tickets received.");
                     }
-                }
 
-                @Override
-                public void onError(String errorMessage) {
+                    @Override
+                    public void onError(String errorMessage) {
 
-                    Log.e("loadTickets", "Error loading tickets: " + errorMessage);
-                }
-            });
-        }
+                        Log.e("loadTickets", "Error loading tickets: " + errorMessage);
+                    }
+                });
+            }
 
-        @Override
-        public void onError(String errorMessage) {
+            @Override
+            public void onError(String errorMessage) {
 
-            Log.e("loadReplies", "Error getting access token: " + errorMessage);
-        }
-    });
+                Log.e("loadReplies", "Error getting access token: " + errorMessage);
+            }
+        });
 
-        }
+    }
 
 
     private void setProgressBarVisibility(boolean isVisible) {
@@ -339,7 +340,6 @@ private void loadSearchTickets(String email, String password) {
         super.onDestroy();
         ticketManager.cancelAllCalls();
     }
-
 
 
 }
