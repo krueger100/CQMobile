@@ -1,7 +1,10 @@
 package com.example.cq_mobile.ui.ticket;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,20 +12,27 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
+import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
 import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
+import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
+import com.example.cq_mobile.ui.ticket.ReplyTicketFolder.ReplyTicket;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketCategoryManager;
-import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchManager;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketManager;
@@ -31,8 +41,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TicketFragment extends Fragment {
-
+public class TicketFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener {
     private FragmentTicketBinding binding;
     private TicketCategoryManager ticketCategoryManager;
     private TicketSearchManager ticketSearchManager;
@@ -45,90 +54,167 @@ public class TicketFragment extends Fragment {
     private CategoryAdapter categoryAdapter;
     private BottomSheetBehavior<View> bottomSheetBehavior;
 
+
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTicketBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Retrieve the access token
+
         SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
         String accessToken = sharedPrefManager.getAccessToken();
         Log.d("TicketFragment", "Access Token: " + accessToken);
         context = getContext();
         ticketCategoryManager = new TicketCategoryManager(context, accessToken);
 
+
+
         setupBottomSheet();
         if (binding != null) {
-
             binding.createTicket.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    TransitionAnimationManager.slideOutToRight(v, 150);
+                v.postDelayed(() -> {
+                        v.postDelayed(() -> {
+                            TransitionAnimationManager.slideInFromRight(v, 50);
+                        }, 150);
                     Intent intent = new Intent(context, CreateTicket.class);
                     startActivity(intent);
+        }, 150);
 
                 }
             });
 
 
             binding.searchBarBtnOff.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+
                 binding.searchBarBtnOn.setVisibility(View.VISIBLE);
                 binding.searchBarBtnOff.setVisibility(View.GONE);
                 binding.cardView3.setVisibility(View.VISIBLE);
+                loadTickets();
+
+                binding.progressBar.setVisibility(View.VISIBLE);
+
             });
 
             binding.searchBarBtnOn.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+
                 binding.searchBarBtnOn.setVisibility(View.GONE);
                 binding.searchBarBtnOff.setVisibility(View.VISIBLE);
                 binding.cardView3.setVisibility(View.GONE);
+
+
             });
 
             // Handle filter buttons
             binding.filterBtnOff.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+
                 binding.filterBtnOn.setVisibility(View.VISIBLE);
                 binding.filterBtnOff.setVisibility(View.GONE);
-                hideBottomSheet(); // Hide the BottomSheet
-            });
 
+                binding.searchBarBtnOn.setVisibility(View.GONE);
+                binding.searchBarBtnOff.setVisibility(View.VISIBLE);
+                binding.cardView3.setVisibility(View.GONE);
+
+                hideBottomSheet();
+            });
             binding.filterBtnOn.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+
                 binding.filterBtnOn.setVisibility(View.GONE);
                 binding.filterBtnOff.setVisibility(View.VISIBLE);
-                showBottomSheet(); // Show the BottomSheet
+
+                binding.searchBarBtnOn.setVisibility(View.VISIBLE);
+                binding.searchBarBtnOff.setVisibility(View.GONE);
+                binding.cardView3.setVisibility(View.VISIBLE);
+
+
+                showBottomSheet();
             });
 
-            binding.searchIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Get the text from the search bar
-                    String searchQuery = binding.searchBar.getText().toString();
-                    String email = "richard.anthony.wetherell@gmail.com";
-                    String password = "123456";
 
-                    loadSearchTickets(email, password);
 
-//            // Optionally, you can handle the case where the search bar is empty
-//            if (searchQuery.isEmpty()) {
-//                Log.d("Search", "Search query is empty");
-//            } else {
-//                Log.d("Search", "Search query: " + searchQuery);
-//            }
-                }
-            });
+
+
 
             binding.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    loadCategoryTickets(accessToken);
+                    isLoading = true;
+                    binding.swipeRefreshLayout.setRefreshing(false);
+                    reloadFragment();
                 }
             });
+
+
+
+            binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+               @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    if (!isLoading && !recyclerView.canScrollVertically(1)) {
+                        binding.swipeRefreshLayout.setRefreshing(true);
+                        loadTicketsWithToken(accessToken);
+
+                    }
+                }
+            });
+
 
             if (binding != null) {  // Check if the binding is still valid
                 binding.progressBar.setVisibility(View.VISIBLE);
             }
             loadCategoryTickets(accessToken);
 
+
+
+
         }
         return root;
     }
+
+    @Override
+    public void onCategoryClick(int categoryId) {
+        Log.d("TicketFragment_onCategoryClick", "Category selected with ID: " + categoryId);
+        loadTicketsByCategory(categoryId);
+        hideBottomSheet();
+        binding.filterBtnOn.setVisibility(View.VISIBLE);
+        binding.filterBtnOff.setVisibility(View.GONE);
+    }
+
+    private void loadTicketsByCategory(int categoryId) {
+        Log.d("TicketFragment_onCategoryClick", "Loading tickets for category: " + categoryId);
+        binding.searchIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClickAnimationManager.applyClickAnimation(v);
+                CloseKeyboardManager.closeKeyboard((Activity) context);
+                hideBottomSheet();
+
+                String searchQuery = binding.searchBar.getText().toString();
+                String email = "richard.anthony.wetherell@gmail.com";
+                String password = "123456";
+
+                if (searchQuery.isEmpty()) {
+                    Toast.makeText(context, "Please enter a search query", Toast.LENGTH_SHORT).show();
+                    Log.d("Search", "Search query is empty");
+                } else {
+                    Toast.makeText(context, "Searching for: " + searchQuery, Toast.LENGTH_SHORT).show();
+                    Log.d("Search", "Search query: " + searchQuery);
+                    loadSearchTickets(email, password, searchQuery, categoryId);
+
+                }
+            }
+        });
+
+
+    }
+
 
     private void loadCategoryTickets(String accessToken) {
         if (isLoading) return; // Prevent multiple simultaneous loads
@@ -150,25 +236,15 @@ public class TicketFragment extends Fragment {
                         Log.d("TicketFragment", "Ticket Color: " + ticket.getColor());
                     }
 
-
                     // Set up the RecyclerView LayoutManager
                     binding.filterRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-                    // Pass the tickets to the CategoryAdapter
-                    categoryAdapter = new CategoryAdapter(context, accessToken, tickets);
+                    // Pass the tickets to the CategoryAdapter, now with listener
+                    categoryAdapter = new CategoryAdapter(context, accessToken, tickets, TicketFragment.this);
                     binding.filterRecyclerView.setAdapter(categoryAdapter);
-                    categoryAdapter.notifyDataSetChanged();  // Ensure the data is updated
+                    categoryAdapter.notifyDataSetChanged();
 
-
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            //     loadSearchTickets(accessToken);
-                            loadTickets();
-                        }
-                    }, 1000);
-
-
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> loadTickets(), 1000);
                 } else {
                     Log.d("TicketFragment", "No tickets received.");
                 }
@@ -182,6 +258,7 @@ public class TicketFragment extends Fragment {
             }
         });
     }
+
 
     private void loadTickets() {
         if (isLoading) return; // Prevent multiple loads
@@ -214,8 +291,12 @@ public class TicketFragment extends Fragment {
             }
         });
     }
-
     private void loadTicketsWithToken(String token) {
+        // Current page number
+        if (currentPage == 0) {
+            currentPage = 1;  // Initialize to page 1
+        }
+
         ticketManager.loadTickets(currentPage, pageSize, new TicketManager.AllTicketsCallback() {
             @Override
             public void onAllTicketsLoaded(List<TicketAPIItem> tickets) {
@@ -223,90 +304,86 @@ public class TicketFragment extends Fragment {
                 isLoading = false;
                 if (tickets != null && !tickets.isEmpty()) {
                     displayTickets(tickets, token);
+                    currentPage++;
+                    binding.swipeRefreshLayout.setRefreshing(false);
+
                 } else {
                     Log.d("TicketFragment", "No tickets received.");
+                    binding.swipeRefreshLayout.setRefreshing(false);
+
                 }
             }
+
             @Override
             public void onError(String errorMessage) {
                 setProgressBarVisibility(false);
                 isLoading = false;
+                binding.swipeRefreshLayout.setRefreshing(false);
                 Log.e("TicketFragment", "Ticket Loading Error: " + errorMessage);
             }
         });
     }
-
-
     private void displayTickets(List<TicketAPIItem> tickets, String token) {
-        List<Integer> ticketIDs = new ArrayList<>();
+        if (itemAdapter == null) {
+            binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+            itemAdapter = new ItemAdapter(context, token, tickets);
+            binding.recyclerView.setAdapter(itemAdapter);
 
-        for (TicketAPIItem ticket : tickets) {
-            ticketIDs.add(ticket.getId());
-            Log.d("TicketFragment", "Ticket ID: " + ticket.getId());
+        } else {
+            itemAdapter.addTickets(tickets);
         }
-
-         binding.swipeRefreshLayout.setRefreshing(false);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        itemAdapter = new ItemAdapter(context, token, tickets);
-        binding.recyclerView.setAdapter(itemAdapter);
     }
 
 
-    private void loadSearchTickets(String email, String password) {
-        // Log the access token for debugging
-        Log.d("loadReplies", "Email: " + email + ", Password: " + password);
-
-        // Ensure ticketSearchManager is initialized
+    private void loadSearchTickets(String email, String password, String search, int categoryId) {
         if (ticketSearchManager == null) {
             ticketSearchManager = new TicketSearchManager(context);
         }
-
-        // Get the access token first
         ticketSearchManager.getAccessToken(email, password, new TicketSearchManager.AccessTokenCallback() {
             @Override
             public void onAccessTokenReceived(String token) {
-                Log.d("loadReplies", "Access Token received: " + token);
-
-                // Now load the tickets with the received access token
-                ticketSearchManager.loadSearchTickets(1, 10, new TicketSearchManager.SearchTicketsCallback() {
+                ticketSearchManager.loadSearchTickets(1, 10, search, categoryId, new TicketSearchManager.SearchTicketsCallback() {
                     @Override
-                    public void onSearchTicketsLoaded(List<TicketSearchAPIItem> tickets) {
-                        // Log the received ticket data
+                    public void onSearchTicketsLoaded(List<TicketAPIItem> tickets) {
                         if (tickets != null && !tickets.isEmpty()) {
-                            List<TicketAPIItem.Message> newReplies = new ArrayList<>();
-                            for (TicketSearchAPIItem ticket : tickets) {
+                            for (TicketAPIItem ticket : tickets) {
                                 Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
                                 Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
 
-                                // Assuming you get messages from each ticket
-                                for (TicketSearchAPIItem.Message searchMessage : ticket.getMessages()) {
-                                    Log.d("loadSearchTickets", "ID: " + searchMessage.getUser().getId());
-                                    Log.d("loadSearchTickets", "Name: " + searchMessage.getUser().getName());
-                                }
-                            }
 
+                                binding.searchBarBtnOn.setVisibility(View.GONE);
+                                binding.searchBarBtnOff.setVisibility(View.VISIBLE);
+                                binding.cardView3.setVisibility(View.GONE);
+
+                                binding.swipeRefreshLayout.setRefreshing(false);
+                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+                                itemAdapter = new ItemAdapter(context, token, tickets);
+                                binding.recyclerView.setAdapter(itemAdapter);
+
+                            }
                         } else {
-                            Log.d("loadTickets", "No tickets received.");
+                            Log.d("loadSearchTickets", "No tickets found.");
+                            Toast.makeText(context, "No tickets found: " + "There are no match", Toast.LENGTH_SHORT).show();
+                            hideBottomSheet();
+                            binding.filterBtnOn.setVisibility(View.VISIBLE);
+                            binding.filterBtnOff.setVisibility(View.GONE);
+
                         }
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-
-                        Log.e("loadTickets", "Error loading tickets: " + errorMessage);
+                        Log.e("loadSearchTickets", "Error: " + errorMessage);
                     }
                 });
             }
 
             @Override
             public void onError(String errorMessage) {
-
-                Log.e("loadReplies", "Error getting access token: " + errorMessage);
+                Log.e("loadSearchTickets", "Error getting access token: " + errorMessage);
             }
         });
-
     }
-
 
     private void setProgressBarVisibility(boolean isVisible) {
         if (binding != null) {
@@ -321,7 +398,6 @@ public class TicketFragment extends Fragment {
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         binding.filterRecyclerView.setLayoutManager(new LinearLayoutManager(context));
     }
-
 
     private void showBottomSheet() {
         if (bottomSheetBehavior != null) {
@@ -339,11 +415,61 @@ public class TicketFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         ticketManager.cancelAllCalls();
+        binding = null;
+    }
+
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (binding != null && binding.progressBar.getVisibility() == View.VISIBLE) {
+            Log.d("ProgressBar", "ProgressBar is visible, waiting...");
+        } else {
+            checkProgressBarAndReload();
+        }
+
+    }
+
+    private void checkProgressBarAndReload() {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (binding != null && binding.progressBar.getVisibility() == View.GONE) {
+                SharedPreferences sharedPreferences = getContext().getSharedPreferences("ReplyData", Context.MODE_PRIVATE);
+                boolean isReplySent = sharedPreferences.getBoolean("isReplySent", false);
+                if (isReplySent) {
+                    Log.d("SharedPreferences", "Reply was sent successfully.");
+                    reloadFragment();
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.remove("isReplySent");
+                    editor.apply();
+                } else {
+                    Log.d("SharedPreferences", "Reply was not sent.");
+
+                }
+            } else {
+                Log.d("ProgressBar", "ProgressBar is still visible, checking again...");
+                checkProgressBarAndReload();
+            }
+        }, 1000);
+    }
+
+
+    public void reloadFragment() {
+        if (getActivity() != null) {
+            int count = itemAdapter.getItemCount();
+            if (count > 0) {
+                Log.d("reloadFragment", "Data has been added, you can perform any necessary actions here");
+                getActivity().recreate();
+
+            } else {
+                Log.d("reloadFragment", " No data, handle accordingly");
+            }
+        }
     }
 
 
 }
-
 
 
 /*
@@ -356,5 +482,6 @@ curl -X GET "https://aws.customquoter.co.uk/api/m/tickets/117" \
 -H "User-Agent: PostmanRuntime/7.43.0" \
 -H "Accept-Encoding: gzip, deflate, br" \
 -H "Connection: keep-alive"
+
 
  */

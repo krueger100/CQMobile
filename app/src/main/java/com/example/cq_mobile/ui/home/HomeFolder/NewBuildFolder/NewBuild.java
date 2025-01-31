@@ -52,6 +52,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
@@ -82,7 +83,8 @@ LinearLayout notes,folder,docs,sheets;
     String jobId;
     String accessToken;
     String cqLocal = "https://aws.customquoter.co.uk";
-
+    List<String> sheetTitlesList;
+    List<String> sheetOtherTitlesList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -139,19 +141,36 @@ LinearLayout notes,folder,docs,sheets;
             @Override
             public void onFilesLoaded(List<AllFileItem> files) {
                 // Handle the loaded files
-                for (AllFileItem file : files) {
-                    Log.d("SheetsFilesManager", "File ID: " + file.getId());
-                    Log.d("SheetsFilesManager", "File Title: " + file.getTitle());
-                    Log.d("SheetsFilesManager", "File Other_title: " + file.getOther_title());
+               sheetTitlesList = new ArrayList<>();
+             sheetOtherTitlesList = new ArrayList<>();
+
+                if (files != null && !files.isEmpty()) {
+                    for (AllFileItem file : files) {
+                        String sheetTitle = file.getTitle();
+                        String sheetOtherTitle = file.getOther_title();
+
+                        // Collect titles in lists
+                        sheetTitlesList.add(sheetTitle);
+                        sheetOtherTitlesList.add(sheetOtherTitle);
+
+                        Log.d("SheetsFilesManager", "File ID: " + file.getId());
+                        Log.d("SheetsFilesManager", "File Title: " + sheetTitle);
+                        Log.d("SheetsFilesManager", "File Other_title: " + sheetOtherTitle);
+                    }
+
+                    // Optional: Use sheetTitlesList and sheetOtherTitlesList for further processing or UI updates
+                } else {
+                    Log.d("SheetsFilesManager", "No files found or list is empty");
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
                 // Handle the error
-                Log.e("MainActivity", "Error: " + errorMessage);
+                Log.e("SheetsFilesManager", "Error: " + errorMessage);
             }
         });
+
         DocsFilesManager docsFilesManager = new DocsFilesManager(this, accessToken);
         docsFilesManager.loadFilesDocs(cqLocal, Integer.parseInt(jobId), 1, 10, docs_job, new DocsFilesManager.FilesDocsCallback() {
             @Override
@@ -199,7 +218,12 @@ LinearLayout notes,folder,docs,sheets;
                 Intent intent = new Intent(this, SheetsAcitivy.class);
                 intent.putExtra("job_id", jobId);
                 intent.putExtra("task_id", taskId);
+                intent.putStringArrayListExtra("sheetTitle", new ArrayList<>(sheetTitlesList));
+                intent.putStringArrayListExtra("sheetOtherTitle", new ArrayList<>(sheetOtherTitlesList));
                 startActivity(intent);
+
+
+
             }
         });
 

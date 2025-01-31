@@ -4,9 +4,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
-import retrofit2.http.Path;
 import retrofit2.http.Query;
-import retrofit2.http.Url;
 
 public interface TicketSearchApi {
     @GET("api/m/tickets")
@@ -18,7 +16,8 @@ public interface TicketSearchApi {
     Call<TicketSearchAPIResponse> getSearchTickets(
             @Query("page") int page,
             @Query("per_page") int perPage,
-            @Query("token") String token,  // Token as query parameter
-            @Header("Authorization") String authorization);  // Authorization header dynamically
+            @Query("search") String search,
+            @Query("category_id") int categoryId,
+            @Query("token") String token,
+            @Header("Authorization") String authorization);
 }
-

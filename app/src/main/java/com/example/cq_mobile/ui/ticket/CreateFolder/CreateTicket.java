@@ -1,7 +1,10 @@
 package com.example.cq_mobile.ui.ticket.CreateFolder;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -84,9 +87,19 @@ public class CreateTicket extends AppCompatActivity {
                             @Override
                             public void onSuccess() {
                                 Log.d("CreateTicket", "Ticket created successfully!>>>>");
-                                Intent intent = new Intent(CreateTicket.this, MainActivity.class);
-                                startActivity(intent);
-                                finish();
+                                // Save true in SharedPreferences when the reply is successfully sent
+                                SharedPreferences sharedPreferences = getSharedPreferences("ReplyData", MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putBoolean("isReplySent", true);
+                                editor.apply();
+
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        finish();
+                                    }
+                                }, 2000);
+
                             }
 
                             @Override

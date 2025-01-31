@@ -68,7 +68,7 @@ public class TicketCreateApiManager {
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
 
             Request request = new Request.Builder()
                     .url(baseUrl + endpoint)

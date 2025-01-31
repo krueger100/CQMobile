@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.ticket;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 
@@ -22,11 +24,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     private List<TicketAPICategoryItems> itemList;
     private String accessToken;
     private Context context;
+    private OnCategoryClickListener onCategoryClickListener;
 
-    public CategoryAdapter(Context context, String accessToken, List<TicketAPICategoryItems> tickets) {
+    public interface OnCategoryClickListener {
+        void onCategoryClick(int categoryId);
+    }
+
+    public CategoryAdapter(Context context, String accessToken, List<TicketAPICategoryItems> tickets, OnCategoryClickListener listener) {
         this.context = context;
         this.accessToken = accessToken;
-        this.itemList = tickets;  // Make sure to initialize the list with the provided tickets
+        this.itemList = tickets;
+        this.onCategoryClickListener = listener;
     }
 
     @NonNull
@@ -42,14 +50,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         TicketAPICategoryItems item = itemList.get(position);
         Log.d(TAG, "Binding item at position: " + position);
 
-        // Set the category name
         holder.categoryName.setText(item.getName());
-
-        // If you want to set the color of the category, assuming it's a color string or resource ID
         if (item.getColor() != null) {
-            // Example, assuming getColor() returns a color code or color resource ID
-            holder.categoryNameColor.setColorFilter(Color.parseColor(item.getColor())); // or use getColor(context)
+            holder.categoryNameColor.setColorFilter(Color.parseColor(item.getColor()));
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (onCategoryClickListener != null) {
+                onCategoryClickListener.onCategoryClick(item.getId());
+                CloseKeyboardManager.closeKeyboard((Activity) context);
+            }
+        });
     }
 
     @Override

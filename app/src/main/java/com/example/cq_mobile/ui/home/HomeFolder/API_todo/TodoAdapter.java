@@ -15,9 +15,11 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
+import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
 
 import java.util.List;
 
@@ -87,17 +89,24 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             todoHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    todoHolder.progressBar.setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(context, NewBuild.class);
-                    intent.putExtra("job_id", id);
+                    TransitionAnimationManager.zoomOut(v, 100);
+                    v.postDelayed(() -> {
+                        v.postDelayed(() -> {
+                            TransitionAnimationManager.zoomIn(v, 50);
+                        }, 100);
+                        todoHolder.progressBar.setVisibility(View.VISIBLE);
+                        Intent intent = new Intent(context, NewBuild.class);
+                        intent.putExtra("job_id", id);
 
-                    try {
-                        context.startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        todoHolder.progressBar.setVisibility(View.GONE);
-                    }
+                        try {
+                            context.startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            todoHolder.progressBar.setVisibility(View.GONE);
+                        }
+                    }, 100);
+
                 }
             });
 

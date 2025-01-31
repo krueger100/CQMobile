@@ -1,8 +1,11 @@
 package com.example.cq_mobile.ui.ticket.ReplyTicketFolder;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,15 +26,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.databinding.FragmentTicketBinding;
 import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
-import com.example.cq_mobile.ui.ticket.ItemAdapter;
 import com.example.cq_mobile.ui.ticket.ResolveTicketAPIFolder.UpdateTicketStatusApiManager;
-import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketCategoryManager;
+import com.example.cq_mobile.ui.ticket.TicketFragment;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
-import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketManager;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -52,20 +53,12 @@ public class ReplyTicket extends AppCompatActivity {
     private String accessToken;
     private List<TicketAPIItem.Message> replyList = new ArrayList<>();
     private RecyclerView repliesRecyclerView;  // No need for another recyclerView
-
     private ReplyAdapter replyAdapter;
-    private ItemAdapter itemAdapter;
-
     private ArrayList<Integer> ticketReplyIDs = new ArrayList<>();
     List<TicketAPIItem.Message> messageList;
     String messagesJsonList;
-    private FragmentTicketBinding binding;
-    private boolean isLoading = false;
-
-    private TicketCategoryManager ticketCategoryManager;
     ProgressBar progressBar;
     String stats;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -232,12 +225,14 @@ public class ReplyTicket extends AppCompatActivity {
 
         // Show reply form
         reply_show.setOnClickListener(v -> {
+            ClickAnimationManager.applyClickAnimation(v);
             cardView4.setVisibility(View.VISIBLE);
             reply.setVisibility(View.VISIBLE);
         });
 
         // Hide reply form
         reply_off.setOnClickListener(v -> {
+            ClickAnimationManager.applyClickAnimation(v);
             cardView4.setVisibility(View.GONE);
             reply_show.setVisibility(View.VISIBLE);
             reply.setVisibility(View.GONE);
@@ -245,6 +240,8 @@ public class ReplyTicket extends AppCompatActivity {
 
         // Send reply
         reply.setOnClickListener(v -> {
+            ClickAnimationManager.applyClickAnimation(v);
+
             String replyText = reply_body.getText().toString().trim();
             if (replyText.isEmpty()) {
                 Toast.makeText(ReplyTicket.this, "Reply cannot be empty", Toast.LENGTH_SHORT).show();
@@ -254,9 +251,10 @@ public class ReplyTicket extends AppCompatActivity {
 
 
             if (ticketIDMain > 0) {
-                // Wrap text in <p> tags for API
-                replyText = "<p>" + replyText + "</p>";
+
+        replyText = "<p>" + replyText + "</p>";
                 sendReply(ticketIDMain, replyText);
+
             } else {
                 Toast.makeText(ReplyTicket.this, "Invalid ticket ID", Toast.LENGTH_SHORT).show();
             }
@@ -295,18 +293,23 @@ public class ReplyTicket extends AppCompatActivity {
     }
 
     private void sendReply(int ticketId, String replyText) {
-        // Call the API manager to send the reply
         ReplyTicketApiManager.replyToTicket(String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> Toast.makeText(ReplyTicket.this, "Reply sent successfully", Toast.LENGTH_SHORT).show());
                 closeKeyboard();
+
+                // Save true in SharedPreferences when the reply is successfully sent
+                SharedPreferences sharedPreferences = getSharedPreferences("ReplyData", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("isReplySent", true);
+                editor.apply();
+
+
                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Intent intent = new Intent(ReplyTicket.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
+                       finish();
                     }
                 }, 2000);
 
@@ -335,37 +338,41 @@ public class ReplyTicket extends AppCompatActivity {
 //        Intent intent = new Intent(ReplyTicket.this, TicketFragment.class);
 //        startActivity(intent);
 /*
-  swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadTicketsManager.loadTickets(1, 10, "richard.anthony.wetherell@gmail.com", "123456", new LoadTicketsManager.TicketsLoadedCallback() {
-                @Override
-                public void onTicketsLoaded(List<TicketAPIItem> tickets, String token) {
-                    if (tickets != null && !tickets.isEmpty()) {
-                        itemAdapter = new ItemAdapter(ReplyTicket.this, token, tickets);
-                        repliesRecyclerView.setAdapter(itemAdapter);
-                        refreshData(tickets);
+
+ Save
+            // Save true in SharedPreferences when the reply is successfully sent
+                SharedPreferences sharedPreferences = getSharedPreferences("ReplyData", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("isReplySent", true);
+                editor.apply();
 
 
-                    } else {
-                        Log.d("TicketFragment", "No tickets received.");
-                    }
-                }
 
-                @Override
-                public void onError(String errorMessage) {
-                    Log.e("LoadTicketsError", errorMessage);
-                }
-            });
-        });
 
-    private void refreshData(List<TicketAPIItem> newTickets) {
-        if (itemAdapter != null) {
-            // Update the dataset in the adapter
-            itemAdapter.updateData(newTickets);
-            itemAdapter.notifyDataSetChanged();
-            Log.d("ReplyTicket", "Data successfully updated in ItemAdapter with " + newTickets.size() + " tickets.");
-           recreate();
-        } else {
-            Log.e("ReplyTicket", "ItemAdapter is null, data not updated.");
+retrieve
+  SharedPreferences sharedPreferences = getContext().getSharedPreferences("ReplyData", Context.MODE_PRIVATE);
+    boolean isReplySent = sharedPreferences.getBoolean("isReplySent", false);
+            if (isReplySent) {
+        Log.d("SharedPreferences", "Reply was sent successfully.");
+        reloadFragment();
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("isReplySent");  // Remove the specific key
+        editor.apply();
+    } else {
+        Log.d("SharedPreferences", "Reply was not sent.");
+
+    }
+
+    public void reloadFragment() {
+        if (getActivity() != null) {
+            int count = itemAdapter.getItemCount();
+            if (count > 0) {
+                Log.d("reloadFragment", "Data has been added, you can perform any necessary actions here");
+                getActivity().recreate();
+            } else {
+                Log.d("reloadFragment", " No data, handle accordingly");
+            }
         }
     }
 

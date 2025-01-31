@@ -78,7 +78,6 @@ Retrieve User Data When Needed
         String email = sharedPrefManager.getEmail();
 
 
-
         Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
         Log.d("ToDoFragmentSharedPreff", "Access Token: " + accessToken);
         Log.d("ToDoFragmentSharedPreff", "User ID: " + userId);

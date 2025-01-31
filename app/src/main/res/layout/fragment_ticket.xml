@@ -48,18 +48,19 @@
             android:orientation="horizontal"
             android:gravity="end|center">
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/search_bar_btn_off"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:elevation="5dp"
                 android:layout_marginHorizontal="5dp"
                 android:layout_marginVertical="5dp"
+                android:layout_marginEnd="15dp"
                 android:background="@drawable/background_white"
+                android:elevation="5dp"
                 android:src="@drawable/search_1"
-                android:layout_marginEnd="15dp"/>
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/search_bar_btn_on"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -69,17 +70,19 @@
                 android:visibility="gone"
                 app:tint="@color/white" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/filter_btn_on"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/filter_1"
-                android:elevation="5dp"
                 android:layout_marginHorizontal="5dp"
                 android:layout_marginVertical="5dp"
+                android:layout_marginEnd="15dp"
                 android:background="@drawable/background_white"
-                android:layout_marginEnd="15dp"/>
-            <ImageView
+                android:elevation="5dp"
+                android:src="@drawable/filter_1"
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+            <ImageButton
                 android:id="@+id/filter_btn_off"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -107,12 +110,12 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView3"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="60dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
         app:cardCornerRadius="10dp"
         android:visibility="gone"
-        android:elevation="10dp"
+        android:elevation="15dp"
         android:paddingHorizontal="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -121,15 +124,17 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:elevation="15dp"
             android:layout_gravity="center">
 
             <EditText
                 android:id="@+id/search_bar"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:background="@color/white"
-                android:hint="Search"
+                android:hint="Search .. ."
+                android:layout_margin="2dp"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:paddingHorizontal="5dp"
@@ -139,15 +144,22 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="TouchTargetSizeCheck" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/search_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/search_1"
                 android:layout_marginEnd="10dp"
+                android:background="@drawable/background_blue"
+                android:src="@drawable/search_1"
+                android:elevation="15dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/white"
+                tools:ignore="SpeakableTextPresentCheck,DuplicateClickableBoundsCheck" />
+
+
+
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -158,6 +170,8 @@
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:elevation="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/swipe_refresh_layout"
             app:layout_constraintStart_toStartOf="parent"
@@ -183,32 +197,41 @@
                 android:padding="10dp"
               />
 
+
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
 
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
+
+
     <LinearLayout
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
         android:background="@color/white"
+        android:elevation="15dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="5dp"
         app:behavior_hideable="false"
-        app:behavior_peekHeight="500dp"
-        android:padding="10dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        app:behavior_peekHeight="2000dp"
+        android:paddingBottom="50dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        >
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/filterRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:paddingBottom="50dp"
+            />
 
     </LinearLayout>
-
-
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

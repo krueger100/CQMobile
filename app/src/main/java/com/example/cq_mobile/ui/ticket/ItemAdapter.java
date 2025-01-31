@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.ticket;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -11,10 +12,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.R;
 
+import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
 import com.example.cq_mobile.ui.ticket.ReplyTicketFolder.ReplyTicket;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.google.gson.Gson;
@@ -86,38 +92,57 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, ReplyTicket.class);
-                intent.putExtra("token", accessToken);
-                intent.putExtra("subject", item.getSubject());
-                intent.putExtra("categoryName", item.getCategory().getName());
-                intent.putExtra("status", item.getStatus());
-                intent.putExtra("categoryColor", item.getCategory().getColor());
-                intent.putExtra("ticketID", item.getId());
+
+                TransitionAnimationManager.zoomOut(v, 100);
+                v.postDelayed(() -> {
+                    v.postDelayed(() -> {
+                        TransitionAnimationManager.zoomIn(v, 50);
+                    }, 100);
+
+                    Intent intent = new Intent(context, ReplyTicket.class);
+                    intent.putExtra("token", accessToken);
+                    intent.putExtra("subject", item.getSubject());
+                    intent.putExtra("categoryName", item.getCategory().getName());
+                    intent.putExtra("status", item.getStatus());
+                    intent.putExtra("categoryColor", item.getCategory().getColor());
+                    intent.putExtra("ticketID", item.getId());
+                    // Serialize messages if present
+                    if (item.getMessages() != null && !item.getMessages().isEmpty()) {
+                        Gson gson = new Gson();
+
+                        // Serialize all messages
+                        String messagesJsonList = gson.toJson(item.getMessages());
+                        intent.putExtra("messagesJsonList", messagesJsonList);
+
+                        // Optional: Serialize first message only if needed
+                        TicketAPIItem.Message firstMessage = item.getMessages().get(0);
+                        String messageJson = gson.toJson(firstMessage);
+                        intent.putExtra("messageJson", messageJson);
+                    }
 
 
-                // Serialize messages if present
-                if (item.getMessages() != null && !item.getMessages().isEmpty()) {
-                    Gson gson = new Gson();
+                    context.startActivity(intent);
 
-                    // Serialize all messages
-                    String messagesJsonList = gson.toJson(item.getMessages());
-                    intent.putExtra("messagesJsonList", messagesJsonList);
 
-                    // Optional: Serialize first message only if needed
-                    TicketAPIItem.Message firstMessage = item.getMessages().get(0);
-                    String messageJson = gson.toJson(firstMessage);
-                    intent.putExtra("messageJson", messageJson);
-                }
 
-                context.startActivity(intent);
+                }, 100);
+
+
+
             }
         });
 
     }
+
     @Override
     public int getItemCount() {
         return itemList.size();
     }
+    public void addTickets(List<TicketAPIItem> newTickets) {
+        itemList.addAll(newTickets);
+        notifyDataSetChanged();
+    }
+
 
     static class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView item_subject, item_category,item_status;

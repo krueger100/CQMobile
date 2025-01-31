@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-01-13T08:23:52.175914100Z">
+        <DropdownSelection timestamp="2025-01-30T05:11:34.307168Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=7e09a85d0013" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\carlo\.android\avd\Samsung_Galaxy_S24_Ultra_API_TiramisuPrivacySandbox.avd" />
             </handle>
           </Target>
         </DropdownSelection>

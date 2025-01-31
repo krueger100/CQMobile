@@ -26,6 +26,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.ClockINApiManager;
+import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.StartJobApiManager;
 import com.example.cq_mobile.Clock.ViewListFolder.ViewListActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
@@ -43,6 +45,7 @@ import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
 
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +70,7 @@ public class ClockActivity extends AppCompatActivity {
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
     private static final String NOTIFICATION_CHANNEL_ID = "default_channel";
     private static final String TAG = "ClockActivity";
+    ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +88,7 @@ public class ClockActivity extends AppCompatActivity {
         String email1 = intent.getStringExtra("email");
         String password1 = intent.getStringExtra("password");
 
+        progressBar = findViewById(R.id.progressBar); // Ensure it's initialized before passing
 
 
 
@@ -108,28 +113,15 @@ public class ClockActivity extends AppCompatActivity {
             getAccessToken(request);
         }
 
-        // Request notification permissions if required
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        NOTIFICATION_PERMISSION_REQUEST_CODE
-                );
-            } else {
-                initializeViews();
-            }
-        } else {
-            initializeViews();
-
-        }
 
 
 
 
 
     }
+
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -143,8 +135,6 @@ public class ClockActivity extends AppCompatActivity {
             }
         }
     }
-
-
 
     private void getAccessToken(AccessTokenRequest request) {
         // Create an instance of the API service
@@ -184,6 +174,26 @@ public class ClockActivity extends AppCompatActivity {
                                 Log.d("ClockActivity", "User Email: " + email);
                                 Log.d("ClockActivity", "Avatar URL: " + avatarUrl);
 
+
+                                // Request notification permissions if required
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    if (ContextCompat.checkSelfPermission(ClockActivity.this, Manifest.permission.POST_NOTIFICATIONS)
+                                            != PackageManager.PERMISSION_GRANTED) {
+                                        ActivityCompat.requestPermissions(
+                                                ClockActivity.this,
+                                                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                                                NOTIFICATION_PERMISSION_REQUEST_CODE
+                                        );
+                                    } else {
+                                        initializeViews();
+                                    }
+                                } else {
+                                    initializeViews();
+
+                                }
+
+
+
                                 // Save user data to SharedPreferences
                                 SharedPrefManager sharedPrefManager = new SharedPrefManager(ClockActivity.this);
                                 String finalAvatarUrl = avatarUrl != null && !avatarUrl.isEmpty()
@@ -220,6 +230,7 @@ public class ClockActivity extends AppCompatActivity {
 
     }
 
+
     private void initializeViews() {
         // Initialize views using findViewById
         clockView = findViewById(R.id.analogClock);
@@ -231,22 +242,42 @@ public class ClockActivity extends AppCompatActivity {
         digitalClockManager = new DigitalClockManager(digitalClock);
 
 
-
         digitalClockManager.startClock();
 
-            checkInButton.setOnClickListener(v -> {
-                    Intent intent = new Intent(ClockActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-            });
+        checkInButton.setOnClickListener(v -> {
+            if (accessToken != null && userId > 0) {
+
+                ClockINApiManager.clockIN(5682, 774, 7672, progressBar, accessToken, new ClockINApiManager.ApiCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("ClockActivity", "Clock IN Successful");
+
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.d("ClockActivity", "Clock in Error  " + error);
+                    }
+                });
 
 
-            viewListButton.setOnClickListener(v -> {
+                Intent intent = new Intent(ClockActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Log.e("ClockActivity", "Access token or user ID is missing.");
+            }
+        });
+
+
+        viewListButton.setOnClickListener(v -> {
             Log.d("ClockActivity", "View-list button clicked");
             Intent intent = new Intent(ClockActivity.this, ViewListActivity.class);
             startActivity(intent);
         });
     }
+
+
 
 
     private void NotifFilter(String accessToken, int userId) {

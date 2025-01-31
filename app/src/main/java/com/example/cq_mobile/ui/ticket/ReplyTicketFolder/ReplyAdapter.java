@@ -79,6 +79,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
 
         holder.itemView.setOnClickListener(v -> {
             progressBar.setVisibility(View.VISIBLE);
+
             new AlertDialog.Builder(context)
                     .setTitle("Delete this Ticket reply")
                     .setMessage("Are you sure you want to delete this ticket reply?")
@@ -107,7 +108,10 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
                             });
                         });
                     })
-                    .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                    .setNegativeButton("No", (dialog, which) -> {
+                        progressBar.setVisibility(View.GONE);
+                        dialog.dismiss();
+                    })
                     .show();
         });
 

@@ -1,20 +1,22 @@
 package com.example.cq_mobile.ui.ticket.TicketSearchFolder;
 
 
+import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
+
 import java.util.List;
 
 
 public class TicketSearchAPIResponse {
-    private List<TicketSearchAPIItem> data;
+    private List<TicketAPIItem> data;
     private Meta meta;
     private Links links;
 
     // Getters and Setters
-    public List<TicketSearchAPIItem> getData() {
+    public List<TicketAPIItem> getData() {
         return data;
     }
 
-    public void setData(List<TicketSearchAPIItem> data) {
+    public void setData(List<TicketAPIItem> data) {
         this.data = data;
     }
 

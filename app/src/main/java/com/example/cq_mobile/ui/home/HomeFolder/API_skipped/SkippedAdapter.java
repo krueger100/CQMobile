@@ -14,10 +14,12 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
+import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
 
 
 import java.util.HashSet;
@@ -118,17 +120,25 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             skippedHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    skippedHolder.progressBar.setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(context, NewBuild.class);
-                    intent.putExtra("job_id", id);
 
-                    try {
-                        context.startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        skippedHolder.progressBar.setVisibility(View.GONE);
-                    }
+                    TransitionAnimationManager.zoomOut(v, 100);
+                    v.postDelayed(() -> {
+                        v.postDelayed(() -> {
+                            TransitionAnimationManager.zoomIn(v, 50);
+                        }, 100);
+                        skippedHolder.progressBar.setVisibility(View.VISIBLE);
+                        Intent intent = new Intent(context, NewBuild.class);
+                        intent.putExtra("job_id", id);
+
+                        try {
+                            context.startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            skippedHolder.progressBar.setVisibility(View.GONE);
+                        }
+                    }, 100);
+
                 }
             });
 
