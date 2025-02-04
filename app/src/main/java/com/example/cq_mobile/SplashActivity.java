@@ -27,7 +27,11 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        
+
+        SharedPreferences ClockIN = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
+        boolean isClockedIn = ClockIN.getBoolean("ClockInSuccess", false);
+
+
         if (!isTaskRoot()) {
             finish();
             return;
@@ -45,19 +49,43 @@ public class SplashActivity extends AppCompatActivity {
         // Apply animation
         FadeIn_N_Out_AnimManager.applyLoopingFadeInOutAnimation(logo1, logo2, 2000, 550);
 
-        // Navigate based on login status after a delay
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            Intent intent;
-            if (isLoggedIn) {
-                // Navigate to ClockActivity if user is logged in
-                intent = new Intent(SplashActivity.this, ClockActivity.class);
-            } else {
-                // Navigate to Login activity if user is not logged in or if isLoggedIn is false
-                intent = new Intent(SplashActivity.this, Login.class);
-            }
-            startActivity(intent);
-            finish(); // Close the splash activity
-        }, 500); // Delay for 500 milliseconds
+
+
+        if (isClockedIn) {
+            Log.d("ClockActivity", "User has successfully clocked in before.");
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                Intent intent;
+                if (isLoggedIn) {
+                    // Navigate to ClockActivity if user is logged in
+                    intent = new Intent(SplashActivity.this, MainActivity.class);
+                } else {
+                    // Navigate to Login activity if user is not logged in or if isLoggedIn is false
+                    intent = new Intent(SplashActivity.this, Login.class);
+                }
+                startActivity(intent);
+                finish();
+            }, 500);
+
+        } else {
+            Log.d("ClockActivity", "User is not clocked in.");
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                Intent intent;
+                if (isLoggedIn) {
+                    // Navigate to ClockActivity if user is logged in
+                    intent = new Intent(SplashActivity.this, ClockActivity.class);
+                } else {
+                    // Navigate to Login activity if user is not logged in or if isLoggedIn is false
+                    intent = new Intent(SplashActivity.this, Login.class);
+                }
+                startActivity(intent);
+                finish(); // Close the splash activity
+            }, 500); // Delay for 500 milliseconds
+
+        }
+
+
+
     }
 }
 

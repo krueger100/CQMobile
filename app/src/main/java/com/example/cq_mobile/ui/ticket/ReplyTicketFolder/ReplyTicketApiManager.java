@@ -16,8 +16,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 public class ReplyTicketApiManager {
@@ -30,9 +28,9 @@ public class ReplyTicketApiManager {
         void onFailure(String error);
     }
 
-    public static void replyToTicket(String ticketId, String replyBody, ApiCallback callback) {
+    public static void replyToTicket(String email, String password, String ticketId, String replyBody, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiReplyTicketTask(ticketId, replyBody, callback));
+        executorService.execute(new ApiReplyTicketTask(email,password,ticketId, replyBody, callback));
     }
 
     private static class ApiReplyTicketTask implements Runnable {
@@ -40,8 +38,11 @@ public class ReplyTicketApiManager {
         private final String ticketId;
         private final String replyBody;
         private final ApiCallback callback;
-
-        public ApiReplyTicketTask(String ticketId, String replyBody, ApiCallback callback) {
+        String email;
+        String password;
+        public ApiReplyTicketTask(String email, String password, String ticketId, String replyBody, ApiCallback callback) {
+            this.email = email;
+            this.password = password;
             this.ticketId = ticketId;
             this.replyBody = replyBody;
             this.callback = callback;
@@ -56,8 +57,9 @@ public class ReplyTicketApiManager {
             // Create JSON body for reply
             String jsonBody = String.format("{\"body\": \"%s\", \"ticket_id\": %s, \"ticket_message_id\": [6358, 5675, 5678, 5819]}", replyBody, ticketId);
 
+
             // Start a new thread to get the access token
-            AccessTokenRequest request1 = new AccessTokenRequest("richard.anthony.wetherell@gmail.com", "123456");
+            AccessTokenRequest request1 = new AccessTokenRequest(email, password);
             AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
             Call<AccessTokenResponse> call = apiService.AccessTokenUser(request1);
 

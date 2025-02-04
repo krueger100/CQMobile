@@ -252,6 +252,17 @@ public class ClockActivity extends AppCompatActivity {
                     public void onSuccess() {
                         Log.d("ClockActivity", "Clock IN Successful");
 
+/*
+                        SharedPreferences sharedPreferences = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean("ClockInSuccess", true);
+                        editor.apply();
+
+                        Intent intent = new Intent(ClockActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+
+ */
                     }
 
                     @Override
@@ -261,9 +272,14 @@ public class ClockActivity extends AppCompatActivity {
                 });
 
 
+                SharedPreferences sharedPreferences = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("ClockInSuccess", true);
+                editor.apply();
                 Intent intent = new Intent(ClockActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
+
             } else {
                 Log.e("ClockActivity", "Access token or user ID is missing.");
             }
@@ -281,6 +297,7 @@ public class ClockActivity extends AppCompatActivity {
 
 
     private void NotifFilter(String accessToken, int userId) {
+
         FilterNotificationManager.fetchApiDataFilterUserNotification(this, accessToken, String.valueOf(userId), 1, 10, new FilterNotificationManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<FilteredNotificationResponse.NotificationData> data) {

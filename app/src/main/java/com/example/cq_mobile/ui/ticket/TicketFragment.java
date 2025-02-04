@@ -53,18 +53,21 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     private ItemAdapter itemAdapter;
     private CategoryAdapter categoryAdapter;
     private BottomSheetBehavior<View> bottomSheetBehavior;
-
-
+    String email;
+    String password;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTicketBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-
         SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
         String accessToken = sharedPrefManager.getAccessToken();
+        email = sharedPrefManager.getEmail();
+        password = sharedPrefManager.getPassword();
         Log.d("TicketFragment", "Access Token: " + accessToken);
+        Log.d("TicketFragment", "Email: "+email);
+        Log.d("TicketFragment", "Password  : "+password);
         context = getContext();
         ticketCategoryManager = new TicketCategoryManager(context, accessToken);
 
@@ -197,8 +200,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
                 hideBottomSheet();
 
                 String searchQuery = binding.searchBar.getText().toString();
-                String email = "richard.anthony.wetherell@gmail.com";
-                String password = "123456";
 
                 if (searchQuery.isEmpty()) {
                     Toast.makeText(context, "Please enter a search query", Toast.LENGTH_SHORT).show();
@@ -265,9 +266,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         isLoading = true;
 
         setProgressBarVisibility(true); // Show progress bar
-
-        String email = "richard.anthony.wetherell@gmail.com";
-        String password = "123456";
 
         AccessTokenRequest request = new AccessTokenRequest(email, password);
 

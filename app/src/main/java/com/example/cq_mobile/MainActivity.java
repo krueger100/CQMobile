@@ -57,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-
-
         FirebaseApp.initializeApp(this);
         StatusBarManager.setStatusBarLight(this);
 
@@ -137,27 +135,24 @@ public class MainActivity extends AppCompatActivity {
                 for (FilteredNotificationResponse.NotificationData notification : data) {
                     Log.d("NotificationGROUP", "Title: " + notification.getTitle());
                     Log.d("NotificationGROUP", "Avatar URL: " + notification.getAvatar());
-
-
                     titles.add(notification.getTitle());
                     avatars.add(notification.getAvatar());
+
+
+                if (isNotificationDisplayed) {
+                    Log.d("SharedPreferencesNotif", "TRUE");
+                    showNotification(MainActivity.this,titles,avatars);
+                }else {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("notification_displayed", false);
+                    editor.apply();
+                    Log.d("SharedPreferencesNotif", "FALSE");
+                    new ArrayList<>(titles);
+                    new ArrayList<>(avatars) ;
+                    navigateToShowNotificationActivity(titles,avatars);
                 }
 
-
-
-//                if (isNotificationDisplayed) {
-//                    Log.d("SharedPreferencesNotif", "TRUE");
-//
-//                }else {
-//                    SharedPreferences.Editor editor = sharedPreferences.edit();
-//                    editor.putBoolean("notification_displayed", false);
-//                    editor.apply();
-//                    Log.d("SharedPreferencesNotif", "FALSE");
-//                    new ArrayList<>(titles);
-//                    new ArrayList<>(avatars) ;
-//                    navigateToShowNotificationActivity(titles,avatars);
-//                }
-
+            }
             }
 
             @Override
@@ -188,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                 header_Notification.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        RetrieveStoredNoticationData(context, accessToken, userId, header_Notification, titles, avatars);
+                        RetrieveStoredNoticationData(titles, avatars);
                     }
                 });
             } else {
@@ -197,8 +192,7 @@ public class MainActivity extends AppCompatActivity {
         }, 1000);
     }
 
-    private void RetrieveStoredNoticationData(Context context, String accessToken, String userId, ImageView header_Notification, List<String> titles, List<String> avatars) {
-
+    private void RetrieveStoredNoticationData(List<String> titles, List<String> avatars) {
             Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
             intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
             intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));
@@ -208,7 +202,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToShowNotificationActivity(List<String> titles, List<String> avatars) {
-
         Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
         intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
         intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));

@@ -192,83 +192,19 @@ LinearLayout notes,folder,docs,sheets;
         // Handle Job <<--------------------
 
 
-        newBuildButtonManager.setButtonsVisibility(true);
-        newBuildButtonManager.setButtonClickListener(view -> {
-            // Handle button clicks here
-            if (view == notes) {
-                Intent intent = new Intent(this, NotesActivity.class);
-                intent.putExtra("job_id", jobId);
-                this.startActivity(intent);
-            } else if (view == folder) {
-                if (jobId != null) {
-                    Intent intent = new Intent(NewBuild.this, FilesActivity.class);
-                    intent.putExtra("job_id", jobId);
-                    intent.putExtra("task_id", taskId);
-                    startActivity(intent);
-                }
-            } else if (view == docs) {
-                if (jobId != null) {
-                    Intent intent = new Intent(NewBuild.this, DocsActivity.class);
-                    intent.putExtra("job_id", jobId);
-                    intent.putExtra("task_id", taskId);
-                    startActivity(intent);
-                }
-
-            } else if (view == sheets) {
-                Intent intent = new Intent(this, SheetsAcitivy.class);
-                intent.putExtra("job_id", jobId);
-                intent.putExtra("task_id", taskId);
-                intent.putStringArrayListExtra("sheetTitle", new ArrayList<>(sheetTitlesList));
-                intent.putStringArrayListExtra("sheetOtherTitle", new ArrayList<>(sheetOtherTitlesList));
-                startActivity(intent);
-
-
-
-            }
-        });
-
         // Initialize map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
-            mapFragment.getMapAsync(this);  // Will call onMapReady when ready
+            mapFragment.getMapAsync(this);
+        }else {
+               recreate();
         }
-
-        View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
-        BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
-        bottomSheetBehavior.setHideable(false);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-
-
-
-        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
-        navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
-        navigationManager.setUpNavigation(bottomNavView);
-
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                backPressManager.handleBackPress(MainActivity.class);
-                finish();
-            }
-        });
-
-        showBottomSheet.setOnClickListener(v -> {
-            if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
-            } else {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }
-        });
-
-        // Initialize RouteNewBuildManager
         routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
 
+
+
     }
-
-
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -276,13 +212,10 @@ LinearLayout notes,folder,docs,sheets;
         routeNewBuildManager.setGoogleMap(googleMap);
 
         setupRecyclerViewManager = new SetupRecyclerViewManager(NewBuild.this, findViewById(R.id.recycler_view));
-        setupMainTaskManager = new SetupMainTaskManager(NewBuild.this, googleMap, findViewById(R.id.task_title), findViewById(R.id.task_description), findViewById(R.id.task_location)
-                , findViewById(R.id.task_number), findViewById(R.id.spinner_task), NewBuild.this,category_todo,statusImageView);  // Pass listener for coordinates
+        setupMainTaskManager = new SetupMainTaskManager(NewBuild.this, googleMap, findViewById(R.id.task_title), findViewById(R.id.task_description),
+                findViewById(R.id.task_location), findViewById(R.id.task_number), findViewById(R.id.spinner_task),
+                NewBuild.this, category_todo, statusImageView);
 
-        checkBoxData(jobId,accessToken,taskId,progress_circular_2);
-
-
-        // Check location permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             enableUserLocation();
@@ -293,6 +226,17 @@ LinearLayout notes,folder,docs,sheets;
                     LOCATION_PERMISSION_REQUEST_CODE
             );
         }
+
+
+        googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                Log.d("MapLoad", "Google Map has fully loaded");
+                checkBoxData(jobId, accessToken, taskId, progress_circular_2);
+                navigationInitialization();
+
+            }
+        });
     }
 
     private void enableUserLocation() {
@@ -428,6 +372,76 @@ LinearLayout notes,folder,docs,sheets;
         }
     }
 
+
+
+    private void navigationInitialization() {
+
+        newBuildButtonManager.setButtonsVisibility(true);
+        newBuildButtonManager.setButtonClickListener(view -> {
+            // Handle button clicks here
+            if (view == notes) {
+                Intent intent = new Intent(this, NotesActivity.class);
+                intent.putExtra("job_id", jobId);
+                this.startActivity(intent);
+            } else if (view == folder) {
+                if (jobId != null) {
+                    Intent intent = new Intent(NewBuild.this, FilesActivity.class);
+                    intent.putExtra("job_id", jobId);
+                    intent.putExtra("task_id", taskId);
+                    startActivity(intent);
+                }
+            } else if (view == docs) {
+                if (jobId != null) {
+                    Intent intent = new Intent(NewBuild.this, DocsActivity.class);
+                    intent.putExtra("job_id", jobId);
+                    intent.putExtra("task_id", taskId);
+                    startActivity(intent);
+                }
+
+            } else if (view == sheets) {
+                Intent intent = new Intent(this, SheetsAcitivy.class);
+                intent.putExtra("job_id", jobId);
+                intent.putExtra("task_id", taskId);
+                intent.putStringArrayListExtra("sheetTitle", new ArrayList<>(sheetTitlesList));
+                intent.putStringArrayListExtra("sheetOtherTitle", new ArrayList<>(sheetOtherTitlesList));
+                startActivity(intent);
+
+
+
+            }
+        });
+
+
+
+        View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
+        BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
+        bottomSheetBehavior.setHideable(false);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
+
+
+        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
+        navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
+        navigationManager.setUpNavigation(bottomNavView);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                backPressManager.handleBackPress(MainActivity.class);
+                finish();
+            }
+        });
+
+        showBottomSheet.setOnClickListener(v -> {
+            if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
+            } else {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+    }
 
 
     public void switchFragment(Fragment fragment) {

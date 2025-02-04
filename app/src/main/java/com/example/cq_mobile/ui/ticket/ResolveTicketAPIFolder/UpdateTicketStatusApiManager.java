@@ -27,19 +27,22 @@ public class UpdateTicketStatusApiManager {
         void onFailure(String error);
     }
 
-    public static void updateTicketStatus(int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
+    public static void updateTicketStatus(String email, String password, int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateTicketStatusTask(ticketId, status, progressBar, callback));
+        executorService.execute(new ApiUpdateTicketStatusTask(email,password,ticketId, status, progressBar, callback));
     }
 
     private static class ApiUpdateTicketStatusTask implements Runnable {
-
+        String email;
+        String password;
         private final int ticketId;
         private final String status;
         ProgressBar progressBar;
         private final ApiCallback callback;
 
-        public ApiUpdateTicketStatusTask(int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
+        public ApiUpdateTicketStatusTask(String email, String password, int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
+            this.email = email;
+            this.password = password;
             this.ticketId = ticketId;
             this.status = status;
             this.progressBar = progressBar;
@@ -56,10 +59,10 @@ public class UpdateTicketStatusApiManager {
             // Create JSON body for ticket status update
             String jsonBody = String.format("{\"status\": \"%s\"}", status);
 
-            postUpdateTicketStatus(baseUrl, endpoint, accessToken, apiKey, jsonBody);
+            postUpdateTicketStatus(email,password,baseUrl, endpoint, accessToken, apiKey, jsonBody);
         }
 
-        private void postUpdateTicketStatus(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
+        private void postUpdateTicketStatus(String email, String password, String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(30, TimeUnit.SECONDS)

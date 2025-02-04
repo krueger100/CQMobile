@@ -46,8 +46,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     MarkerManager markerManager = new MarkerManager();
     BitmapDescriptor customMarkerIcon;
-
-
+    String jobId;
+    String accessToken;
     private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
@@ -83,7 +83,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
-        String accessToken = sharedPrefManager.getAccessToken();
+         accessToken = sharedPrefManager.getAccessToken();
         String userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
@@ -97,15 +97,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         Log.d("MapFragmentSharedPreff", "Email: " + email);
 
         // Retrieve the job_id from arguments
-        String jobId = getArguments() != null ? getArguments().getString("job_id") : null;
+         jobId = getArguments() != null ? getArguments().getString("job_id") : null;
         Log.d("MapFragment", "Received Job ID in MapFragment: " + jobId);
 
-        if (jobId != null) {
-            fetchRouteData(jobId,accessToken);
-        } else {
-            Log.e("MapFragment", "job_id is null in MapFragment!");
-            fetchRouteData("5654", accessToken);
-        }
 
 
         return root;
@@ -117,14 +111,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         getUserLocation();
 
-        // Set the GoogleMap instance to the RouteManager
         routeManager.setGoogleMap(googleMap);
 
-        // Handle map clicks to set the destination
+        googleMap.setOnMapLoadedCallback(() -> {
+            Log.d("MapFragment", "Google Map has fully loaded");
+
+            if (jobId != null) {
+                fetchRouteData(jobId,accessToken);
+            } else {
+                Log.e("MapFragment", "job_id is null in MapFragment!");
+                fetchRouteData("5654", accessToken);
+            }
+        });
+
         googleMap.setOnMapClickListener(latLng -> {
             if (userLocationLatLng != null) {
                 destinationLatLng = latLng;
-            //    googleMap.clear();
+
+                // googleMap.clear();  // Uncomment this if you want to clear previous markers
                 googleMap.addMarker(new MarkerOptions().position(userLocationLatLng).title("Your Location"));
                 googleMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
 
@@ -133,7 +137,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
-        // Set up the marker click listener for the entire map
         googleMap.setOnMarkerClickListener(marker -> {
             if (marker.getTag() != null && marker.getTag() instanceof Routemain) {
                 Routemain route = (Routemain) marker.getTag();
@@ -147,6 +150,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return false;
         });
     }
+
 
     private void addRouteDataMarker() {
         if (routeData != null && routeData.getCoordinates() != null) {

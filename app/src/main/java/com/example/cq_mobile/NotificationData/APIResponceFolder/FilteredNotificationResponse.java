@@ -8,6 +8,8 @@ import java.util.List;
 public class FilteredNotificationResponse {
 
     private List<NotificationData> data;
+    private JobCategory jobCategory;
+
 
     private String status;
 
@@ -26,6 +28,7 @@ public class FilteredNotificationResponse {
     public void setData(List<NotificationData> data) {
         this.data = data;
     }
+
 
     public static class NotificationData {
 
@@ -56,9 +59,9 @@ public class FilteredNotificationResponse {
         private String updated_at;
         private Integer contact_address_id;
         private List<String> group_assigned;
-        private JobCategory job_category;
         private JobSchedule job_schedule;
         private List<JobScheduleEvent> job_schedule_events;
+
 
         private String notificationId;
         private String message;
@@ -74,6 +77,18 @@ public class FilteredNotificationResponse {
         private List<Integer> teammembers; // The list of team IDs
         private List<TeamFilterNotif> teammembersdata;
 
+        private JobCategory job_category;
+
+        public JobCategory getJob_category() { // Corrected getter
+            return job_category;
+        }
+
+        public void setJob_category(JobCategory job_category) { // Corrected setter
+            this.job_category = job_category;
+        }
+
+
+
 
 
         public NotificationData() {
@@ -84,6 +99,8 @@ public class FilteredNotificationResponse {
             this.group_id = group_id;
             this.teammembers = teammembers;
             this.teammembersdata = teammembersdata;
+
+
 
             this.id = id;
             this.organization_id = organization_id;
@@ -112,13 +129,15 @@ public class FilteredNotificationResponse {
             this.updated_at = updated_at;
             this.contact_address_id = contact_address_id;
             this.group_assigned = group_assigned;
-            this.job_category = job_category;
+
             this.job_schedule = job_schedule;
             this.job_schedule_events = job_schedule_events;
             this.notificationId = notificationId;
             this.message = message;
             this.timestamp = timestamp;
             this.userData = userData;
+
+
         }
 
 
@@ -128,30 +147,6 @@ public class FilteredNotificationResponse {
 
         public void setAvatar(Boolean avatar) {
             isAvatar = avatar;
-        }
-
-        public String getGroup_id() {
-            return group_id;
-        }
-
-        public void setGroup_id(String group_id) {
-            this.group_id = group_id;
-        }
-
-        public List<Integer> getTeammembers() {
-            return teammembers;
-        }
-
-        public void setTeammembers(List<Integer> teammembers) {
-            this.teammembers = teammembers;
-        }
-
-        public List<TeamFilterNotif> getTeammembersdata() {
-            return teammembersdata;
-        }
-
-        public void setTeammembersdata(List<TeamFilterNotif> teammembersdata) {
-            this.teammembersdata = teammembersdata;
         }
 
         public void setAvatar(String avatar) {
@@ -166,26 +161,8 @@ public class FilteredNotificationResponse {
             this.group = group;
         }
 
-        public String getInitials() {
-            return initials;
-        }
-
-        public void setInitials(String initials) {
-            this.initials = initials;
-        }
-
-        // Getters and Setters
-        public String getNotificationId() { return notificationId; }
-        public void setNotificationId(String notificationId) { this.notificationId = notificationId; }
-
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
-
-        public String getTimestamp() { return timestamp; }
-        public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
-
-        public UserData getUserData() { return userData; }
-        public void setUserData(UserData userData) { this.userData = userData; }
 
         public int getId() {
             return id;
@@ -193,86 +170,6 @@ public class FilteredNotificationResponse {
 
         public void setId(int id) {
             this.id = id;
-        }
-
-        public int getOrganization_id() {
-            return organization_id;
-        }
-
-        public void setOrganization_id(int organization_id) {
-            this.organization_id = organization_id;
-        }
-
-        public int getUser_id() {
-            return user_id;
-        }
-
-        public void setUser_id(int user_id) {
-            this.user_id = user_id;
-        }
-
-        public int getContacts_id() {
-            return contacts_id;
-        }
-
-        public void setContacts_id(int contacts_id) {
-            this.contacts_id = contacts_id;
-        }
-
-        public Integer getLead_id() {
-            return lead_id;
-        }
-
-        public void setLead_id(Integer lead_id) {
-            this.lead_id = lead_id;
-        }
-
-        public Integer getLead_to_job_id() {
-            return lead_to_job_id;
-        }
-
-        public void setLead_to_job_id(Integer lead_to_job_id) {
-            this.lead_to_job_id = lead_to_job_id;
-        }
-
-        public int getIs_usage_recorded() {
-            return is_usage_recorded;
-        }
-
-        public void setIs_usage_recorded(int is_usage_recorded) {
-            this.is_usage_recorded = is_usage_recorded;
-        }
-
-        public int getJob_category_id() {
-            return job_category_id;
-        }
-
-        public void setJob_category_id(int job_category_id) {
-            this.job_category_id = job_category_id;
-        }
-
-        public Integer getJob_document_id() {
-            return job_document_id;
-        }
-
-        public void setJob_document_id(Integer job_document_id) {
-            this.job_document_id = job_document_id;
-        }
-
-        public List<String> getJob_documents() {
-            return job_documents;
-        }
-
-        public void setJob_documents(List<String> job_documents) {
-            this.job_documents = job_documents;
-        }
-
-        public List<Integer> getRisk_documents() {
-            return risk_documents;
-        }
-
-        public void setRisk_documents(List<Integer> risk_documents) {
-            this.risk_documents = risk_documents;
         }
 
         public String getTitle() {
@@ -291,157 +188,24 @@ public class FilteredNotificationResponse {
             this.description = description;
         }
 
-        public int getJob_status() {
-            return job_status;
-        }
-
-        public void setJob_status(int job_status) {
-            this.job_status = job_status;
-        }
-
-        public int getIs_vatable() {
-            return is_vatable;
-        }
-
-        public void setIs_vatable(int is_vatable) {
-            this.is_vatable = is_vatable;
-        }
-
-        public List<String> getAssigned() {
-            return assigned;
-        }
-
-        public void setAssigned(List<String> assigned) {
-            this.assigned = assigned;
-        }
-
-        public List<String> getPrice_group_markup() {
-            return price_group_markup;
-        }
-
-        public void setPrice_group_markup(List<String> price_group_markup) {
-            this.price_group_markup = price_group_markup;
-        }
-
-        public String getStart_at() {
-            return start_at;
-        }
-
-        public void setStart_at(String start_at) {
-            this.start_at = start_at;
-        }
-
-        public String getEnd_at() {
-            return end_at;
-        }
-
-        public void setEnd_at(String end_at) {
-            this.end_at = end_at;
-        }
-
-        public String getLabour_budget() {
-            return labour_budget;
-        }
-
-        public void setLabour_budget(String labour_budget) {
-            this.labour_budget = labour_budget;
-        }
-
-        public String getExpenses_budget() {
-            return expenses_budget;
-        }
-
-        public void setExpenses_budget(String expenses_budget) {
-            this.expenses_budget = expenses_budget;
-        }
-
-        public int getInvoice_schedules_id() {
-            return invoice_schedules_id;
-        }
-
-        public void setInvoice_schedules_id(int invoice_schedules_id) {
-            this.invoice_schedules_id = invoice_schedules_id;
-        }
-
-        public String getDeleted_at() {
-            return deleted_at;
-        }
-
-        public void setDeleted_at(String deleted_at) {
-            this.deleted_at = deleted_at;
-        }
-
-        public String getCreated_at() {
-            return created_at;
-        }
-
-        public void setCreated_at(String created_at) {
-            this.created_at = created_at;
-        }
-
-        public String getUpdated_at() {
-            return updated_at;
-        }
-
-        public void setUpdated_at(String updated_at) {
-            this.updated_at = updated_at;
-        }
-
-        public Integer getContact_address_id() {
-            return contact_address_id;
-        }
-
-        public void setContact_address_id(Integer contact_address_id) {
-            this.contact_address_id = contact_address_id;
-        }
-
-        public List<String> getGroup_assigned() {
-            return group_assigned;
-        }
-
-        public void setGroup_assigned(List<String> group_assigned) {
-            this.group_assigned = group_assigned;
-        }
-
-        public JobCategory getJob_category() {
-            return job_category;
-        }
-
-        public void setJob_category(JobCategory job_category) {
-            this.job_category = job_category;
-        }
-
-        public JobSchedule getJob_schedule() {
-            return job_schedule;
-        }
-
-        public void setJob_schedule(JobSchedule job_schedule) {
-            this.job_schedule = job_schedule;
-        }
-
-        public List<JobScheduleEvent> getJob_schedule_events() {
-            return job_schedule_events;
-        }
-
-        public void setJob_schedule_events(List<JobScheduleEvent> job_schedule_events) {
-            this.job_schedule_events = job_schedule_events;
-        }
 
         public void setOnClickListener(Object o) {
         }
+
     }
+
 
     // Define the JobCategory class
     public static class JobCategory {
-        private int id;
-        private int organization_id;
-        private int user_id;
-        private String name;
-        private String color;
-        private String description;
-        private String icon;
-        private String created_at;
-        private String updated_at;
+        int id;
+        int organization_id;
+        int user_id;
+        String name;
+        String color;
+        String description;
+        String icon;
+        String created_at;
+        String updated_at;
 
         // Getters and Setters
         public int getId() {
@@ -515,7 +279,10 @@ public class FilteredNotificationResponse {
         public void setUpdated_at(String updated_at) {
             this.updated_at = updated_at;
         }
+
+
     }
+
 
     // Define the JobSchedule class
     public static class JobSchedule {
@@ -793,155 +560,6 @@ public class FilteredNotificationResponse {
         }
     }
 
-    public class Job {
-        private int id;
-        private int organization_id;
-        private int user_id;
-        private String title;
-        private String description;
-        private int job_status;
-        private boolean is_vatable;
-        private List<String> assigned;
-        private List<String> price_group_markup;
-        private String start_at;
-        private String end_at;
-        private String labour_budget;
-        private String expenses_budget;
-        private int invoice_schedules_id;
-        private List<String> job_documents;
-        private List<Integer> risk_documents;
-
-        // Getters and Setters for each field
-
-
-        public int getId() {
-            return id;
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public int getOrganization_id() {
-            return organization_id;
-        }
-
-        public void setOrganization_id(int organization_id) {
-            this.organization_id = organization_id;
-        }
-
-        public int getUser_id() {
-            return user_id;
-        }
-
-        public void setUser_id(int user_id) {
-            this.user_id = user_id;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public int getJob_status() {
-            return job_status;
-        }
-
-        public void setJob_status(int job_status) {
-            this.job_status = job_status;
-        }
-
-        public boolean isIs_vatable() {
-            return is_vatable;
-        }
-
-        public void setIs_vatable(boolean is_vatable) {
-            this.is_vatable = is_vatable;
-        }
-
-        public List<String> getAssigned() {
-            return assigned;
-        }
-
-        public void setAssigned(List<String> assigned) {
-            this.assigned = assigned;
-        }
-
-        public List<String> getPrice_group_markup() {
-            return price_group_markup;
-        }
-
-        public void setPrice_group_markup(List<String> price_group_markup) {
-            this.price_group_markup = price_group_markup;
-        }
-
-        public String getStart_at() {
-            return start_at;
-        }
-
-        public void setStart_at(String start_at) {
-            this.start_at = start_at;
-        }
-
-        public String getEnd_at() {
-            return end_at;
-        }
-
-        public void setEnd_at(String end_at) {
-            this.end_at = end_at;
-        }
-
-        public String getLabour_budget() {
-            return labour_budget;
-        }
-
-        public void setLabour_budget(String labour_budget) {
-            this.labour_budget = labour_budget;
-        }
-
-        public String getExpenses_budget() {
-            return expenses_budget;
-        }
-
-        public void setExpenses_budget(String expenses_budget) {
-            this.expenses_budget = expenses_budget;
-        }
-
-        public int getInvoice_schedules_id() {
-            return invoice_schedules_id;
-        }
-
-        public void setInvoice_schedules_id(int invoice_schedules_id) {
-            this.invoice_schedules_id = invoice_schedules_id;
-        }
-
-        public List<String> getJob_documents() {
-            return job_documents;
-        }
-
-        public void setJob_documents(List<String> job_documents) {
-            this.job_documents = job_documents;
-        }
-
-        public List<Integer> getRisk_documents() {
-            return risk_documents;
-        }
-
-        public void setRisk_documents(List<Integer> risk_documents) {
-            this.risk_documents = risk_documents;
-        }
-    }
 
     public static class TeamFilterNotif {
         private String id;
@@ -1008,5 +626,7 @@ public class FilteredNotificationResponse {
             this.color = color;
         }
     }
+
+
 
 }

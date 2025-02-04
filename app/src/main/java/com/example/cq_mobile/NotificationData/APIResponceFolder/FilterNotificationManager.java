@@ -47,7 +47,7 @@ public class FilterNotificationManager {
         }
 
         String endpoint = "/api/v1/jobschedule";
-        String url = String.format("%s%s?page=%d&per_page=%d&e=map&id=%s&group_id=%s&type=user&status[0]=0&status[1]=1&status[2]=2",
+        String url = String.format("%s%s?page=%d&per_page=%d&e=map&id=%s&user_id=%s&type=user&status[0]=0&status[1]=1&status[2]=2",
                 BASE_URL, endpoint, page, pageSize, userId, group_id);
 
         OkHttpClient client = new OkHttpClient();
@@ -80,6 +80,17 @@ public class FilterNotificationManager {
                         List<FilteredNotificationResponse.NotificationData> notificationDataList = filteredNotificationResponse.getData();
                         for (FilteredNotificationResponse.NotificationData notification : notificationDataList) {
                             notification.setAvatar(avatarUrl); // Add avatar URL to each notification
+                        }
+
+                        for (FilteredNotificationResponse.NotificationData notification : notificationDataList) {
+                            FilteredNotificationResponse.JobCategory jobCategory = notification.getJob_category();
+                            if (jobCategory != null) { // Important null check!
+                                String jobCategoryName = jobCategory.getName();
+                                // Use jobCategoryName as needed
+                                Log.d("Job Category Name", jobCategoryName);
+                            } else {
+                                Log.d("Job Category", "Job Category is null for this notification.");
+                            }
                         }
 
                         callback.onDataFetched(notificationDataList);

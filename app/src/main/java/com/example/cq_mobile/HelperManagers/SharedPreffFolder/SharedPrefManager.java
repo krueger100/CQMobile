@@ -76,6 +76,8 @@ Retrieve User Data When Needed
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();
+       String password = sharedPrefManager.getPassword();
+
 
 
         Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");

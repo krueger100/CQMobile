@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.Skipped;
@@ -61,6 +62,9 @@ public class SkippedFragment extends Fragment {
         Log.d("SkippedFragmentSharedPreff", "First Name: " + firstName);
         Log.d("SkippedFragmentSharedPreff", "Last Name: " + lastName);
         Log.d("SkippedFragmentSharedPreff", "Email: " + email);
+
+        ClockOutManager clockOutManager = new ClockOutManager(getContext(),progressBar);
+        clockOutManager.setupClockOutButton(clockout_btn);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override

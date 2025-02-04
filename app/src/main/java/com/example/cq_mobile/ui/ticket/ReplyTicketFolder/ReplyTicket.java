@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
@@ -59,6 +60,8 @@ public class ReplyTicket extends AppCompatActivity {
     String messagesJsonList;
     ProgressBar progressBar;
     String stats;
+    String email;
+    String password;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +80,14 @@ public class ReplyTicket extends AppCompatActivity {
         del_btn_on = findViewById(R.id.del_btn_on);
         progressBar = findViewById(R.id.progressBar);
 
+
+
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
+         email = sharedPrefManager.getEmail();
+         password = sharedPrefManager.getPassword();
+        Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("ToDoFragmentSharedPreff", "Email: "+email);
+        Log.d("ToDoFragmentSharedPreff", "Password  : "+password);
         // Retrieve data from the intent
         accessToken = getIntent().getStringExtra("token");
         String subject = getIntent().getStringExtra("subject");
@@ -110,7 +121,7 @@ public class ReplyTicket extends AppCompatActivity {
                 } else {
                     status = "open";
                 }
-                UpdateTicketStatusApiManager.updateTicketStatus(ticketIDMain, status, progressBar, new UpdateTicketStatusApiManager.ApiCallback() {
+                UpdateTicketStatusApiManager.updateTicketStatus(email,password, ticketIDMain, status, progressBar, new UpdateTicketStatusApiManager.ApiCallback() {
                     @Override
                     public void onSuccess() {
                         Log.d("ResolveTicket", "Ticket resolved successfully");
@@ -182,13 +193,11 @@ public class ReplyTicket extends AppCompatActivity {
         // Update UI elements
         if (subject != null) item_title.setText(subject);
 
-
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
             loadReplies(messageList);
             swipeRefreshLayout.setRefreshing(false);
         });
-
 
         // Toggle delete button
         del_btn_on.setOnClickListener(v -> {
@@ -220,8 +229,6 @@ public class ReplyTicket extends AppCompatActivity {
                     })
                     .show();
         });
-
-
 
         // Show reply form
         reply_show.setOnClickListener(v -> {
@@ -259,6 +266,10 @@ public class ReplyTicket extends AppCompatActivity {
                 Toast.makeText(ReplyTicket.this, "Invalid ticket ID", Toast.LENGTH_SHORT).show();
             }
         });
+
+
+
+
     }
 
 
@@ -293,7 +304,13 @@ public class ReplyTicket extends AppCompatActivity {
     }
 
     private void sendReply(int ticketId, String replyText) {
-        ReplyTicketApiManager.replyToTicket(String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
+        email = sharedPrefManager.getEmail();
+        password = sharedPrefManager.getPassword();
+        Log.d("sendReply", "Retrieved User Data: ");
+        Log.d("sendReply", "Email: "+email);
+        Log.d("sendReply", "Password  : "+password);
+        ReplyTicketApiManager.replyToTicket(email,password,String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> Toast.makeText(ReplyTicket.this, "Reply sent successfully", Toast.LENGTH_SHORT).show());
