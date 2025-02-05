@@ -17,7 +17,12 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +36,16 @@ public class ChatPageFragment extends Fragment {
     private int currentPage = 1;  // Track pagination
     private final int pageSize = 20;
     private boolean isLoading = false;
+    String email;
+    String password;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat_page, container, false);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
-        String email = sharedPrefManager.getEmail();
-        String password = sharedPrefManager.getPassword();
+         email = sharedPrefManager.getEmail();
+         password = sharedPrefManager.getPassword();
 
         Log.d("ChatPageFragment", "Email: " + email);
         Log.d("ChatPageFragment", "Password: " + password);
@@ -83,11 +90,14 @@ public class ChatPageFragment extends Fragment {
         chatManager.loadChats(currentPage, pageSize, new ChatManager.AllChatsCallback() {
             @Override
             public void onAllChatsLoaded(List<ChatAPIItem> chats, String rawJson) {
-                setProgressBarVisibility(false,progressBar);
+                setProgressBarVisibility(false, progressBar);
                 isLoading = false;
 
                 if (chats != null && !chats.isEmpty()) {
-                    displayChats(chats, token,progressBar);
+                    List<ChatDetails> chatDetailsList = extractChatDetails(rawJson);
+                    Log.d("ChatPageFragment", "Extracted chat details: " + chatDetailsList);
+
+                    displayChats(chatDetailsList, token, progressBar);
                     currentPage++;  // Increment page after successful load
                 } else {
                     Log.d("ChatPageFragment", "No chats received.");
@@ -96,23 +106,61 @@ public class ChatPageFragment extends Fragment {
 
             @Override
             public void onError(String errorMessage) {
-                setProgressBarVisibility(false,progressBar);
-
+                setProgressBarVisibility(false, progressBar);
                 isLoading = false;
                 Log.e("ChatPageFragment", "Chat Loading Error: " + errorMessage);
             }
         });
     }
 
-    private void displayChats(List<ChatAPIItem> chats, String token, ProgressBar progressBar) {
+    private List<ChatDetails> extractChatDetails(String rawJson) {
+        List<ChatDetails> chatDetailsList = new ArrayList<>();
+        try {
+            JSONObject jsonObject = new JSONObject(rawJson); // Convert rawJson to JSON Object
+            if (jsonObject.has("data")) {
+                JSONObject dataObject = jsonObject.getJSONObject("data");
+                if (dataObject.has("chats")) {
+                    JSONArray chatsArray = dataObject.getJSONArray("chats");
+
+                    for (int i = 0; i < chatsArray.length(); i++) {
+                        JSONObject chatObject = chatsArray.getJSONObject(i);
+
+                        if (chatObject.has("chat_name")) {
+                            // Extracting all necessary fields for each chat
+                            String chatName = chatObject.getString("chat_name");
+                            String id = chatObject.getString("id");
+                            String name = chatObject.getString("name");
+                            String avatarPath = chatObject.getString("avatar_path");
+                            String message = chatObject.getString("message");
+//                            String online = chatObject.getString("online");
+//                            int channel = chatObject.getInt("channel");
+//                            int status = chatObject.getInt("status");
+//                            int channelStatus = chatObject.getInt("channel_status");
+//                            String members = chatObject.getString("members");
+
+                            // Create a new ChatDetails object and add it to the list
+                            ChatDetails chatDetails = new ChatDetails(chatName, id, name, avatarPath, message);///, online , channel, status, channelStatus, members);
+                            chatDetailsList.add(chatDetails);
+                        }
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            Log.e("InnerChats", "JSON Parsing Error: " + e.getMessage());
+        }
+        return chatDetailsList; // Return list of full chat details
+    }
+
+    private void displayChats(List<ChatDetails> chatDetailsList, String token, ProgressBar progressBar) {
         if (chatAdapter == null) {
-          chatRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-            chatAdapter = new ChatAdapter(requireContext(), chats);
+            chatRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+            chatAdapter = new ChatAdapter(requireContext(), chatDetailsList, accessToken, email, password);
             chatRecyclerView.setAdapter(chatAdapter);
         } else {
-            chatAdapter.addChats(chats);
+            chatAdapter.addChats(chatDetailsList); // Ensure this method exists in ChatAdapter
         }
     }
+
 
     private void setProgressBarVisibility(boolean visible, ProgressBar progressBar) {
         if (progressBar != null) {

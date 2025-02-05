@@ -101,6 +101,7 @@ public class ChatManager {
                         return;
                     }
 
+
                     callback.onAllChatsLoaded(chats, rawJson);  // Pass both chats and rawJson
                 } else {
                     Log.e("ChatManager", "API Response error: " + response.message());
@@ -137,6 +138,10 @@ public class ChatManager {
     public void cancelAllCalls() {
         cancelAccessTokenCall();
         cancelChatLoadingCall();
+    }
+
+    public void sendMessage(ChatDetails newMessage) {
+
     }
 
     // Callback interfaces

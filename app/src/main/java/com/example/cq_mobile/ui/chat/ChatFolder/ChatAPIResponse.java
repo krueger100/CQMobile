@@ -5,7 +5,6 @@ import java.util.List;
 public class ChatAPIResponse {
     private Data data;
 
-
     public Data getData() {
         return data;
     }
@@ -25,6 +24,4 @@ public class ChatAPIResponse {
             this.chats = chats;
         }
     }
-
-
 }

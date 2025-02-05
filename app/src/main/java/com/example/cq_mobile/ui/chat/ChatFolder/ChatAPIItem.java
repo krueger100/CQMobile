@@ -1,7 +1,5 @@
 package com.example.cq_mobile.ui.chat.ChatFolder;
 
-
-
 public class ChatAPIItem {
     private boolean success;
     private String error_code;
@@ -12,7 +10,7 @@ public class ChatAPIItem {
     private String avatar_path;
     private String members;
     private String message_read;
-    private String name;
+    private String name;  //
 
     public String getName() {
         return name;
@@ -88,17 +86,14 @@ public class ChatAPIItem {
         this.error_code = error_code;
     }
 
-    public String getMessage() {
+
+        public String getMessage() {
         return message;
     }
 
     public void setMessage(String message) {
         this.message = message;
     }
-
-
-
-
 
 }
 
