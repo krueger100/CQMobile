@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -5,23 +6,39 @@
     android:orientation="horizontal"
     android:padding="8dp">
 
+    <ImageView
+        android:id="@+id/senderAvatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/emptyglide" />
+
     <LinearLayout
         android:id="@+id/messageContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:elevation="10dp"
+        android:elevation="5dp"
         android:background="@drawable/background_white"
         android:padding="10dp"
         android:layout_margin="5dp"
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/senderName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sender Name"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
             android:id="@+id/messageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Received Message"
-            android:textColor="@android:color/black"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textColor="@android:color/black"/>
     </LinearLayout>
-
 </LinearLayout>

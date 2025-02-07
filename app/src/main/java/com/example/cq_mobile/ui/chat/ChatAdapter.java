@@ -17,6 +17,7 @@ import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
 import com.example.cq_mobile.ui.chat.ChatFolder.MessageItem;
 import com.example.cq_mobile.ui.chat.InnerChatsFolder.InnerChats;
 import com.google.common.reflect.TypeToken;
@@ -56,35 +57,35 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         ChatDetails chatItem = chatList.get(position);
 
-        Gson gson = new Gson();
-        String chatMessagesJson = chatItem.getMessage();
-        Type messageType = new TypeToken<List<MessageItem>>() {}.getType();
-        List<MessageItem> messages = gson.fromJson(chatMessagesJson, messageType);
+        if (chatItem == null) {
+            Log.w(TAG, "Chat item at position " + position + " is null.");
+            return;
+        }
 
+        // Check if messages list is not null and not empty
+        List<ChatMessage> messages = chatItem.getMessages();
 
+        // Set the chat name
         holder.chatName.setText(chatItem.getChatName() != null ? chatItem.getChatName() : "Unknown Chat");
-        String messageChat = chatItem.getMessage() != null ? chatItem.getMessage() : "No Chat";
 
-        receivers_name = chatItem.getChatName() != null ? chatItem.getChatName() : "No Receiver Name";
-        senders_name = chatItem.getName() != null ? chatItem.getName() : "No Senders Name";
+        // Set the sender and receiver names
+        String receivers_name = chatItem.getChatName() != null ? chatItem.getChatName() : "No Receiver Name";
+        String senders_name = chatItem.getName() != null ? chatItem.getName() : "No Senders Name";
+        int id = (chatItem.getId() != null) ? Integer.parseInt(chatItem.getId()) : 0;
 
+        Log.w(TAG, "ID " + position + id);
+        // Set the count of messages in the chat
         if (messages != null && !messages.isEmpty()) {
-            MessageItem lastMessage = messages.get(messages.size() - 1);
             holder.chatCount.setText(String.valueOf(messages.size()));
         } else {
             holder.chatCount.setText("0");
         }
 
-
-        Log.d(TAG, "Chat Item at position " + position + ": " + new Gson().toJson(chatItem));
-        Log.d(TAG, "Message -----SENDER Name " + position + ": " + senders_name);
-        Log.d(TAG, "Message -----RECEIVER Name " + position + ": " + receivers_name);
-        Log.d(TAG, "Message -----CHAT Data: " + messageChat);
-
-        // Load avatar image
-        if (chatItem.getAvatarPath() != null && !chatItem.getAvatarPath().isEmpty()) {
+        // Load the avatar image for the chat
+        String avatarPath = chatItem.getAvatarPath();
+        if (avatarPath != null && !avatarPath.isEmpty()) {
             Glide.with(context)
-                    .load(chatItem.getAvatarPath())
+                    .load(avatarPath)
                     .placeholder(R.drawable.circular_background)
                     .error(R.drawable.emptyglide)
                     .into(holder.chatAvatar);
@@ -92,29 +93,41 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             holder.chatAvatar.setImageResource(R.drawable.emptyglide);
         }
 
-        // Handle click event
-// Handle click event
+        // Handle item click
         holder.itemView.setOnClickListener(v -> {
+            // Zoom out animation before navigating
             TransitionAnimationManager.zoomOut(v, 100);
             v.postDelayed(() -> {
                 TransitionAnimationManager.zoomIn(v, 50);
 
+                // Start a new activity with necessary data
                 Intent intent = new Intent(context, InnerChats.class);
                 intent.putExtra("token", accessToken);
+                intent.putExtra("id", id);
+
                 intent.putExtra("Email", email);
                 intent.putExtra("Password", password);
-                intent.putExtra("avatar", chatItem.getAvatarPath());
-                intent.putExtra("Sender", chatItem.getName());
-                intent.putExtra("Receiver", chatItem.getChatName());
-                intent.putExtra("chatAPIData", messageChat);
+                intent.putExtra("avatar", avatarPath);
+                intent.putExtra("Sender", senders_name);
+                intent.putExtra("Receiver", receivers_name);
 
+                // Convert messages to JSON string
+                String chatMessagesJson = new Gson().toJson(messages);
+                intent.putExtra("chatAPIData", chatMessagesJson);
 
-                String chatListJson = gson.toJson(chatList);
+                // Convert the entire chat list to JSON string
+                String chatListJson = new Gson().toJson(chatList);
                 intent.putExtra("chatListJson", chatListJson);
 
                 context.startActivity(intent);
             }, 100);
         });
+
+        // Debug logs for checking
+        Log.d(TAG, "Chat Item at position " + position + ": " + new Gson().toJson(chatItem));
+        Log.d(TAG, "Message -----SENDER Name " + position + ": " + senders_name);
+        Log.d(TAG, "Message -----RECEIVER Name " + position + ": " + receivers_name);
+        Log.d(TAG, "Message -----CHAT Data: " + (messages != null ? messages.toString() : "No messages"));
     }
 
     @Override

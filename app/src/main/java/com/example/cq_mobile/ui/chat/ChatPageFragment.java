@@ -19,6 +19,8 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatManager;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,6 +40,7 @@ public class ChatPageFragment extends Fragment {
     private boolean isLoading = false;
     String email;
     String password;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -115,40 +118,103 @@ public class ChatPageFragment extends Fragment {
 
     private List<ChatDetails> extractChatDetails(String rawJson) {
         List<ChatDetails> chatDetailsList = new ArrayList<>();
+        Log.d("ChatPageFragment", "Raw JSON Input: " + rawJson);
+
         try {
-            JSONObject jsonObject = new JSONObject(rawJson); // Convert rawJson to JSON Object
+            JSONObject jsonObject = new JSONObject(rawJson);
             if (jsonObject.has("data")) {
                 JSONObject dataObject = jsonObject.getJSONObject("data");
                 if (dataObject.has("chats")) {
                     JSONArray chatsArray = dataObject.getJSONArray("chats");
+                    Log.d("ChatPageFragment", "Total Chats Found: " + chatsArray.length());
 
                     for (int i = 0; i < chatsArray.length(); i++) {
                         JSONObject chatObject = chatsArray.getJSONObject(i);
+                        Log.d("ChatPageFragment", "Parsing Chat " + (i + 1) + "/" + chatsArray.length());
 
-                        if (chatObject.has("chat_name")) {
-                            // Extracting all necessary fields for each chat
-                            String chatName = chatObject.getString("chat_name");
-                            String id = chatObject.getString("id");
-                            String name = chatObject.getString("name");
-                            String avatarPath = chatObject.getString("avatar_path");
-                            String message = chatObject.getString("message");
-//                            String online = chatObject.getString("online");
-//                            int channel = chatObject.getInt("channel");
-//                            int status = chatObject.getInt("status");
-//                            int channelStatus = chatObject.getInt("channel_status");
-//                            String members = chatObject.getString("members");
+                        String chatName = chatObject.optString("chat_name", "");
+                        String id = chatObject.optString("id", "");
+                        String name = chatObject.optString("name", "");
+                        String avatarPath = chatObject.optString("avatar_path", "");
+                        String online = chatObject.optString("online", "");
+                        int channel = chatObject.optInt("channel", 0);
+                        int status = chatObject.optInt("status", 0);
+                        int channelStatus = chatObject.optInt("channel_status", 0);
 
-                            // Create a new ChatDetails object and add it to the list
-                            ChatDetails chatDetails = new ChatDetails(chatName, id, name, avatarPath, message);///, online , channel, status, channelStatus, members);
-                            chatDetailsList.add(chatDetails);
+                        Log.d("ChatPageFragment", "Extracted Chat: " +
+                                "chatName=" + chatName + ", id=" + id + ", name=" + name +
+                                ", avatarPath=" + avatarPath + ", online=" + online +
+                                ", channel=" + channel + ", status=" + status +
+                                ", channelStatus=" + channelStatus);
+
+                        List<ChatMessage> messages = new ArrayList<>();
+                        if (chatObject.has("message")) {
+                            try {
+                                JSONArray messagesArray = new JSONArray(chatObject.getString("message"));
+                                Log.d("ChatPageFragment", "Total Messages Found: " + messagesArray.length());
+
+                                for (int j = 0; j < messagesArray.length(); j++) {
+                                    JSONObject messageObject = messagesArray.getJSONObject(j);
+                                //    int messageId = messageObject.optInt("id", 0);
+
+                                    int messageId = messageObject.optInt("id", 0);
+                                    String text = messageObject.optString("text", "");
+                                    String time = messageObject.optString("time", "");
+                                    String date = messageObject.optString("date", "");
+                                    int unread = messageObject.optInt("unread", 0);
+
+                                    Log.d("ChatPageFragment", "Message " + (j + 1) + ": " +
+                                            "id=" + messageId + ", text=" + text +
+                                            ", time=" + time + ", date=" + date + ", unread=" + unread);
+
+                                    messages.add(new ChatMessage(messageId, text, time, date, unread));
+                                }
+                            } catch (JSONException e) {
+                                Log.e("ChatPageFragment", "Error parsing messages: " + e.getMessage());
+                            }
                         }
+
+                        List<ChatMember> members = new ArrayList<>();
+                        if (chatObject.has("members")) {
+                            try {
+                                JSONArray membersArray = new JSONArray(chatObject.getString("members"));
+                                Log.d("ChatPageFragment", "Total Members Found: " + membersArray.length());
+
+                                for (int j = 0; j < membersArray.length(); j++) {
+                                    JSONObject memberObject = membersArray.getJSONObject(j);
+                                    int memberId = memberObject.optInt("id", 0);
+                                    String memberName = memberObject.optString("name", "");
+                                    String memberAvatarPath = memberObject.optString("avatar_path", "");
+                                    String email = memberObject.optString("email", "");
+                                    int lastRead = memberObject.optInt("last_read", 0);
+
+                                    Log.d("ChatPageFragment", "Member " + (j + 1) + ": " +
+                                            "id=" + memberId + ", name=" + memberName +
+                                            ", avatarPath=" + memberAvatarPath + ", email=" + email +
+                                            ", lastRead=" + lastRead);
+
+                                    members.add(new ChatMember(memberId, memberName, memberAvatarPath, email, lastRead));
+                                }
+                            } catch (JSONException e) {
+                                Log.e("ChatPageFragment", "Error parsing members: " + e.getMessage());
+                            }
+                        }
+
+                        ChatDetails chatDetails = new ChatDetails(chatName, id, name, avatarPath, messages, online, channel, status, channelStatus, members);
+                        chatDetailsList.add(chatDetails);
                     }
+                } else {
+                    Log.w("ChatPageFragment", "No 'chats' array found in JSON.");
                 }
+            } else {
+                Log.w("ChatPageFragment", "No 'data' object found in JSON.");
             }
         } catch (JSONException e) {
-            Log.e("InnerChats", "JSON Parsing Error: " + e.getMessage());
+            Log.e("ChatPageFragment", "JSON Parsing Error: " + e.getMessage());
         }
-        return chatDetailsList; // Return list of full chat details
+
+        Log.d("ChatPageFragment", "Final Extracted Chats Count: " + chatDetailsList.size());
+        return chatDetailsList;
     }
 
     private void displayChats(List<ChatDetails> chatDetailsList, String token, ProgressBar progressBar) {
@@ -157,7 +223,7 @@ public class ChatPageFragment extends Fragment {
             chatAdapter = new ChatAdapter(requireContext(), chatDetailsList, accessToken, email, password);
             chatRecyclerView.setAdapter(chatAdapter);
         } else {
-            chatAdapter.addChats(chatDetailsList); // Ensure this method exists in ChatAdapter
+            chatAdapter.addChats(chatDetailsList);
         }
     }
 

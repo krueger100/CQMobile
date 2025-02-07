@@ -1,51 +1,51 @@
 package com.example.cq_mobile.ui.chat.ChatFolder;
 
+import java.util.List;
+
+
 public class ChatDetails {
     String chatName;
     String id;
     String name;
     String avatarPath;
-    String message;
-//    String online;
-//    int channel;
-//    int status;
-//    int channelStatus;
-//    String members;
+    List<ChatMessage> messages;
+    String online;
+    int channel;
+    int status;
+    int channelStatus;
+    List<ChatMember> members;
 
-    public ChatDetails(String chatName, String id, String name, String avatarPath, String message){ //, String online, int channel, int status, int channelStatus, String members) {
+    public ChatDetails(String chatName, String id, String name, String avatarPath, List<ChatMessage> messages, String online, int channel, int status, int channelStatus, List<ChatMember> members) {
         this.chatName = chatName;
         this.id = id;
         this.name = name;
         this.avatarPath = avatarPath;
-        this.message = message;
-//        this.online = online;
-//        this.channel = channel;
-//        this.status = status;
-//        this.channelStatus = channelStatus;
-//        this.members = members;
+        this.messages = messages;
+        this.online = online;
+        this.channel = channel;
+        this.status = status;
+        this.channelStatus = channelStatus;
+        this.members = members;
     }
 
-    @Override
-    public String toString() {
-        return "ChatDetails{" +
-                "chatName='" + chatName + '\'' +
-                ", id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", avatarPath='" + avatarPath + '\'' +
-           ", message='" + message  + '\''    +
-//                ", online='" + online + '\'' +
-//                ", channel=" + channel +
-//                ", status=" + status +
-//                ", channelStatus=" + channelStatus +
-//                ", members='" + members + '\'' +
-                '}';
-    }
     public String getChatName() {
         return chatName;
     }
 
-    public void setChatName(String chatName) {
-        this.chatName = chatName;
+    public String getName() {
+        return name;
+    }
+
+    public String getAvatarPath() {
+        return avatarPath;
+    }
+
+    public List<ChatMessage> getMessages() {
+        return messages;
+    }
+
+    public List<ChatMember> getMembers() {
+        return members;
     }
 
     public String getId() {
@@ -56,67 +56,19 @@ public class ChatDetails {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public String toString() {
+        return "ChatDetails{" +
+                "chatName='" + chatName + '\'' +
+                ", id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", avatarPath='" + avatarPath + '\'' +
+                ", messages=" + messages +
+                ", online='" + online + '\'' +
+                ", channel=" + channel +
+                ", status=" + status +
+                ", channelStatus=" + channelStatus +
+                ", members=" + members +
+                '}';
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getAvatarPath() {
-        return avatarPath;
-    }
-
-    public void setAvatarPath(String avatarPath) {
-        this.avatarPath = avatarPath;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-//
-//    public String getOnline() {
-//        return online;
-//    }
-//
-//    public void setOnline(String online) {
-//        this.online = online;
-//    }
-//
-//    public int getChannel() {
-//        return channel;
-//    }
-//
-//    public void setChannel(int channel) {
-//        this.channel = channel;
-//    }
-//
-//    public int getStatus() {
-//        return status;
-//    }
-//
-//    public void setStatus(int status) {
-//        this.status = status;
-//    }
-//
-//    public int getChannelStatus() {
-//        return channelStatus;
-//    }
-//
-//    public void setChannelStatus(int channelStatus) {
-//        this.channelStatus = channelStatus;
-//    }
-//
-//    public String getMembers() {
-//        return members;
-//    }
-//
-//    public void setMembers(String members) {
-//        this.members = members;
-//    }
 }

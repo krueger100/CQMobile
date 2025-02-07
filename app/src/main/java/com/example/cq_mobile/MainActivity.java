@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("SharedPreferencesNotif", "FALSE");
                     new ArrayList<>(titles);
                     new ArrayList<>(avatars) ;
-                    navigateToShowNotificationActivity(titles,avatars);
+              //      navigateToShowNotificationActivity(titles,avatars);
                 }
 
             }
