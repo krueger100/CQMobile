@@ -85,6 +85,8 @@ public class ReplyTicket extends AppCompatActivity {
         SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
          email = sharedPrefManager.getEmail();
          password = sharedPrefManager.getPassword();
+         accessToken = sharedPrefManager.getAccessToken();
+        Log.d("CreateTicket", "Access Token: " + accessToken);
         Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
         Log.d("ToDoFragmentSharedPreff", "Email: "+email);
         Log.d("ToDoFragmentSharedPreff", "Password  : "+password);
@@ -121,7 +123,7 @@ public class ReplyTicket extends AppCompatActivity {
                 } else {
                     status = "open";
                 }
-                UpdateTicketStatusApiManager.updateTicketStatus(email,password, ticketIDMain, status, progressBar, new UpdateTicketStatusApiManager.ApiCallback() {
+                UpdateTicketStatusApiManager.updateTicketStatus(email,password, ticketIDMain, status, progressBar, accessToken, new UpdateTicketStatusApiManager.ApiCallback() {
                     @Override
                     public void onSuccess() {
                         Log.d("ResolveTicket", "Ticket resolved successfully");

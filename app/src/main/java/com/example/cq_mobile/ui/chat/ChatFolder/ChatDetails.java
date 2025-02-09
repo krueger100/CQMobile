@@ -56,6 +56,14 @@ public class ChatDetails {
         this.id = id;
     }
 
+    public int getChannel() {
+        return channel;
+    }
+
+    public void setChannel(int channel) {
+        this.channel = channel;
+    }
+
     @Override
     public String toString() {
         return "ChatDetails{" +

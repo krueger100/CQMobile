@@ -82,7 +82,7 @@ public class CreateTicket extends AppCompatActivity {
                     return;
                 }
 
-                TicketCreateApiManager.createTicket(subjectText, bodyText, selectedCategoryId, progressBar,
+                TicketCreateApiManager.createTicket(subjectText, bodyText, selectedCategoryId, progressBar,accessToken,
                         new TicketCreateApiManager.ApiCallback() {
                             @Override
                             public void onSuccess() {

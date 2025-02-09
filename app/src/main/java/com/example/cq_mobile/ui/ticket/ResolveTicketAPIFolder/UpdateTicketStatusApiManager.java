@@ -27,24 +27,26 @@ public class UpdateTicketStatusApiManager {
         void onFailure(String error);
     }
 
-    public static void updateTicketStatus(String email, String password, int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
+    public static void updateTicketStatus(String email, String password, int ticketId, String status, ProgressBar progressBar, String accessToken, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateTicketStatusTask(email,password,ticketId, status, progressBar, callback));
+        executorService.execute(new ApiUpdateTicketStatusTask(email,password,ticketId, status, progressBar, callback,accessToken));
     }
 
     private static class ApiUpdateTicketStatusTask implements Runnable {
         String email;
         String password;
+        String accessToken;
         private final int ticketId;
         private final String status;
         ProgressBar progressBar;
         private final ApiCallback callback;
 
-        public ApiUpdateTicketStatusTask(String email, String password, int ticketId, String status, ProgressBar progressBar, ApiCallback callback) {
+        public ApiUpdateTicketStatusTask(String email, String password, int ticketId, String status, ProgressBar progressBar, ApiCallback callback, String accessToken) {
             this.email = email;
             this.password = password;
             this.ticketId = ticketId;
             this.status = status;
+            this.accessToken = accessToken;
             this.progressBar = progressBar;
             this.callback = callback;
         }
@@ -54,7 +56,6 @@ public class UpdateTicketStatusApiManager {
             String baseUrl = "https://aws.customquoter.co.uk";
             String endpoint = "/api/m/tickets/" + ticketId + "/status";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-            String accessToken = "6331|n98FC0W7s7RlA4o5mnCmfxTDYlzWkWF2qg2B4c0m"; // Replace with dynamic retrieval if needed
 
             // Create JSON body for ticket status update
             String jsonBody = String.format("{\"status\": \"%s\"}", status);

@@ -25,9 +25,9 @@ public class TicketCreateApiManager {
         void onFailure(String error);
     }
 
-    public static void createTicket(String subject, String body, int categoryId, ProgressBar progressBar, ApiCallback callback) {
+    public static void createTicket(String subject, String body, int categoryId, ProgressBar progressBar, String accessToken, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiCreateTicketTask(subject, body, categoryId, progressBar, callback));
+        executorService.execute(new ApiCreateTicketTask(subject, body, categoryId, progressBar,accessToken, callback));
     }
 
     private static class ApiCreateTicketTask implements Runnable {
@@ -37,10 +37,12 @@ public class TicketCreateApiManager {
         private final int categoryId;
         ProgressBar progressBar;
         private final ApiCallback callback;
+        String accessToken;
 
-        public ApiCreateTicketTask(String subject, String body, int categoryId, ProgressBar progressBar, ApiCallback callback) {
+        public ApiCreateTicketTask(String subject, String body, int categoryId, ProgressBar progressBar, String accessToken, ApiCallback callback) {
             this.subject = subject;
             this.body = body;
+            this.accessToken = accessToken;
             this.categoryId = categoryId;
             this.progressBar = progressBar;
             this.callback = callback;
@@ -51,7 +53,6 @@ public class TicketCreateApiManager {
             String baseUrl = "https://aws.customquoter.co.uk";
             String endpoint = "/api/m/tickets";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-            String accessToken = "6331|n98FC0W7s7RlA4o5mnCmfxTDYlzWkWF2qg2B4c0m"; // Replace with dynamic retrieval if needed
 
             // Create JSON body for ticket creation
             String jsonBody = String.format(

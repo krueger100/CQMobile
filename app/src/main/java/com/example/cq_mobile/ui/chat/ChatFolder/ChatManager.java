@@ -71,8 +71,6 @@ public class ChatManager {
             return;
         }
 
-        // Construct the proper URL with the provided parameters
-        String url = baseUrl + "api/m/chats?page=" + page + "&per_page=" + pageSize;
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -100,6 +98,7 @@ public class ChatManager {
                         Log.e("ChatManager", "Chat list is null or empty!");
                         return;
                     }
+
 
 
                     callback.onAllChatsLoaded(chats, rawJson);  // Pass both chats and rawJson

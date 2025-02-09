@@ -1,6 +1,14 @@
-package com.example.cq_mobile.ui.chat.ChatFolder;
+package com.example.cq_mobile.ui.chat.InnerChatsFolder;
 
-public class ChatAPIItem {
+
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+public class InnerChatAPIItem {
     private boolean success;
     private String error_code;
     private String message;
@@ -8,14 +16,37 @@ public class ChatAPIItem {
     private String sender;
     private String chat_name;
     private String avatar_path;
-    private String members;
+    private List<InnerChatMember> members;
+
+    List<InnerChatMessage> messages;
     private String message_read;
     private String name;  //
-    private int channel;
 
 
-    public int getChannel() {
-        return channel;
+
+    // Getter for members
+    public List<InnerChatMember> getMembers() {
+        return members;
+    }
+
+    // ✅ New setMembers method to handle JSON string input
+    public void setMembers(String membersJson) {
+        if (membersJson != null && !membersJson.isEmpty()) {
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<InnerChatMember>>() {}.getType();
+            this.members = gson.fromJson(membersJson, listType);
+        } else {
+            this.members = null;
+        }
+    }
+
+
+    public List<InnerChatMessage> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<InnerChatMessage> messages) {
+        this.messages = messages;
     }
 
     public String getName() {
@@ -34,13 +65,7 @@ public class ChatAPIItem {
         this.message_read = message_read;
     }
 
-    public String getMembers() {
-        return members;
-    }
 
-    public void setMembers(String members) {
-        this.members = members;
-    }
 
     public int getId() {
         return id;
@@ -93,7 +118,7 @@ public class ChatAPIItem {
     }
 
 
-        public String getMessage() {
+    public String getMessage() {
         return message;
     }
 
@@ -102,7 +127,6 @@ public class ChatAPIItem {
     }
 
 }
-
 
 
 
