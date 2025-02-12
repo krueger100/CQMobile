@@ -40,7 +40,8 @@ public class ChatPageFragment extends Fragment {
     private boolean isLoading = false;
     String email;
     String password;
-
+    String chatCount;
+    int message_read;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -100,7 +101,8 @@ public class ChatPageFragment extends Fragment {
                     List<ChatDetails> chatDetailsList = extractChatDetails(rawJson);
                     Log.d("ChatPageFragment", "Extracted chat details: " + chatDetailsList);
 
-                    displayChats(chatDetailsList, token, progressBar);
+
+                    displayChats(chatDetailsList, token, progressBar,chatCount,message_read);
                     currentPage++;  // Increment page after successful load
                 } else {
                     Log.d("ChatPageFragment", "No chats received.");
@@ -128,9 +130,12 @@ public class ChatPageFragment extends Fragment {
                     JSONArray chatsArray = dataObject.getJSONArray("chats");
                     Log.d("ChatPageFragment", "Total Chats Found: " + chatsArray.length());
 
+
                     for (int i = 0; i < chatsArray.length(); i++) {
                         JSONObject chatObject = chatsArray.getJSONObject(i);
+
                         Log.d("ChatPageFragment", "Parsing Chat " + (i + 1) + "/" + chatsArray.length());
+
 
                         String chatName = chatObject.optString("chat_name", "");
                         String id = chatObject.optString("id", "");
@@ -140,6 +145,8 @@ public class ChatPageFragment extends Fragment {
                         int channel = chatObject.optInt("channel", 0);
                         int status = chatObject.optInt("status", 0);
                         int channelStatus = chatObject.optInt("channel_status", 0);
+
+                         message_read = chatObject.optInt("message_read", 0);
 
                         Log.d("ChatPageFragment", "Extracted Chat: " +
                                 "chatName=" + chatName + ", id=" + id + ", name=" + name +
@@ -200,7 +207,7 @@ public class ChatPageFragment extends Fragment {
                             }
                         }
 
-                        ChatDetails chatDetails = new ChatDetails(chatName, id, name, avatarPath, messages, online, channel, status, channelStatus, members);
+                        ChatDetails chatDetails = new ChatDetails(chatName, id, name, avatarPath, messages, online, channel, status, channelStatus, members,message_read);
                         chatDetailsList.add(chatDetails);
                     }
                 } else {
@@ -213,14 +220,17 @@ public class ChatPageFragment extends Fragment {
             Log.e("ChatPageFragment", "JSON Parsing Error: " + e.getMessage());
         }
 
-        Log.d("ChatPageFragment", "Final Extracted Chats Count: " + chatDetailsList.size());
+
+        chatCount = String.valueOf( chatDetailsList.size());
+
+        Log.d("ChatPageFragment", "Final Extracted Chats Count: " + chatCount);
         return chatDetailsList;
     }
 
-    private void displayChats(List<ChatDetails> chatDetailsList, String token, ProgressBar progressBar) {
+    private void displayChats(List<ChatDetails> chatDetailsList, String token, ProgressBar progressBar, String chatCount, int message_read) {
         if (chatAdapter == null) {
             chatRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-            chatAdapter = new ChatAdapter(requireContext(), chatDetailsList, accessToken, email, password);
+            chatAdapter = new ChatAdapter(requireContext(), chatDetailsList, accessToken, email, password,progressBar,chatCount,message_read);
             chatRecyclerView.setAdapter(chatAdapter);
         } else {
             chatAdapter.addChats(chatDetailsList);

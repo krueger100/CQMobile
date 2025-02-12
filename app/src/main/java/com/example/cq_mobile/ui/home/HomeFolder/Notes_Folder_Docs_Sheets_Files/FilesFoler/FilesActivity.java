@@ -249,7 +249,7 @@ TextView add_files;
                     Log.d("FilesActivity", "Files loaded successfully.");
                     filesAdapter.addData(newFiles);
                     filesAdapter.notifyItemRangeInserted(filesAdapter.getItemCount() - newFiles.size(), newFiles.size());
-                } else if (response.code() == 401) {  // Unauthorized error
+                } else if (response.code() == 401) {
                     Log.e("FilesActivity", "Unauthorized! Please log in again.");
                     Intent loginIntent = new Intent(FilesActivity.this, Login.class);
                     startActivity(loginIntent);

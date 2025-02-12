@@ -146,9 +146,7 @@ public class MessageManager {
         cancelChatLoadingCall();
     }
 
-    public void sendMessage(InnerChatDetails newMessage) {
-        // TODO: Implement message sending logic
-    }
+
 
     public interface AccessTokenCallback {
         void onAccessTokenReceived(String accessToken);

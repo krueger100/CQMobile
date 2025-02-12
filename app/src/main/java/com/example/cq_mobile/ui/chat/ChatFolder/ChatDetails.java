@@ -14,8 +14,9 @@ public class ChatDetails {
     int status;
     int channelStatus;
     List<ChatMember> members;
+    int message_read;
 
-    public ChatDetails(String chatName, String id, String name, String avatarPath, List<ChatMessage> messages, String online, int channel, int status, int channelStatus, List<ChatMember> members) {
+    public ChatDetails(String chatName, String id, String name, String avatarPath, List<ChatMessage> messages, String online, int channel, int status, int channelStatus, List<ChatMember> members, int message_read) {
         this.chatName = chatName;
         this.id = id;
         this.name = name;
@@ -26,6 +27,15 @@ public class ChatDetails {
         this.status = status;
         this.channelStatus = channelStatus;
         this.members = members;
+        this.message_read = message_read;
+    }
+
+    public int getMessage_read() {
+        return message_read;
+    }
+
+    public void setMessage_read(int message_read) {
+        this.message_read = message_read;
     }
 
     public String getChatName() {

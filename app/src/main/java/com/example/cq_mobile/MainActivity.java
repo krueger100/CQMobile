@@ -1,10 +1,16 @@
 package com.example.cq_mobile;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,19 +20,31 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
+import com.example.cq_mobile.HelperManagers.Notifications.NotificationManagerHelper;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilterNotificationManager;
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotificationResponse;
 import com.example.cq_mobile.NotificationData.ShowNotificationActivity;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
+import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
+
+import com.example.cq_mobile.ui.chat.ChatNotif.ChatsNotificationsApiManager;
+import com.example.cq_mobile.ui.chat.ChatNotif.NotificationAPIResponse;
 import com.google.firebase.FirebaseApp;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +58,10 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     private static final String TAG = "MainActivity";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
-    String accessToken,userId;
+    String accessToken, userId;
     boolean isNotificationDisplayed;
+    private static final String NOTIFICATION_CHANNEL_ID = "chat_channel";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         sharedPreferences = this.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
-         isNotificationDisplayed = sharedPreferences.getBoolean("notification_displayed", false);
+        isNotificationDisplayed = sharedPreferences.getBoolean("notification_displayed", false);
 
         Map<String, ?> allEntries = sharedPreferences.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
@@ -79,8 +99,7 @@ public class MainActivity extends AppCompatActivity {
             initializeApp();
         }
 
-
-
+        GetChatNotif(accessToken);
 
     }
 
@@ -88,8 +107,8 @@ public class MainActivity extends AppCompatActivity {
     private void initializeApp() {
         // Retrieve access token and user ID from shared preferences
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
-         accessToken = sharedPrefManager.getAccessToken();
-         userId = sharedPrefManager.getUserId();
+        accessToken = sharedPrefManager.getAccessToken();
+        userId = sharedPrefManager.getUserId();
 
         // Log retrieved user data
         Log.d(TAG, "Retrieved User Data: ");
@@ -139,20 +158,20 @@ public class MainActivity extends AppCompatActivity {
                     avatars.add(notification.getAvatar());
 
 
-                if (isNotificationDisplayed) {
-                    Log.d("SharedPreferencesNotif", "TRUE");
-                    showNotification(MainActivity.this,titles,avatars);
-                }else {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean("notification_displayed", false);
-                    editor.apply();
-                    Log.d("SharedPreferencesNotif", "FALSE");
-                    new ArrayList<>(titles);
-                    new ArrayList<>(avatars) ;
-              //      navigateToShowNotificationActivity(titles,avatars);
-                }
+                    if (isNotificationDisplayed) {
+                        Log.d("SharedPreferencesNotif", "TRUE");
+                        showNotification(MainActivity.this, titles, avatars);
+                    } else {
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean("notification_displayed", false);
+                        editor.apply();
+                        Log.d("SharedPreferencesNotif", "FALSE");
+                        new ArrayList<>(titles);
+                        new ArrayList<>(avatars);
+                        //      navigateToShowNotificationActivity(titles,avatars);
+                    }
 
-            }
+                }
             }
 
             @Override
@@ -193,10 +212,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void RetrieveStoredNoticationData(List<String> titles, List<String> avatars) {
-            Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
-            intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
-            intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));
-            startActivity(intent);
+        Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
+        intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
+        intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));
+        startActivity(intent);
 
 
     }
@@ -210,7 +229,129 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void GetChatNotif(String accessToken) {
+        ChatsNotificationsApiManager.fetchChatNotifications(accessToken, new ChatsNotificationsApiManager.ApiCallback() {
+            @Override
+            public void onSuccess(NotificationAPIResponse response) {
+                if (response != null && response.isSuccess() && response.getData() != null && response.getData().getChat() != null) {
+                    Toast.makeText(getApplicationContext(), "Notifications fetched successfully", Toast.LENGTH_SHORT).show();
+
+                    List<ChatNotificationItem> notifications = response.getData().getChat().getData(); // Accessing correct field
+
+                    // Convert response to JSON for better logging
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    String jsonResponse = gson.toJson(notifications);
+
+                    Log.d("GetChatNotif", "Chat Notification Response: \n" + jsonResponse);
+                    Log.d("GetChatNotif", "SIZE: " + notifications.size());
+
+
+                    // Send notifications
+                    for (ChatNotificationItem notification : notifications) {
+                        NotificationManagerHelper.getInstance(getApplicationContext())
+                                .showNotification(
+                                        notification.getSender(),
+                                        notification.getText(),
+                                        notification.getAvatar(),
+                                        notification.getTime(),
+                                        notification.getDate(),
+                                        String.valueOf(notification.getChannel())
+                                );
+                    }
+
+                } else {
+                    Toast.makeText(getApplicationContext(), "Failed to fetch notifications: Invalid response", Toast.LENGTH_LONG).show();
+                    Log.e("GetChatNotif", "Invalid or null response received");
+                }
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(getApplicationContext(), "Failed to fetch notifications: " + error, Toast.LENGTH_LONG).show();
+                Log.e("GetChatNotif", "API Request Failed: " + error);
+            }
+        });
+    }
+
+
+    //                    displayChatNotifications(MainActivity.this, notifications);
+    private void displayChatNotifications(Context context, List<ChatNotificationItem> notifications) {
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        String NOTIFICATION_CHANNEL_ID = "chat_notifications";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    "Chat Notifications",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for chat updates");
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        for (ChatNotificationItem notification : notifications) {
+            String title = notification.getSender();
+            String content = notification.getText();
+            String avatarUrl = notification.getAvatar();
+            String time = notification.getTime();
+            String date = notification.getDate();
+
+            String fullContent = content + "\n📅 " + date + " 🕒 " + time; // Add date & time to the notification content
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aws.customquoter.co.uk/tasks?task=" + notification.getChannel()));
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+            // Generate a unique notification ID
+            int notificationId = (title + time + date).hashCode();
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.nav_chat)
+                    .setContentTitle(title)
+                    .setContentText("Tap to view details")
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(fullContent)) // Show full message + timestamp
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+            // Show initial notification without image
+            notificationManager.notify(notificationId, builder.build());
+
+            // Load avatar asynchronously and update notification
+            Glide.with(context)
+                    .asBitmap()
+                    .load(avatarUrl)
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                            NotificationCompat.Builder updatedBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                                    .setSmallIcon(R.drawable.nav_chat)
+                                    .setContentTitle(title)
+                                    .setContentText("Tap to view details")
+                                    .setStyle(new NotificationCompat.BigTextStyle().bigText(fullContent))
+                                    .setLargeIcon(resource) // Set the avatar as the large icon
+                                    .setAutoCancel(true)
+                                    .setContentIntent(pendingIntent)
+                                    .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+                            notificationManager.notify(notificationId, updatedBuilder.build());
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                            // No action needed
+                        }
+
+                        @Override
+                        public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                            // Keep the notification as it is, without an avatar
+                        }
+                    });
+        }
+    }
+
+
+
+
 
 }
-
 

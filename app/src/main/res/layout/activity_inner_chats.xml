@@ -26,7 +26,7 @@
             android:orientation="horizontal">
 
 
-            <ImageView
+            <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/Avatar"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -84,6 +84,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_messages"
         android:layout_width="0dp"
@@ -91,9 +92,10 @@
         android:padding="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView2" />
-
+        app:layout_constraintTop_toBottomOf="@+id/cardView2"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -107,29 +109,17 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <ImageView
-        android:id="@+id/Avatar_second"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="start"
-        android:elevation="18dp"
-        android:src="@drawable/emptyglide"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/cardView4"
-        app:layout_constraintEnd_toStartOf="@+id/cardView4"
-        app:layout_constraintStart_toStartOf="@+id/cardView4"
-        app:layout_constraintTop_toTopOf="@+id/cardView4" />
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardView4"
+        android:id="@+id/cardViewMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="10dp"
-        android:layout_marginHorizontal="26dp"
-        android:visibility="visible"
+        android:layout_marginHorizontal="16dp"
+        android:visibility="gone"
         app:cardCornerRadius="10dp"
-        app:cardElevation="15dp"
-        android:layout_marginBottom="26dp"
+        app:cardElevation="10dp"
+        android:layout_marginBottom="55dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -213,8 +203,7 @@
 
 
 
-
-                <ImageView
+                <ImageButton
                     android:id="@+id/sendButton"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
@@ -240,6 +229,19 @@
 
 
 
+        <ImageView
+            android:id="@+id/showChatINput"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:src="@drawable/baseline_chat_bubble_24"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="35dp"
+            android:background="@drawable/search_bar_background"
+            android:padding="10dp"
+            android:layout_marginEnd="35dp"
+            android:backgroundTint="#BFE4E4EB"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:tint="#1976D2" />
 
 
 

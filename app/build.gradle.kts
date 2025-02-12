@@ -91,6 +91,7 @@ dependencies {
 
 
 
+    implementation ("com.google.firebase:firebase-messaging:23.3.1")
 
 
 }

@@ -390,7 +390,7 @@ LinearLayout notes,folder,docs,sheets;
                     intent.putExtra("task_id", taskId);
                     startActivity(intent);
                 }
-            } else if (view == docs) {
+    /*        } else if (view == docs) {
                 if (jobId != null) {
                     Intent intent = new Intent(NewBuild.this, DocsActivity.class);
                     intent.putExtra("job_id", jobId);
@@ -407,6 +407,7 @@ LinearLayout notes,folder,docs,sheets;
                 startActivity(intent);
 
 
+     */
 
             }
         });

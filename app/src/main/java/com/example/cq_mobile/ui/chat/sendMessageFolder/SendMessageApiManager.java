@@ -2,11 +2,6 @@ package com.example.cq_mobile.ui.chat.sendMessageFolder;
 
 import android.util.Log;
 
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
-import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
-
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,87 +11,75 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+
 
 public class SendMessageApiManager {
-
     private static final String TAG = "SendMessageApiManager";
+    private static final String BASE_URL = "https://aws.customquoter.co.uk";
+    private static final String ENDPOINT = "/api/m/chats/send";
+    private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-    // Define the callback interface
     public interface ApiCallback {
         void onSuccess();
         void onFailure(String error);
     }
 
-    public static void sendMessage(String receiver, String chatchannel, String message, ApiCallback callback) {
+    public static void sendMessage(String receiver, String chatchannel, String sender, String message, String avatar, String date, String time, String name, String token, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiSendMessageTask(receiver, chatchannel, message, callback));
+        executorService.execute(new ApiSendMessageTask(receiver, chatchannel, sender, message, avatar, date, time, name,token, callback));
     }
 
     private static class ApiSendMessageTask implements Runnable {
-
         private final String receiver;
         private final String chatchannel;
+        private final String sender;
         private final String message;
+        private final String avatar;
+        private final String date;
+        private final String time;
+        private final String name;
+        String token;
         private final ApiCallback callback;
 
-        public ApiSendMessageTask(String receiver, String chatchannel, String message, ApiCallback callback) {
+        public ApiSendMessageTask(String receiver, String chatchannel, String sender, String message, String avatar, String date, String time, String name, String token, ApiCallback callback) {
             this.receiver = receiver;
             this.chatchannel = chatchannel;
+            this.sender = sender;
             this.message = message;
+            this.avatar = avatar;
+            this.date = date;
+            this.time = time;
+            this.name = name;
+            this.token = token;
             this.callback = callback;
         }
 
         @Override
         public void run() {
-            // Create the request for the access token
-            AccessTokenRequest request1 = new AccessTokenRequest("email", "password");
+            String jsonBody = String.format(
+                    "{\"receiver\": \"%s\", \"chatchannel\": \"%s\", \"replied_to\": null, \"message\": {\"text\": \"%s\", \"avatar\": \"%s\", \"date\": \"%s\", \"time\": \"%s\", \"sender\": \"%s\", \"name\": \"%s\"}}",
+                    receiver, chatchannel, message, avatar, date, time, sender, name);
 
-            // Use getAccessToken method to retrieve the access token
-            new SendMessageApiManager().getAccessToken(request1, new AccessTokenCallback() {
-                @Override
-                public void onAccessTokenReceived(String accessToken) {
-                    // Successfully received the access token, proceed with sending the message
-                    Log.d(TAG, "Access Token: " + accessToken);
-                    String baseUrl = "https://aws.customquoter.co.uk";
-                    String endpoint = "/api/m/chats/send";
-                    String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";  // Correct API key
-
-                    // Prepare the JSON body with parameters
-                    String jsonBody = String.format(
-                            "{\"receiver\": \"%s\", \"chatchannel\": \"%s\", \"message\": \"%s\", \"name\": \"Marwin Intal\"}",
-                            receiver, chatchannel, message);
-
-                    // Make the send message request using the access token
-                    postSendMessage(baseUrl, endpoint, accessToken, apiKey, jsonBody);
-                }
-
-                @Override
-                public void onError(String errorMessage) {
-                    Log.e(TAG, "Failed to get access token: " + errorMessage);
-                    callback.onFailure("Failed to get access token: " + errorMessage);
-                }
-            });
+            postSendMessage(BASE_URL, ENDPOINT, API_KEY, jsonBody,token);
         }
 
-        private void postSendMessage(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
+        private void postSendMessage(String baseUrl, String endpoint, String apiKey, String jsonBody,String token) {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
 
             Request request = new Request.Builder()
                     .url(baseUrl + endpoint)
-                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Authorization", "Bearer " + token)
                     .addHeader("x-api-key", apiKey)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("Accept", "application/json")
                     .post(body)
                     .build();
+            Log.d(TAG, "token: " + token);
 
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
@@ -104,70 +87,38 @@ public class SendMessageApiManager {
                     String responseBody = null;
                     try {
                         if (response.body() != null) {
-                            responseBody = response.body().string();  // Read the response body as string
+                            responseBody = response.body().string();
                         }
                         if (response.isSuccessful()) {
-                            Log.d(TAG, "Message sent successfully. Response: " + responseBody);
+                            Log.d(TAG, "Ticket created successfully. Response: " + responseBody);
+
+
+
+
                             callback.onSuccess();
                         } else {
                             Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());
                             Log.e(TAG, "Error Body: " + responseBody);
-                            callback.onFailure("Failed to send message: " + responseBody);
+
+
+                            callback.onFailure("Failed to create ticket: " + responseBody);
                         }
                     } catch (IOException e) {
                         Log.e(TAG, "Error reading response: " + e.getMessage(), e);
+
+
                         callback.onFailure("Error reading response: " + e.getMessage());
                     }
                 }
 
                 @Override
                 public void onFailure(okhttp3.Call call, IOException e) {
-                    Log.e(TAG, "Error sending message: " + e.getMessage(), e);
-                    callback.onFailure("Error sending message: " + e.getMessage());
+                    Log.e(TAG, "Error creating ticket: " + e.getMessage(), e);
+
+                    callback.onFailure("Error creating ticket: " + e.getMessage());
                 }
             });
+
         }
-    }
-
-    // Place your getAccessToken method here as is
-    public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
-        // Create an instance of the API service
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-
-        // Call the API
-        Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
-
-        // Enqueue the call to execute asynchronously
-        call.enqueue(new Callback<AccessTokenResponse>() {
-            @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    AccessTokenResponse accessTokenResponse = response.body();
-                    String accessToken = accessTokenResponse.getAccessToken();
-
-                    // Check if the access token was fetched successfully
-                    if (accessToken != null) {
-                        Log.d(TAG, "Access Token: " + accessToken);
-                        callback.onAccessTokenReceived(accessToken);
-                    } else {
-                        callback.onError("Access token not received.");
-                    }
-                } else {
-                    callback.onError("Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                // Log the failure (e.g., network error)
-                callback.onError("Failure: " + t.getMessage());
-            }
-        });
-    }
-
-    // AccessTokenCallback interface
-    public interface AccessTokenCallback {
-        void onAccessTokenReceived(String accessToken);
-        void onError(String errorMessage);
     }
 }

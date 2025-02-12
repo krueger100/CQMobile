@@ -28,6 +28,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NotesActivity extends AppCompatActivity {
+    private static final String TAG = "NotesActivity";
+
     private RecyclerView recyclerView;
     private NotesAdapter notesAdapter;
     private List<Note> notesList;
@@ -103,6 +105,7 @@ public class NotesActivity extends AppCompatActivity {
         isLoading = true;
         String url = baseUrl + "/api/m/jobs/schedules/" + jobScheduleId + "/notes?page=" + page + "&per_page=" + pageSize;
 
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -117,6 +120,7 @@ public class NotesActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Note> newNotes = response.body().getData();
                     notesAdapter.addData(newNotes);
+                    Log.d(TAG, "loadNotes  ->>: " + newNotes);
                 }
                 isLoading = false;
             }
