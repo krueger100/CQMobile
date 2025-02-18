@@ -1,26 +1,35 @@
 package com.example.cq_mobile.ui.chat.InnerChatsFolder;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
+import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.sendMessageFolder.SendMessageApiManager;
@@ -29,6 +38,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +48,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class InnerChats extends AppCompatActivity {
+    private BackPressManager backPressManager;
     private static final String TAG = "InnerChats";
     private TextView receiver_Name;
     private CircleImageView Avatar;
@@ -57,14 +68,21 @@ public class InnerChats extends AppCompatActivity {
     String avatar;
     CardView cardView4;
     ImageView showChatInput;
-
+    String avatar_url;
+   String hhtpAvatar_url;
+   LinearLayout l_1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inner_chats);
+        backPressManager = new BackPressManager(this);
+
+
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
+        String username = sharedPrefManager.getFirstName() +" "+ sharedPrefManager.getLastName();
+        String currentUserID = sharedPrefManager.getUserId();
 
         ProgressBar progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
@@ -74,14 +92,29 @@ public class InnerChats extends AppCompatActivity {
         recyclerView_messages = findViewById(R.id.recyclerView_messages);
         messageInput = findViewById(R.id.messageInput);
         sendButton = findViewById(R.id.sendButton);
+        sendButton = findViewById(R.id.sendButton);
         chatOff = findViewById(R.id.chatInputHide);
         showChatInput = findViewById(R.id.showChatINput);
+        l_1  = findViewById(R.id.l_1);
+
         Intent intent = getIntent();
         String receiver = intent.getStringExtra("Receiver");
-        avatar = intent.getStringExtra("Avatar");
-
+        String avatar = intent.getStringExtra("Avatar");
         currentUser = intent.getStringExtra("Sender");
         accessToken = intent.getStringExtra("token");
+         avatar_url = intent.getStringExtra("Avatar_url");
+        hhtpAvatar_url =  " https://customquoteruk-live-uploads.s3.eu-west-2.amazonaws.com/"+avatar_url;
+       String email = intent.getStringExtra("Email");
+        String id = String.valueOf(getIntent().getIntExtra("id", 0));
+        String source = getIntent().getStringExtra("source_adapter");
+
+
+        if (source != null && source.equals("ColleagueAdapter")) {
+            Log.d("InnerChats", "Launched from ColleagueAdapter");
+
+        }
+
+
 
         Glide.with(this)
                 .load(avatar)
@@ -90,13 +123,53 @@ public class InnerChats extends AppCompatActivity {
                 .into(Avatar);
 
 
-        int channel = intent.getIntExtra("channel", -1);
+        int channel = -1;
+        if (intent.hasExtra("channel")) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Serializable channelObj = intent.getSerializableExtra("channel", Serializable.class);
+                if (channelObj instanceof Integer) {
+                    channel = (Integer) channelObj;
+                } else if (channelObj instanceof String) {
+                    try {
+                        if (!((String) channelObj).isEmpty()) {
+                            channel = Integer.parseInt((String) channelObj);
+                        } else {
+                            Log.e("InnerChats", "Empty channel string received.");
+                            showEmptyState(progressBar);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.e("InnerChats", "Invalid channel format: " + channelObj, e);
+                        showEmptyState(progressBar);
+                        return;
+                    }
+                }
+            } else {
+                Object channelObj = intent.getExtras().get("channel");
+                if (channelObj instanceof Integer) {
+                    channel = (Integer) channelObj;
+                } else if (channelObj instanceof String) {
+                    try {
+                        if (!((String) channelObj).isEmpty()) {
+                            channel = Integer.parseInt((String) channelObj);
+                        } else {
+                            Log.e("InnerChats", "Empty channel string received.");
+                            showEmptyState(progressBar);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.e("InnerChats", "Invalid channel format: " + channelObj, e);
+                        showEmptyState(progressBar);
+                        return;
+                    }
+                }
+            }
+        } else {
+            Log.e("InnerChats", "No channel data received.");
+            showEmptyState(progressBar);
+        }
+
         Log.d("InnerChats", "Received Channel: " + channel);
-
-
-
-
-
 
 
 
@@ -108,7 +181,6 @@ public class InnerChats extends AppCompatActivity {
             }.getType();
             messagesList = gson.fromJson(chatMessagesJson, messageType);
 
-            Log.d("InnerChats", "Parsed chatMessagesJson: " + messagesList);
         }
 
 
@@ -145,23 +217,55 @@ public class InnerChats extends AppCompatActivity {
 
 
         currentUser = getIntent().getStringExtra("Sender");
-        Log.d("InnerChats", "Sender : " + currentUser);
-
         String chatMembersJson = getIntent().getStringExtra("chatAPIData");
-        List<ChatMember> membersList = null;
-        int senderMemberId = -1;
-        int receiverMemberId = -1;
-        String avatar_sender = null;
-        String avatar_receiver = null;
-        String senderName = "";
-        String receiverName = "";
+
+
+        int senderMemberId;
+        int receiverMemberId;
+        int currentUserId;
+        List<ChatMember> membersList;
+        String senderName;
+        String avatar_sender;
+        String receiverName;
+        String avatar_receiver;
+        String hhtpAvatar_urlSender;
+
+        try {
+            if (id != null && !id.isEmpty()) {
+                receiverMemberId = Integer.parseInt(id);
+                currentUserId = Integer.parseInt(currentUserID);
+            } else {
+                receiverMemberId = 0;
+                currentUserId = 0;
+            }
+
+            membersList = null;
+            senderMemberId  = currentUserId;
+            senderName = currentUser;
+            avatar_sender = avatar_url;
+            receiverName = receiver;
+            avatar_receiver = avatar;
+
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            receiverMemberId = 0;
+            membersList = null;
+            senderMemberId = 0;
+            senderName = currentUser;
+            avatar_sender = avatar_url;
+            receiverName = receiver;
+            avatar_receiver = avatar;
+
+        }
+
+
+        Log.w("InnerChats", "Sender ID : "+ senderName +" |Receiver ID - "+ receiverName);
+        Log.w("InnerChats", "Sender Avatar : "+ avatar_sender +" |  Receiver Avatar - "+ avatar_receiver);
 
         if (chatMembersJson != null) {
             Gson gson = new Gson();
             Type messageType = new TypeToken<List<ChatMember>>() {}.getType();
             membersList = gson.fromJson(chatMembersJson, messageType);
-
-            Log.d("InnerChats", "Parsed chatMembersJson: " + membersList);
 
             if (membersList.size() == 2) {
                 ChatMember member1 = membersList.get(0);
@@ -173,46 +277,63 @@ public class InnerChats extends AppCompatActivity {
                     avatar_sender = member1.getAvatarPath();
                     receiverName = member2.getName();
                     avatar_receiver = member2.getAvatarPath();
-                    senderMemberId = member1.getId();  // Sender's ID
-                    receiverMemberId = member2.getId();  // Receiver's ID
+                    senderMemberId = member1.getId();
+                    receiverMemberId = member2.getId();
+
+                    Log.d(TAG, "Sender Name: <<--" + senderName);
+                    Log.d(TAG, "Sender Avatar: <<--" + avatar_sender);
+                    Log.d(TAG, "Receiver Name: <<--" + receiverName);
+                    Log.d(TAG, "Receiver Avatar: <<--" + avatar_receiver);
+                    Log.d(TAG, "Current USer ID:  senderMemberId: <<--" + senderMemberId); //
                 } else {
                     senderName = member2.getName();
                     avatar_sender = member2.getAvatarPath();
                     receiverName = member1.getName();
                     avatar_receiver = member1.getAvatarPath();
-                    senderMemberId = member2.getId();  // Sender's ID
-                    receiverMemberId = member1.getId();  // Receiver's ID
+                    senderMemberId = member2.getId();
+                    receiverMemberId = member1.getId();
+
+                    Log.d(TAG, "Sender Name: -->>" + senderName);
+                    Log.d(TAG, "Sender Avatar: -->>" + avatar_sender);
+                    Log.d(TAG, "Receiver Name: -->>" + receiverName);
+                    Log.d(TAG, "Receiver Avatar: -->>" + avatar_receiver);
+                    Log.d(TAG, "Current USer ID:  senderMemberId: -->>" + senderMemberId);
                 }
 
-                Log.w(TAG, "Sender Name: " + senderName);
-                Log.w(TAG, "Sender Avatar: " + avatar_sender);
-                Log.w(TAG, "Receiver Name: " + receiverName);
-                Log.w(TAG, "Receiver Avatar: " + avatar_receiver);
             }
+
+
         }
 
-
-
         AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
-        getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, avatar_receiver, currentUser);
-
+        getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username,currentUserID,avatar_receiver,hhtpAvatar_url);
 
         recyclerView_messages.setHasFixedSize(true);
         recyclerView_messages.setLayoutManager(new LinearLayoutManager(this));
+
+
+
+
     }
 
 
 
-    private void getAccessTokenAndLoadChats(AccessTokenRequest tokenRequest, ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, int secondMemberId, String avatar_receiver, String currentUser) {
+
+    private void getAccessTokenAndLoadChats(AccessTokenRequest tokenRequest, ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, int secondMemberId, String avatar_receiver,
+                                            String currentUser, String username, String currentUserID, String hhtpAvatar_url) {
         messageManager.getAccessToken(tokenRequest, new MessageManager.AccessTokenCallback() {
             @Override
             public void onAccessTokenReceived(String token) {
                 accessToken = token;
+                Log.d("InnerChats", "|-  AccessTokenAndLoadChats  -| ");
                 Log.d("InnerChats", "Access Token received: " + token);
                 Log.d("InnerChats", "Receiver Avatar: " + avatar_receiver);
-                Log.d("InnerChats", "Sender Name: " + currentUser);
-                Log.d("InnerChats", "Sender ID: " + id);
                 Log.d("InnerChats", "Receiver ID: " + secondMemberId);
+                Log.d("InnerChats", "CurrentUser Name: " + currentUser);
+                Log.d("InnerChats", "CurrentUser ID: " + id);
+                Log.d("InnerChats", "CurrentUser Avatar: " + hhtpAvatar_url);
+
+
 
                 sendButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -261,7 +382,7 @@ public class InnerChats extends AppCompatActivity {
                 });
 
 
-                loadChatsWithToken(progressBar, id, channel, membersList,avatar_receiver);
+                loadChatsWithToken(progressBar, id, channel, membersList,username,currentUserID,hhtpAvatar_url);
             }
 
             @Override
@@ -272,7 +393,7 @@ public class InnerChats extends AppCompatActivity {
         });
     }
 
-    private void loadChatsWithToken(ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, String avatar_receiver) {
+    private void loadChatsWithToken(ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, String username, String currentUserID, String hhtpAvatar_url) {
         if (isLoading) return;
         isLoading = true;
 
@@ -291,13 +412,13 @@ public class InnerChats extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 isLoading = false;
                 List<InnerMessageDetails> chatDetailsList = extractMessageData(rawJson);
-                Log.d("ChatPageFragment", "Extracted chat details: " + chatDetailsList);
+                Log.d("InnerChats", "Extracted chat details: " + chatDetailsList);
 
 
 
                 Log.d("InnerChats", "Raw JSON received: " + rawJson);
                // extractMessageData(rawJson);
-                displayChats(chats, id,channel,membersList,progressBar);
+                displayChats(chats, id,channel,membersList,progressBar,username,currentUserID,hhtpAvatar_url);
             }
 
             @Override
@@ -371,9 +492,9 @@ public class InnerChats extends AppCompatActivity {
     }
 
 
-    private void displayChats(List<InnerChatAPIItem> chatItems, int id, int channel, List<ChatMember> membersList, ProgressBar progressBar) {
+    private void displayChats(List<InnerChatAPIItem> chatItems, int id, int channel, List<ChatMember> membersList, ProgressBar progressBar, String username, String currentUserID, String hhtpAvatar_url) {
         if (messagesAdapter == null) {
-            messagesAdapter = new MessagesAdapter(this, chatItems, id,channel,membersList,currentUser,accessToken,progressBar);
+            messagesAdapter = new MessagesAdapter(this, chatItems, id,channel,membersList,currentUser,accessToken,progressBar,username,currentUserID,hhtpAvatar_url);
             recyclerView_messages.setAdapter(messagesAdapter);
         } else {
             messagesAdapter.addChats(chatItems);
@@ -382,6 +503,31 @@ public class InnerChats extends AppCompatActivity {
         }
     }
 
+
+
+
+    private void showEmptyState(ProgressBar progressBar) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("No Messages")
+                .setMessage("There are no messages to display.")
+                .setIcon(R.drawable.android12splash_orange)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    progressBar.setVisibility(View.GONE);
+                    l_1.setVisibility(View.VISIBLE);
+                    cardView4.setVisibility(View.VISIBLE);
+                    showChatInput.setVisibility(View.GONE);
+                    
+                    dialog.dismiss();
+
+                })
+                .setCancelable(false);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.alertdialog_background);
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.buttonBlue));
+    }
 
 
 }

@@ -36,6 +36,8 @@ public class Login extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+
+
         // Hide the ActionBar if present
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
@@ -93,12 +95,18 @@ public class Login extends AppCompatActivity {
                                 ? accessTokenResponse.getUser().getEmail()
                                 : "N/A";
 
+                        String avatar = accessTokenResponse.getUser().getAvatar() != null
+                                ? accessTokenResponse.getUser().getAvatar()
+                                : "N/A";
+
                         if (userId > 0) {
                             Log.d("Login", "Access Token: " + accessToken);
                             Log.d("Login", "User ID: " + userId);
                             Log.d("Login", "User First Name: " + firstName);
                             Log.d("Login", "User Last Name: " + lastName);
                             Log.d("Login", "User Email: " + email);
+                            Log.d("Login", "Avatar: " + avatar);
+
 
                             // Save user data to SharedPreferences
                             SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
@@ -110,11 +118,11 @@ public class Login extends AppCompatActivity {
                             editor.putString("lastName", lastName);
                             editor.putString("email", email);
                             editor.putString("password", password);
+                            editor.putString("avatar", avatar);
                             editor.putBoolean("isLoggedIn", true);
                             editor.apply();
 
-                            navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar);  // Pass data here
-
+                            navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar,avatar);  // Pass data here
                         } else {
                             Log.e("Login", "Invalid user ID: " + userId);
                             progressBar.setVisibility(View.GONE);
@@ -152,8 +160,7 @@ public class Login extends AppCompatActivity {
         return true;
     }
 
-
-    private void navigateToHome(String accessToken, int userId, String firstName, String lastName, String email, String password, ProgressBar progressBar) {
+    private void navigateToHome(String accessToken, int userId, String firstName, String lastName, String email, String password, ProgressBar progressBar, String avatar) {
         progressBar.setVisibility(View.GONE);
         Intent intent = new Intent(this, ClockActivity.class);
         intent.putExtra("accessToken", accessToken);
@@ -162,6 +169,7 @@ public class Login extends AppCompatActivity {
         intent.putExtra("lastName", lastName);
         intent.putExtra("email", email);
         intent.putExtra("password", password);
+        intent.putExtra("avatar", avatar);
         startActivity(intent);
         finish();
     }

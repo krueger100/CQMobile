@@ -1,7 +1,6 @@
 package com.example.cq_mobile.ui.ticket;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,12 +24,9 @@ import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager
 import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
-import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
 import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
-import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
-import com.example.cq_mobile.ui.ticket.ReplyTicketFolder.ReplyTicket;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketCategoryManager;
 import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchManager;
@@ -38,7 +34,6 @@ import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TicketFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener {

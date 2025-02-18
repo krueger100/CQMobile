@@ -15,8 +15,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
@@ -27,8 +25,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.ClockINApiManager;
-import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.StartJobApiManager;
-import com.example.cq_mobile.Clock.ViewListFolder.ViewListActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
@@ -37,19 +33,16 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessT
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilterNotificationManager;
 import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotificationResponse;
-import com.example.cq_mobile.NotificationData.ShowNotificationActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
 import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
 
 
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -64,13 +57,16 @@ public class ClockActivity extends AppCompatActivity {
     private TextView checkInButton, viewListButton;
     ImageView nav_drawer;
     String password;
-     String saved_accessToken ,saved_userId;
+     String saved_accessToken ;
+   int saved_userId;
     private String accessToken;
     int userId;
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
     private static final String NOTIFICATION_CHANNEL_ID = "default_channel";
     private static final String TAG = "ClockActivity";
     ProgressBar progressBar;
+    String Name;
+    String avatar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,14 +78,13 @@ public class ClockActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String accessToken = intent.getStringExtra("accessToken");
-         userId = intent.getIntExtra("userId", -1);  // Default value is -1 if not found
+         userId = intent.getIntExtra("userId", -1);
         String firstName = intent.getStringExtra("firstName");
         String lastName = intent.getStringExtra("lastName");
         String email1 = intent.getStringExtra("email");
         String password1 = intent.getStringExtra("password");
-
-        progressBar = findViewById(R.id.progressBar); // Ensure it's initialized before passing
-
+        avatar = intent.getStringExtra("avatar");
+        progressBar = findViewById(R.id.progressBar);
 
 
         // If any of the intent values are null, retrieve from SharedPreferences
@@ -97,26 +92,28 @@ public class ClockActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
             boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
              saved_accessToken = sharedPreferences.getString("accessToken", null);
-             saved_userId = sharedPreferences.getString("userId", null);
+             saved_userId = Integer.parseInt(sharedPreferences.getString("userId", null));
             String saved_firstName = sharedPreferences.getString("firstName", null);
             String saved_lastName = sharedPreferences.getString("lastName", null);
             String saved_email = sharedPreferences.getString("email", null);
             String saved_password = sharedPreferences.getString("password", null);
+             avatar = sharedPreferences.getString("avatar", null);
             String email =  saved_email;
              password = saved_password;
+            String Name_sh = firstName +" "+ lastName;
             AccessTokenRequest request = new AccessTokenRequest(email, password);
-            getAccessToken(request);
+            getAccessToken(request,Name_sh,saved_userId,avatar,accessToken);
+            Log.d("ClockActivity", "Avatar: SharedPreferences " + avatar);
+
         } else {
             String email =  email1;
              password = password1;
+            String Name = firstName +" "+ lastName;
             AccessTokenRequest request = new AccessTokenRequest(email, password);
-            getAccessToken(request);
+            getAccessToken(request,Name,userId,avatar,accessToken);
         }
 
-
-
-
-
+         Name = firstName +" "+ lastName;
 
     }
 
@@ -129,14 +126,14 @@ public class ClockActivity extends AppCompatActivity {
         if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Notification permission granted!", Toast.LENGTH_SHORT).show();
-                initializeViews();
+                initializeViews(Name,userId,avatar,accessToken,avatar);
             } else {
                 Toast.makeText(this, "Notification permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void getAccessToken(AccessTokenRequest request) {
+    private void getAccessToken(AccessTokenRequest request, String name, int userId, String avatar_path, String accessToken) {
         // Create an instance of the API service
         AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
 
@@ -153,27 +150,26 @@ public class ClockActivity extends AppCompatActivity {
                         AccessTokenResponse accessTokenResponse = response.body();
 
                         // Extract the access token safely
-                        accessToken = accessTokenResponse.getAccessToken() != null
+                        ClockActivity.this.accessToken = accessTokenResponse.getAccessToken() != null
                                 ? accessTokenResponse.getAccessToken()
                                 : "N/A";
 
                         // Extract user information safely
                         if (accessTokenResponse.getUser() != null) {
                             AccessTokenResponse.User user = accessTokenResponse.getUser();
-                            userId = user.getId() > 0 ? user.getId() : -1;
+                            ClockActivity.this.userId = user.getId() > 0 ? user.getId() : -1;
                             String firstName = user.getFirstName() != null ? user.getFirstName() : "N/A";
                             String lastName = user.getLastName() != null ? user.getLastName() : "N/A";
                             String email = user.getEmail() != null ? user.getEmail() : "N/A";
                             String avatarUrl = user.getAvatar();
 
-                            if (userId > 0) {
-                                Log.d("ClockActivity", "Access Token: " + accessToken);
-                                Log.d("ClockActivity", "User ID: " + userId);
+                            if (ClockActivity.this.userId > 0) {
+                                Log.d("ClockActivity", "Access Token: " + ClockActivity.this.accessToken);
+                                Log.d("ClockActivity", "User ID: " + ClockActivity.this.userId);
                                 Log.d("ClockActivity", "User First Name: " + firstName);
                                 Log.d("ClockActivity", "User Last Name: " + lastName);
                                 Log.d("ClockActivity", "User Email: " + email);
                                 Log.d("ClockActivity", "Avatar URL: " + avatarUrl);
-
 
                                 // Request notification permissions if required
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -185,10 +181,10 @@ public class ClockActivity extends AppCompatActivity {
                                                 NOTIFICATION_PERMISSION_REQUEST_CODE
                                         );
                                     } else {
-                                        initializeViews();
+                                        initializeViews(name,userId,avatar_path,accessToken,avatarUrl);
                                     }
                                 } else {
-                                    initializeViews();
+                                    initializeViews(name,userId,avatar_path,accessToken,avatarUrl);
 
                                 }
 
@@ -198,12 +194,12 @@ public class ClockActivity extends AppCompatActivity {
                                 SharedPrefManager sharedPrefManager = new SharedPrefManager(ClockActivity.this);
                                 String finalAvatarUrl = avatarUrl != null && !avatarUrl.isEmpty()
                                         ? avatarUrl
-                                        : "2/uploads/contacts/avatars/colleague_avatar_31734941421.png";
+                                        : avatar;
 
-                                sharedPrefManager.saveUserData(accessToken, String.valueOf(userId), firstName, lastName, email, finalAvatarUrl, password);
-                                NotifFilter(accessToken, userId);
+                                sharedPrefManager.saveUserData(ClockActivity.this.accessToken, String.valueOf(ClockActivity.this.userId), firstName, lastName, email, finalAvatarUrl, password);
+                                NotifFilter(ClockActivity.this.accessToken, ClockActivity.this.userId);
                             } else {
-                                Log.e("ClockActivity", "Invalid user ID: " + userId);
+                                Log.e("ClockActivity", "Invalid user ID: " + ClockActivity.this.userId);
                             }
                         } else {
                             Log.e("ClockActivity", "User data is null");
@@ -231,23 +227,26 @@ public class ClockActivity extends AppCompatActivity {
     }
 
 
-    private void initializeViews() {
+    private void initializeViews(String name, int userId, String avatar_path, String accessToken, String avatarUrl) {
         // Initialize views using findViewById
         clockView = findViewById(R.id.analogClock);
         TextView digitalClock = findViewById(R.id.digitalClock);
         checkInButton = findViewById(R.id.check_in);
-        viewListButton = findViewById(R.id.viewlist);
-
 
         digitalClockManager = new DigitalClockManager(digitalClock);
-
-
         digitalClockManager.startClock();
 
-        checkInButton.setOnClickListener(v -> {
-            if (accessToken != null && userId > 0) {
 
-                ClockINApiManager.clockIN(5682, 774, 7672, progressBar, accessToken, new ClockINApiManager.ApiCallback() {
+        Log.w("ClockActivity", "Access Token: " + accessToken);
+        Log.w("ClockActivity", "User ID: " + userId);
+        Log.w("ClockActivity", "User  Name: " + name);
+        Log.w("ClockActivity", "User Avatar: " + avatarUrl);
+
+
+        checkInButton.setOnClickListener(v -> {
+            if (this.accessToken != null && this.userId > 0) {
+
+                ClockINApiManager.clockIN(5682, 774, 7672, progressBar, this.accessToken, new ClockINApiManager.ApiCallback() {
                     @Override
                     public void onSuccess() {
                         Log.d("ClockActivity", "Clock IN Successful");
@@ -277,6 +276,9 @@ public class ClockActivity extends AppCompatActivity {
                 editor.putBoolean("ClockInSuccess", true);
                 editor.apply();
                 Intent intent = new Intent(ClockActivity.this, MainActivity.class);
+                intent.putExtra("username", name);
+                intent.putExtra("user_id", userId);
+                intent.putExtra("avatar", avatar_path);
                 startActivity(intent);
                 finish();
 
@@ -286,11 +288,7 @@ public class ClockActivity extends AppCompatActivity {
         });
 
 
-        viewListButton.setOnClickListener(v -> {
-            Log.d("ClockActivity", "View-list button clicked");
-            Intent intent = new Intent(ClockActivity.this, ViewListActivity.class);
-            startActivity(intent);
-        });
+
     }
 
 
@@ -311,6 +309,7 @@ public class ClockActivity extends AppCompatActivity {
                     String avatarUrl = notification.getAvatar();
                     String title = notification.getTitle();
                     String message = notification.getDescription();
+                    int id =  notification.getId();
 
                     displayNotification(ClockActivity.this, title, message, avatarUrl);
 

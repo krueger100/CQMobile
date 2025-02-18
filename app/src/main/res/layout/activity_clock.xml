@@ -102,18 +102,6 @@
             android:textColor="@color/white"
             android:textSize="24sp" />
 
-        <TextView
-            android:id="@+id/viewlist"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="26dp"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/check_in_btn"
-            android:gravity="center"
-            android:text="View List"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
 
     </LinearLayout>
 

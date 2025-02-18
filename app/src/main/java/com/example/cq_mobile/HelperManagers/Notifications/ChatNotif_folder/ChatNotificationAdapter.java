@@ -1,5 +1,4 @@
-package com.example.cq_mobile.ui.chat;
-
+package com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,14 +13,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.bumptech.glide.Glide;
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
+import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
 import com.example.cq_mobile.ui.chat.InnerChatsFolder.InnerChats;
-import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
+import com.example.cq_mobile.ui.chat.sendMessageFolder.UpdateReadAPIManager;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -29,8 +29,9 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
-    private static final String TAG = "ChatAdapter";
+
+public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificationAdapter.ViewHolder> {
+    private static final String TAG = "ChatNotificationAdapter";
     private List<ChatDetails> chatList;
     private Context context;
     private String email;
@@ -40,8 +41,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     String chatCount;
     int message_read;
 
-
-    public ChatAdapter(Context context, List<ChatDetails> chatList, String accessToken, String email, String password, ProgressBar progressBar, String chatCount, int message_read) {
+    public ChatNotificationAdapter(Context context, List<ChatDetails> chatList, String accessToken, String email, String password, ProgressBar progressBar, String chatCount, int message_read) {
         this.context = context;
         this.email = email;
         this.password = password;
@@ -55,13 +55,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     @NonNull
     @Override
-    public ChatViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_chat, parent, false);
-        return new ChatViewHolder(view);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_chat_notification, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ChatDetails chatItem = chatList.get(position);
 
         if (chatItem == null) {
@@ -72,6 +72,20 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
         int chatChannels = chatItem.getChannel();
 
+        UpdateReadAPIManager.updateReadStatus(chatChannels, accessToken, new UpdateReadAPIManager.ApiCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("ChatAdapter", "Total Unread Messages: " + "Read status updated successfully!");
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(context, "Failed to update read status: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+
         // Set the chat name
         holder.chatName.setText(chatItem.getChatName() != null ? chatItem.getChatName() : "Unknown Chat");
 
@@ -79,8 +93,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         String receivers_name = chatItem.getChatName() != null ? chatItem.getChatName() : "No Receiver Name";
         String senders_name = chatItem.getName() != null ? chatItem.getName() : "No Senders Name";
 
-        int id = (chatItem.getId() != null) ? Integer.parseInt(chatItem.getId()) : 0;
-        Log.w("ChatAdapter", "ID:---->>> " + id );
+//        int id = (chatItem.getId() != null) ? Integer.parseInt(chatItem.getId()) : 0;
+//        Log.w("ChatAdapter", "ID:---->>> " + id );
 
         List<ChatMessage> messages = chatItem.getMessages();
 
@@ -127,7 +141,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         }
 
 
-
         // Load the avatar image for the chat
         String avatarPath = chatItem.getAvatarPath();
         if (avatarPath != null && !avatarPath.isEmpty()) {
@@ -142,14 +155,9 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
         // Handle item click
         holder.itemView.setOnClickListener(v -> {
-            Log.d("ITEMS_COLLEGUE", "Item clicked: Channel=" + chatChannels + ", Receiver=" + receivers_name +",  Sender=  , "+senders_name +  "  SenderID=  , "+id);
-            if (members == null || members.isEmpty()) {
-                Log.e(TAG, "No members found for this chat. Aborting click action.");
-                Toast.makeText(context, "No contact data available.", Toast.LENGTH_SHORT).show();
-                return;
-            }
             TransitionAnimationManager.zoomOut(v, 100);
             v.postDelayed(() -> {
+
                 TransitionAnimationManager.zoomIn(v, 50);
                 // Start a new activity with necessary data   messagesList
                 Intent intent = new Intent(context, InnerChats.class);
@@ -162,7 +170,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 intent.putExtra("Avatar", chatItem.getAvatarPath());
 
 
-
                 Gson gson = new Gson();
                 String membersJson = gson.toJson(members);
                 intent.putExtra("chatAPIData", membersJson);
@@ -172,10 +179,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
                 context.startActivity(intent);
             }, 100);
+
+
+
+
         });
 
     }
-
     @Override
     public int getItemCount() {
         return chatList.size();
@@ -188,18 +198,44 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             notifyDataSetChanged();
         }
     }
-
-    static class ChatViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView chatName,chatCount;
         CircleImageView chatAvatar;
 
-        public ChatViewHolder(@NonNull View itemView) {
+
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
             chatName = itemView.findViewById(R.id.chatName);
             chatAvatar = itemView.findViewById(R.id.avatar);
             chatCount = itemView.findViewById(R.id.chatCount);
-
         }
     }
 }
 
+        /*
+
+
+            holder.senderTextView.setText(notification.getSender());
+        holder.messageTextView.setText(notification.getText());
+        holder.timeTextView.setText(notification.getTime());
+
+
+        int channelId = notification.getChannel();
+        Log.d("ChatNotificationAdapter", "--------------->>>>>>>>>>>>"+ channelId);
+
+        UpdateReadAPIManager.updateReadStatus(channelId, accessToken, new UpdateReadAPIManager.ApiCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("ChatNotificationAdapter", "Read status updated successfully");
+
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(context, "Failed to update read status: " + error, Toast.LENGTH_SHORT).show();
+                Log.d("ChatNotificationAdapter", "Failed to update read status: " + error);
+
+            }
+        });
+
+         */

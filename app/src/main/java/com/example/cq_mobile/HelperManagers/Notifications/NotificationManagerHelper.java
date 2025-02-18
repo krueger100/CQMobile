@@ -1,5 +1,6 @@
 package com.example.cq_mobile.HelperManagers.Notifications;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -7,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 
 import androidx.annotation.Nullable;
@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder.ChatReceiver;
 import com.example.cq_mobile.R;
 
 public class NotificationManagerHelper {
@@ -52,12 +53,16 @@ public class NotificationManagerHelper {
 
     public void showNotification(String title, String content, String avatarUrl, String time, String date, String channelUrl) {
         String fullContent = content + "\n📅 " + date + " 🕒 " + time;
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aws.customquoter.co.uk/tasks?task=" + channelUrl));
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+
+        Intent intent = new Intent(context, ChatReceiver.class);
+        intent.putExtra("channel_url", channelUrl);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
 
         int notificationId = (title + time + date).hashCode();
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+        @SuppressLint("NotificationTrampoline") NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.nav_chat)
                 .setContentTitle(title)
                 .setContentText("Tap to view details")
@@ -75,7 +80,7 @@ public class NotificationManagerHelper {
                 .into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                        NotificationCompat.Builder updatedBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                        @SuppressLint("NotificationTrampoline") NotificationCompat.Builder updatedBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                                 .setSmallIcon(R.drawable.nav_chat)
                                 .setContentTitle(title)
                                 .setContentText("Tap to view details")
@@ -96,3 +101,5 @@ public class NotificationManagerHelper {
                 });
     }
 }
+//        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aws.customquoter.co.uk/tasks?task=" + channelUrl));
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

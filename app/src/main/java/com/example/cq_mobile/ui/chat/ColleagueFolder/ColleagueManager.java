@@ -9,6 +9,8 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIResponse;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatApi;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -26,6 +28,7 @@ public class ColleagueManager {
     private final Context context;
     private Call<AccessTokenResponse> call;
     private Call<ColleagueAPIResponse> call2;
+    private Call<ChatAPIResponse> call3;
 
     public ColleagueManager(Context context) {
         this.context = context;
@@ -88,6 +91,10 @@ public class ColleagueManager {
                         return;
                     }
 
+                    for (ColleagueAPIItem item : colleague) {
+                        Log.d("ColleagueManager", "Colleague: " + item.getName()
+                                + ", Channel: " + item.getChannel());
+                    }
 
                     callback.onAllColleaguesLoaded(colleague, rawJson);  // Pass both chats and rawJson
 
@@ -104,6 +111,67 @@ public class ColleagueManager {
                 callback.onError(t.getMessage());
             }
         });
+    }
+
+
+
+
+
+    public void loadChats(int page, int pageSize, final AllChatsCallback callback) {
+        if (accessToken == null) {
+            callback.onError("Access token is missing.");
+            return;
+        }
+
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+
+        ChatApi chatApi = retrofit.create(ChatApi.class);
+        call3 = chatApi.getChats(page, pageSize, accessToken, "Bearer " + accessToken);
+
+        call3.enqueue(new Callback<ChatAPIResponse>() {
+            @Override
+            public void onResponse(Call<ChatAPIResponse> call2, Response<ChatAPIResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String rawJson = new Gson().toJson(response.body()); // Convert response to JSON string
+                    Log.d("ChatManager", "Raw JSON Response: " + rawJson);
+
+                    if (response.body().getData() == null) {
+                        Log.e("ChatManager", "getData() is null! Check API response structure.");
+                        return;
+                    }
+
+                    List<ChatAPIItem> chats = response.body().getData().getChats();
+                    if (chats == null || chats.isEmpty()) {
+                        Log.e("ChatManager", "Chat list is null or empty!");
+                        return;
+                    }
+
+
+
+
+
+                    callback.onAllChatsLoaded(chats, rawJson);  // Pass both chats and rawJson
+                } else {
+                    Log.e("ChatManager", "API Response error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ChatAPIResponse> call2, Throwable t) {
+                // Handle the failure
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+
+    public interface AllChatsCallback {
+        void onAllChatsLoaded(List<ChatAPIItem> chats, String rawJson);
+        void onError(String errorMessage);
     }
 
 

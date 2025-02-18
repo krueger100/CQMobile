@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
 }
-
 android {
     namespace = "com.example.cq_mobile"
     compileSdk = 34
@@ -14,7 +13,6 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -36,8 +34,14 @@ android {
         viewBinding = true
     }
 
-
+    // Correct Kotlin DSL for packaging options
+    packaging {
+        resources {
+            excludes += "META-INF/DEPENDENCIES"
+        }
+    }
 }
+
 
 dependencies {
     implementation(libs.appcompat)
@@ -92,6 +96,7 @@ dependencies {
 
 
     implementation ("com.google.firebase:firebase-messaging:23.3.1")
+    implementation ("com.google.auth:google-auth-library-oauth2-http:1.17.0")
 
 
 }

@@ -13,6 +13,7 @@
         android:background="@drawable/baseline_circle"
         android:elevation="15dp"
         android:scaleType="centerCrop"
+        android:layout_marginEnd="10dp"
         android:src="@drawable/emptyglide"
         app:layout_constraintBottom_toTopOf="@+id/messageContainer"
         app:layout_constraintEnd_toEndOf="@+id/messageContainer"
@@ -20,14 +21,18 @@
         app:layout_constraintTop_toTopOf="@+id/messageContainer" />
 
 
+
+
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/messageContainer"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_marginEnd="25dp"
+        android:layout_marginEnd="35dp"
         android:background="@drawable/background_white"
         android:elevation="5dp"
         android:padding="10dp"
+        android:layout_marginTop="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/guideline3"

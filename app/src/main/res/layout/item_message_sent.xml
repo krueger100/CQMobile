@@ -20,11 +20,12 @@ android:padding="5dp">
     app:layout_constraintTop_toTopOf="@+id/messageContainer" />
 
 
+
 <androidx.constraintlayout.widget.ConstraintLayout
     android:id="@+id/messageContainer"
     android:layout_width="0dp"
     android:layout_height="match_parent"
-    android:layout_marginStart="25dp"
+    android:layout_marginStart="30dp"
     android:background="@drawable/background_white"
     android:elevation="5dp"
     android:padding="10dp"

@@ -19,6 +19,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String date = data.get("date");
         String channelUrl = data.get("channel");
 
+
         // Use the NotificationManagerHelper to show the notification
         NotificationManagerHelper.getInstance(getApplicationContext())
                 .showNotification(title, content, avatarUrl, time, date, channelUrl);

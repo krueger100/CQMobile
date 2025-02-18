@@ -75,9 +75,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     MapCameraManager mapCameraManager;
     ProgressBar progress_circular;
     ProgressBar progress_circular_2;
-TextView category_todo;
-ImageView statusImageView;
-LinearLayout notes,folder,docs,sheets;
+    TextView category_todo;
+    ImageView statusImageView;
+    LinearLayout notes, folder, docs, sheets;
     private NewBuildButtonManager newBuildButtonManager;
     String taskId;
     String jobId;
@@ -85,6 +85,7 @@ LinearLayout notes,folder,docs,sheets;
     String cqLocal = "https://aws.customquoter.co.uk";
     List<String> sheetTitlesList;
     List<String> sheetOtherTitlesList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

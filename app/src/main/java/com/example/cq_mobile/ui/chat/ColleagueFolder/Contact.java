@@ -10,6 +10,17 @@ public class Contact {
     private String email;
     private String channel;
 
+    public Contact(int id, String name, String avatar_path, String initials, String online, String color, String email, String channel) {
+        this.id = id;
+        this.name = name;
+        this.avatar_path = avatar_path;
+        this.initials = initials;
+        this.online = online;
+        this.color = color;
+        this.email = email;
+        this.channel = channel;
+    }
+
     // Getters and Setters
     public int getId() {
         return id;

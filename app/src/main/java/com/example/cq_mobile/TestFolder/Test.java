@@ -56,7 +56,7 @@ public class Test extends AppCompatActivity {
             String password = passwordField.getText().toString().trim();
 
             if (validateInputs(email, password)) {
-                performLogin(email, password);
+             //   performLogin(email, password);
             }
         });
     }
@@ -73,6 +73,7 @@ public class Test extends AppCompatActivity {
         return true;
     }
 
+    /*
     private void performLogin(String email, String password) {
         progressBar.setVisibility(View.VISIBLE);
 
@@ -128,6 +129,8 @@ public class Test extends AppCompatActivity {
             }
         });
     }
+
+     */
 
     private void handleErrorResponse(Response<Void> response) {
         // Handle error response, show error message

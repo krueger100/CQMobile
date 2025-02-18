@@ -1,5 +1,7 @@
 package com.example.cq_mobile.ui.chat.ColleagueFolder;
 
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
+
 import java.util.List;
 
 public class ColleagueAPIItem {
@@ -10,12 +12,29 @@ public class ColleagueAPIItem {
     private String sender;
     private String chat_name;
     private String avatar_path;
-    private String members;
+    private List<ChatMember> members;  //
     private String message_read;
     private String name;
-    private List<Contact> contacts;  // Updated to handle a list of contacts
+    private List<Contact> contacts;  //
+    private String avatar_path_new;
+    String channel;
 
-    // Getters and Setters
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public String getAvatar_path_new() {
+        return avatar_path_new;
+    }
+
+    public void setAvatar_path_new(String avatar_path_new) {
+        this.avatar_path_new = avatar_path_new;
+    }
+
     public List<Contact> getContacts() {
         return contacts;
     }
@@ -38,14 +57,6 @@ public class ColleagueAPIItem {
 
     public void setMessage_read(String message_read) {
         this.message_read = message_read;
-    }
-
-    public String getMembers() {
-        return members;
-    }
-
-    public void setMembers(String members) {
-        this.members = members;
     }
 
     public int getId() {
@@ -102,5 +113,13 @@ public class ColleagueAPIItem {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public List<ChatMember> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<ChatMember> members) {
+        this.members = members;
     }
 }

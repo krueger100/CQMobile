@@ -3,10 +3,11 @@ package com.example.cq_mobile.LoginFolder;
 public class LoginRequest {
     private String email;
     private String password;
-
-    public LoginRequest(String email, String password) {
+   String  avatar;
+    public LoginRequest(String email, String password,String avatar) {
         this.email = email;
         this.password = password;
+        this.avatar = avatar;
     }
 
     // Getters and setters
@@ -24,5 +25,13 @@ public class LoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 }
