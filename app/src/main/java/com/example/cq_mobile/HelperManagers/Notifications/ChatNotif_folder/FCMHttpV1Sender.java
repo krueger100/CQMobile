@@ -15,7 +15,7 @@ public class FCMHttpV1Sender {
     private static final Logger logger = Logger.getLogger(FCMHttpV1Sender.class.getName());
     private static final String PROJECT_ID = "cqbms-app";
     private static final String FCM_URL = "https://fcm.googleapis.com/v1/projects/" + PROJECT_ID + "/messages:send";
-    private static final String SERVICE_ACCOUNT_FILE = "C:/Users/carlo/AndroidStudioProjects/CQ_mobile/app/src/main/resources/service-account.json";
+    private static final String SERVICE_ACCOUNT_FILE = "C:/Users/carlo/AndroidStudioProjects/CQ_mobile/app/src/main/resources/service_account.json";
 
     public static void sendPushNotification(String token, String title, String body) {
         try {
@@ -94,9 +94,9 @@ public class FCMHttpV1Sender {
 
 FIREBASE:
 
-public class PushNotificationManager extends FirebaseMessagingService {
+public class GetNotificationToken extends FirebaseMessagingService {
 
-    private static final String TAG = "PushNotificationManager";
+    private static final String TAG = "GetNotificationToken";
     private static final String CHANNEL_ID = "chat_channel";
 
     public static void getToken(Context context) {

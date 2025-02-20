@@ -9,6 +9,8 @@ import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.example.cq_mobile.HelperManagers.CacheFolder.CacheManager;
 import com.example.cq_mobile.R;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,7 +49,7 @@ public class ColleaguesPageFragment extends Fragment {
     List<ChatDetails> chatDetailsList;
     SwipeRefreshLayout swipeRefreshLayout;
 
-
+    CacheManager cacheManager;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -108,6 +110,7 @@ public class ColleaguesPageFragment extends Fragment {
             public void onAccessTokenReceived(String token) {
                 accessToken = token;
                 Log.d("ColleaguesPageFragment", "Access Token received: " + token);
+
                 loadColleaguesWithToken(progressBar,token, getContext(),email , password, currentUserName);
 
             }

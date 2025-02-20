@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
+import com.example.cq_mobile.LogoutFolder.LogoutNotificationManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMoreBinding;
@@ -40,6 +41,9 @@ public class MoreFragment extends Fragment {
         String password = sharedPrefManager.getPassword();
         String avatar = sharedPrefManager.getAvatarUrl();
 
+        String notificationToken = sharedPrefManager.getNotiftoken();
+
+
         // Log user data
         Log.d("MoreFragment", "Retrieved User Data: ");
         Log.d("MoreFragment", "Access Token: " + accessToken);
@@ -49,7 +53,7 @@ public class MoreFragment extends Fragment {
         Log.d("MoreFragment", "Email: " + email);
         Log.d("MoreFragment", "Password: " + password);
         Log.d("MoreFragment", "Avatar: " + avatar);
-
+        Log.d("MoreFragment", "notificationToken: " + notificationToken);
         // Set user data to UI
         binding.name.setText(firstName + " " + lastName);
 
@@ -75,9 +79,21 @@ public class MoreFragment extends Fragment {
         binding.loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Show progress bar and perform logout
-                binding.progressBar.setVisibility(View.VISIBLE);
-                LogoutManager.logoutUser(requireContext());
+                LogoutNotificationManager logoutManager = new LogoutNotificationManager();
+                logoutManager.deleteNotificationToken(userId, new LogoutNotificationManager.LogoutCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("MoreFragment", "Notification token deleted successfully.");
+                        binding.progressBar.setVisibility(View.VISIBLE);
+                        LogoutManager.logoutUser(requireContext());
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Log.e("MoreFragment", "Failed to delete notification token: " + errorMessage);
+                    }
+                });
+
             }
         });
 
@@ -90,3 +106,17 @@ public class MoreFragment extends Fragment {
         binding = null; // Clean up binding to avoid memory leaks
     }
 }
+
+/*
+{
+  "rules": {
+    "users": {
+      "$user_id": {
+        ".read": "true",  // Allow anyone to read, authenticated or not
+        ".write": "auth != null && auth.uid == $user_id"  // Only authenticated users can write to their own node
+      }
+    }
+  }
+}
+
+ */

@@ -97,6 +97,7 @@ dependencies {
 
     implementation ("com.google.firebase:firebase-messaging:23.3.1")
     implementation ("com.google.auth:google-auth-library-oauth2-http:1.17.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
 
 
 }

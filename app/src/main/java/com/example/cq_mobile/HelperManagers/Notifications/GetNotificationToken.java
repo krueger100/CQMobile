@@ -18,9 +18,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-public class PushNotificationManager extends FirebaseMessagingService {
+public class GetNotificationToken extends FirebaseMessagingService {
 
-    private static final String TAG = "PushNotificationManager";
+    private static final String TAG = "GetNotificationToken";
     private static final String CHANNEL_ID = "chat_channel";
 
     public interface TokenCallback {
@@ -123,9 +123,9 @@ public class PushNotificationManager extends FirebaseMessagingService {
 
 FIREBASE:
 
-public class PushNotificationManager extends FirebaseMessagingService {
+public class GetNotificationToken extends FirebaseMessagingService {
 
-    private static final String TAG = "PushNotificationManager";
+    private static final String TAG = "GetNotificationToken";
     private static final String CHANNEL_ID = "chat_channel";
 
     public static void getToken(Context context) {

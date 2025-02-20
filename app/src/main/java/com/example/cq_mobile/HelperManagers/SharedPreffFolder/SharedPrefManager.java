@@ -2,6 +2,7 @@ package com.example.cq_mobile.HelperManagers.SharedPreffFolder;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class SharedPrefManager {
     private static final String PREF_NAME = "UserPreferences";
@@ -12,6 +13,7 @@ public class SharedPrefManager {
     private static final String KEY_EMAIL = "email";
     private static final String KEY_PASSWORD = "password";
     private static final String KEY_AVATAR = "avatarUrl";
+    private static final String NOTIFTOKEN = "notifToken";
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
@@ -21,7 +23,7 @@ public class SharedPrefManager {
     }
 
     // Save user data
-    public void saveUserData(String accessToken, String userId, String firstName, String lastName, String email, String avatarUrl,String password) {
+    public void saveUserData(String accessToken, String userId, String firstName, String lastName, String email, String avatarUrl, String password, String token) {
         editor.putString(KEY_ACCESS_TOKEN, accessToken);
         editor.putString(KEY_USER_ID, userId);
         editor.putString(KEY_FIRST_NAME, firstName);
@@ -29,7 +31,14 @@ public class SharedPrefManager {
         editor.putString(KEY_EMAIL, email);
         editor.putString(KEY_PASSWORD, password);
         editor.putString(KEY_AVATAR, avatarUrl);
+        editor.putString(NOTIFTOKEN, token);
         editor.apply();
+    }
+    public void saveNewNotificationToken( String token) {
+        editor.putString(NOTIFTOKEN, token);
+        editor.apply();
+        Log.w("MainActivity", "saveNewNotificationToken   -->> Updated");
+
     }
 
     // Retrieve user data
@@ -60,6 +69,11 @@ public class SharedPrefManager {
     public String getAvatarUrl() {
         return sharedPreferences.getString(KEY_AVATAR, null);
     }
+
+    public String getNotiftoken() {
+        return sharedPreferences.getString(NOTIFTOKEN, null);
+    }
+
 
     // Clear user data
     public void clearUserData() {

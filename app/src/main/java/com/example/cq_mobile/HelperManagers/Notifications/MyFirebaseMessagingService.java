@@ -1,11 +1,14 @@
 package com.example.cq_mobile.HelperManagers.Notifications;
 
+import android.util.Log;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
+    private static final String TAG = "FCMService";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -19,6 +22,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String date = data.get("date");
         String channelUrl = data.get("channel");
 
+
+        Log.d(TAG, "Received message from senderToken: "+title+" - "+content);
 
         // Use the NotificationManagerHelper to show the notification
         NotificationManagerHelper.getInstance(getApplicationContext())

@@ -54,14 +54,13 @@ public class NotificationManagerHelper {
     public void showNotification(String title, String content, String avatarUrl, String time, String date, String channelUrl) {
         String fullContent = content + "\n📅 " + date + " 🕒 " + time;
 
-
         Intent intent = new Intent(context, ChatReceiver.class);
         intent.putExtra("channel_url", channelUrl);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-
         int notificationId = (title + time + date).hashCode();
 
+        // Initial notification setup
         @SuppressLint("NotificationTrampoline") NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.nav_chat)
                 .setContentTitle(title)
@@ -70,8 +69,6 @@ public class NotificationManagerHelper {
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
-
-        notificationManager.notify(notificationId, builder.build());
 
         // Load avatar image asynchronously
         Glide.with(context)
@@ -85,7 +82,7 @@ public class NotificationManagerHelper {
                                 .setContentTitle(title)
                                 .setContentText("Tap to view details")
                                 .setStyle(new NotificationCompat.BigTextStyle().bigText(fullContent))
-                                .setLargeIcon(resource)
+                                .setLargeIcon(resource)  // Set the avatar as large icon
                                 .setAutoCancel(true)
                                 .setContentIntent(pendingIntent)
                                 .setPriority(NotificationCompat.PRIORITY_HIGH);
@@ -100,6 +97,49 @@ public class NotificationManagerHelper {
                     public void onLoadFailed(@Nullable Drawable errorDrawable) {}
                 });
     }
+
+    public void showNotification(String title, String content, Bitmap avatarBitmap, String time, String date, String channelUrl) {
+        String fullContent = content + "\n📅 " + date + " 🕒 " + time;
+
+        Intent intent = new Intent(context, ChatReceiver.class);
+        intent.putExtra("channel_url", channelUrl);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        int notificationId = (title + time + date).hashCode();
+
+        // Initial notification setup
+        @SuppressLint("NotificationTrampoline") NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.nav_chat)
+                .setContentTitle(title)
+                .setContentText("Tap to view details")
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(fullContent))
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        // Use the passed Bitmap directly
+        @SuppressLint("NotificationTrampoline") NotificationCompat.Builder updatedBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.nav_chat)
+                .setContentTitle(title)
+                .setContentText("Tap to view details")
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(fullContent))
+                .setLargeIcon(avatarBitmap)  // Use the passed Bitmap as large icon
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        notificationManager.notify(notificationId, updatedBuilder.build());
+    }
+
+
+
 }
+
+/*
+notif Auth
+ya29.a0AXeO80S1pEG5mqFEZkmltCiL3yDf6s-1AXrIzpPpP64o_mG93856aWHja2HFSsrDZ7hUfEsC-6scXbyjLP91-TgtWZE102yJmYQUadTp0a8UhE5HSVjMknywn9fyW-CNbkpEdIxbUoqYXxZ58ae1Dh03n7vkxg_TM8ZRps8caCgYKAbcSARMSFQHGX2Mi4wxhPivRkc79eVhnTgGKaA0175
+ */
+
+
 //        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aws.customquoter.co.uk/tasks?task=" + channelUrl));
 //        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

@@ -160,7 +160,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 intent.putExtra("Sender", senders_name);
                 intent.putExtra("Receiver", receivers_name);
                 intent.putExtra("Avatar", chatItem.getAvatarPath());
-
+                intent.putExtra("id", id);
 
 
                 Gson gson = new Gson();

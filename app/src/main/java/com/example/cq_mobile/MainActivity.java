@@ -9,15 +9,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -30,16 +27,16 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
 
+import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
 import com.example.cq_mobile.HelperManagers.Notifications.NotificationManagerHelper;
-import com.example.cq_mobile.HelperManagers.Notifications.PushNotificationManager;
+import com.example.cq_mobile.HelperManagers.Notifications.ShowNotifFolder.ShowNotificationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
 import com.example.cq_mobile.UserDetailsFolder.UseDetails;
-import com.example.cq_mobile.NotificationData.APIResponceFolder.FilterNotificationManager;
-import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotificationResponse;
-import com.example.cq_mobile.NotificationData.ShowNotificationActivity;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
 import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
 
@@ -49,10 +46,8 @@ import com.google.firebase.FirebaseApp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 
 
 public class MainActivity extends AppCompatActivity {
@@ -73,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
     private final int pageSize = 20;
     int message_read;
     String chatCount;
+    String avatarUrl;
+    String firstName ;
+    String lastName;
+String notification_token;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,14 +82,19 @@ public class MainActivity extends AppCompatActivity {
         sharedPreferences = this.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
         isNotificationDisplayed = sharedPreferences.getBoolean("notification_displayed", false);
 
+        FirebaseApp.initializeApp(this);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         accessToken = sharedPrefManager.getAccessToken();
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
+        avatarUrl = sharedPrefManager.getAvatarUrl();
 
         Log.d("MainActivity", "Email: " + email);
         Log.d("MainActivity", "Password: " + password);
+        Log.d("MainActivity", "Avatar: " + avatarUrl);
+
+
 
         Map<String, ?> allEntries = sharedPreferences.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
@@ -104,9 +109,10 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = binding.drawerLayout;
         navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout);
 
-        // Request notification permissions if required
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(
                         this,
@@ -114,53 +120,78 @@ public class MainActivity extends AppCompatActivity {
                         NOTIFICATION_PERMISSION_REQUEST_CODE
                 );
             } else {
-                initializeApp();
+                GetNotificationToken.setTokenCallback(token2 -> {
+                    Log.d("MainActivity", "Received token: " + token2);
+                    initializeApp(token2);
+                });
+                GetNotificationToken.getToken(this);
             }
         } else {
-            initializeApp();
+            // For older API levels, simulate permission request behavior
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_REQUEST_CODE
+                );
+            } else {
+                GetNotificationToken.setTokenCallback(token2 -> {
+                    Log.d("MainActivity", "Received token: " + token2);
+                    initializeApp(token2);
+                });
+                GetNotificationToken.getToken(this);
+            }
         }
+
+
+
+
+
+    }
+
+    private void initializeApp(String currentUser_notification_token) {
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
+        String accessToken = sharedPrefManager.getAccessToken();
+        String userId = sharedPrefManager.getUserId();
+        String avatar = sharedPrefManager.getAvatarUrl();
+        String firstName = sharedPrefManager.getFirstName();
+        String lastName = sharedPrefManager.getLastName();
+        String notificationToken = sharedPrefManager.getNotiftoken();
+
+
+        notificationToken = (notificationToken == null || notificationToken.isEmpty())
+                ? currentUser_notification_token
+                : notificationToken;
+
+        sharedPrefManager.saveNewNotificationToken(notificationToken);
+        Log.w("MainActivity", "Notification token updated: " + notificationToken);
+
+        FirebaseDataManager firebaseDataManager = new FirebaseDataManager(userId);
+        firebaseDataManager.saveUserData(accessToken, userId, avatar, firstName, lastName, notificationToken);
+
+        firebaseDataManager.retrieveUserData(new FirebaseDataManager.UserDataCallback() {
+            @Override
+            public void onUserDataRetrieved(String accessToken, String userId, String avatar, String firstName, String lastName, String notificationToken) {
+                // Use the retrieved data
+                Log.d("MainActivity", "Access Token: " + accessToken);
+                Log.d("MainActivity", "User ID: " + userId);
+                Log.d("MainActivity", "Avatar: " + avatar);
+                Log.d("MainActivity", "First Name: " + firstName);
+                Log.d("MainActivity", "Last Name: " + lastName);
+                Log.d("MainActivity", "Notification token: 2  " + notificationToken);
+
+            }
+        });
+
+        Log.w("MainActivity", "Notification token --->: " + currentUser_notification_token);
+
+        ShowNotificationManager.NotifFilter(this, accessToken, userId,isNotificationDisplayed,sharedPreferences);
 
         GetChatNotif(accessToken);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST_CODE);
-            } else {
-
-                PushNotificationManager.setTokenCallback(token -> {
-                    Log.d("MainActivity", "Received token: " + token);
-                });
-                PushNotificationManager.getToken(this);
-
-            }
-        } else {
-            PushNotificationManager.setTokenCallback(token -> {
-                Log.d("MainActivity", "Received token: " + token);
-            });
-            PushNotificationManager.getToken(this);
-
-        }
-
-
-
-
-    }
-
-    private void initializeApp() {
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
-        accessToken = sharedPrefManager.getAccessToken();
-        userId = sharedPrefManager.getUserId();
-        avatar = sharedPrefManager.getAvatarUrl();
-        // Log retrieved user data
-        Log.d(TAG, "Retrieved User Data: ");
-        Log.d(TAG, "Access Token: " + accessToken);
-        Log.d(TAG, "User ID: " + userId);
-        Log.d(TAG, "User AVATAR: " + avatar);
-
-        NotifFilter();
-
         navigationManager.setupNavigation();
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -168,9 +199,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == NOTIFICATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Notification permission granted!", Toast.LENGTH_SHORT).show();
-                PushNotificationManager.getToken(this);
+                GetNotificationToken.getToken(this);
 
-                initializeApp();
+                GetNotificationToken.setTokenCallback(token2 -> {
+                    Log.d("MainActivity", "Received token: " + token2);
+                });
+                GetNotificationToken.getToken(this);
+
             } else {
                 Toast.makeText(this, "Notification permission denied!", Toast.LENGTH_SHORT).show();
             }
@@ -182,86 +217,7 @@ public class MainActivity extends AppCompatActivity {
         return navigationManager.onSupportNavigateUp();
     }
 
-    private void NotifFilter() {
 
-        FilterNotificationManager.fetchApiDataFilterGroupNotification(this, accessToken, userId, 1, 10, new FilterNotificationManager.ApiResponseCallback() {
-            @Override
-            public void onDataFetched(List<FilteredNotificationResponse.NotificationData> data) {
-                // Handle the success response
-                Log.d("FilterNotification", "Data fetched successfully: USER " + data);
-
-                List<String> titles = new ArrayList<>();
-                List<String> avatars = new ArrayList<>();
-
-                // Iterate over the notification data to populate titles and avatars lists
-                for (FilteredNotificationResponse.NotificationData notification : data) {
-                    Log.d("NotificationGROUP", "Title: " + notification.getTitle());
-                    Log.d("NotificationGROUP", "Avatar URL: " + notification.getAvatar());
-                    titles.add(notification.getTitle());
-                    avatars.add(notification.getAvatar());
-
-
-                    if (isNotificationDisplayed) {
-                        Log.d("SharedPreferencesNotif", "TRUE");
-                        showNotification(MainActivity.this, titles, avatars);
-                    } else {
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putBoolean("notification_displayed", false);
-                        editor.apply();
-                        Log.d("SharedPreferencesNotif", "FALSE");
-                        new ArrayList<>(titles);
-                        new ArrayList<>(avatars);
-                        //      navigateToShowNotificationActivity(titles,avatars);
-                    }
-
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                // Handle the error
-                Log.e("FilterNotification", "Error fetching data: " + error);
-            }
-        });
-
-    }
-
-    private void showNotification(Context context, List<String> titles, List<String> avatars) {
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // Find ImageView by ID
-            ImageView notificationIndicator = findViewById(R.id.Notification_indication_on);
-            ImageView header_Notification = findViewById(R.id.header_Notification);
-
-            // Check if the ImageView is found
-            if (notificationIndicator != null) {
-                notificationIndicator.setVisibility(View.VISIBLE);
-                Log.d(TAG, "Notification indicator set to VISIBLE because there are notifications");
-            } else {
-                Log.e(TAG, "Notification indicator not found in the layout");
-            }
-
-            // Set up click listener if header_Notification is found
-            if (header_Notification != null) {
-                header_Notification.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        RetrieveStoredNoticationData(titles, avatars);
-                    }
-                });
-            } else {
-                Log.e(TAG, "Header notification not found in the layout");
-            }
-        }, 1000);
-    }
-
-    private void RetrieveStoredNoticationData(List<String> titles, List<String> avatars) {
-        Intent intent = new Intent(MainActivity.this, ShowNotificationActivity.class);
-        intent.putStringArrayListExtra("teamNames", new ArrayList<>(titles));
-        intent.putStringArrayListExtra("teamAvatars", new ArrayList<>(avatars));
-        startActivity(intent);
-
-
-    }
 
     private void GetChatNotif(String accessToken) {
         ChatsNotificationsApiManager.fetchChatNotifications(accessToken, new ChatsNotificationsApiManager.ApiCallback() {
@@ -277,17 +233,34 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("GetChatNotif", "Chat Notification Response: \n" + jsonResponse);
                     Log.d("GetChatNotif", "SIZE: " + notifications.size());
 
-
                     // Send notifications using FMC
                     for (ChatNotificationItem notification : notifications) {
-                        NotificationManagerHelper.getInstance(getApplicationContext()).showNotification(
-                                        notification.getSender(),
-                                        notification.getText(),
-                                        notification.getAvatar(),
-                                        notification.getTime(),
-                                        notification.getDate(),
-                                        String.valueOf(notification.getChannel())
-                                );
+                         avatarUrl = notification.getAvatar();
+
+                        // Check if avatar URL is null or empty
+                        if (avatarUrl == null || avatarUrl.isEmpty()) {
+                            // If avatar URL is null or empty, set a drawable resource as fallback
+                            Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.emptyglide);
+                            Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();  // Convert the drawable to a Bitmap
+
+                            NotificationManagerHelper.getInstance(getApplicationContext()).showNotification(
+                                    notification.getSender(),
+                                    notification.getText(),
+                                    bitmap,
+                                    notification.getTime(),
+                                    notification.getDate(),
+                                    String.valueOf(notification.getChannel())
+                            );
+                        } else {
+                            NotificationManagerHelper.getInstance(getApplicationContext()).showNotification(
+                                    notification.getSender(),
+                                    notification.getText(),
+                                    avatarUrl,
+                                    notification.getTime(),
+                                    notification.getDate(),
+                                    String.valueOf(notification.getChannel())
+                            );
+                        }
                     }
 
                     // Send notifications Local
@@ -388,17 +361,56 @@ public class MainActivity extends AppCompatActivity {
 
 }
 
-
-
-
-
-
-
-
-
-
 ///|----------------------------------------------|
+/*
 
+    // Request notification permissions if required
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_REQUEST_CODE
+                );
+            } else {
+                GetNotificationToken.setTokenCallback(token2 -> {
+                    Log.d("MainActivity", "Received token: " + token2);
+                    initializeApp(token2);
+                });
+                GetNotificationToken.getToken(this);
+            }
+        } else {
+            GetNotificationToken.setTokenCallback(currentUser_notification_token -> {
+                Log.d("MainActivity", "Received token: " + currentUser_notification_token);
+                initializeApp(currentUser_notification_token);
+            });
+            GetNotificationToken.getToken(this);
+
+        }
+
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST_CODE);
+            } else {
+
+                GetNotificationToken.setTokenCallback(token2 -> {
+                    Log.d("MainActivity", "Received token: " + token2);
+                });
+                GetNotificationToken.getToken(this);
+
+            }
+        } else {
+            GetNotificationToken.setTokenCallback(token2 -> {
+                Log.d("MainActivity", "Received token: " + token2);
+            });
+            GetNotificationToken.getToken(this);
+
+        }
+
+ */
 
 
       /*

@@ -36,6 +36,7 @@ import com.example.cq_mobile.NotificationData.APIResponceFolder.FilteredNotifica
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
 import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 
 import android.widget.ImageView;
@@ -67,6 +68,7 @@ public class ClockActivity extends AppCompatActivity {
     ProgressBar progressBar;
     String Name;
     String avatar;
+    String token;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -181,23 +183,36 @@ public class ClockActivity extends AppCompatActivity {
                                                 NOTIFICATION_PERMISSION_REQUEST_CODE
                                         );
                                     } else {
-                                        initializeViews(name,userId,avatar_path,accessToken,avatarUrl);
+                                        initializeViews(name, userId, avatar_path, accessToken, avatarUrl);
                                     }
                                 } else {
-                                    initializeViews(name,userId,avatar_path,accessToken,avatarUrl);
+                                    initializeViews(name, userId, avatar_path, accessToken, avatarUrl);
 
                                 }
 
+                                FirebaseMessaging.getInstance().getToken()
+                                        .addOnCompleteListener(task -> {
+                                            if (!task.isSuccessful()) {
+                                                Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                                                return;
+                                            }
+
+                                            // Get the new FCM registration token
+                                            token = task.getResult();
 
 
-                                // Save user data to SharedPreferences
-                                SharedPrefManager sharedPrefManager = new SharedPrefManager(ClockActivity.this);
-                                String finalAvatarUrl = avatarUrl != null && !avatarUrl.isEmpty()
-                                        ? avatarUrl
-                                        : avatar;
+                                            SharedPrefManager sharedPrefManager = new SharedPrefManager(ClockActivity.this);
+                                            String finalAvatarUrl = avatarUrl != null && !avatarUrl.isEmpty()
+                                                    ? avatarUrl
+                                                    : avatar;
 
-                                sharedPrefManager.saveUserData(ClockActivity.this.accessToken, String.valueOf(ClockActivity.this.userId), firstName, lastName, email, finalAvatarUrl, password);
-                                NotifFilter(ClockActivity.this.accessToken, ClockActivity.this.userId);
+                                            sharedPrefManager.saveUserData(ClockActivity.this.accessToken, String.valueOf(ClockActivity.this.userId), firstName, lastName, email, finalAvatarUrl, password, token);
+                                            NotifFilter(ClockActivity.this.accessToken, ClockActivity.this.userId);
+
+
+                                            Log.d(TAG, "FCM Token: " + token);
+                                        });
+
                             } else {
                                 Log.e("ClockActivity", "Invalid user ID: " + ClockActivity.this.userId);
                             }

@@ -4,8 +4,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -16,7 +14,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.cardview.widget.CardView;
@@ -25,11 +22,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.cq_mobile.FirebaseUserData.FirebaseRetrieveDataManager;
+import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
+import com.example.cq_mobile.HelperManagers.Notifications.FCM;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
-import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.sendMessageFolder.SendMessageApiManager;
@@ -62,6 +61,7 @@ public class InnerChats extends AppCompatActivity {
     private String email;
     private String password;
 
+
     private boolean isLoading = false;
     private String accessToken;
     private ImageView chatOff;
@@ -69,8 +69,10 @@ public class InnerChats extends AppCompatActivity {
     CardView cardView4;
     ImageView showChatInput;
     String avatar_url;
-   String hhtpAvatar_url;
-   LinearLayout l_1;
+    String hhtpAvatar_url;
+    LinearLayout l_1;
+    String receiverId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +85,9 @@ public class InnerChats extends AppCompatActivity {
         password = sharedPrefManager.getPassword();
         String username = sharedPrefManager.getFirstName() +" "+ sharedPrefManager.getLastName();
         String currentUserID = sharedPrefManager.getUserId();
+
+
+
 
         ProgressBar progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
@@ -104,16 +109,17 @@ public class InnerChats extends AppCompatActivity {
         accessToken = intent.getStringExtra("token");
          avatar_url = intent.getStringExtra("Avatar_url");
         hhtpAvatar_url =  " https://customquoteruk-live-uploads.s3.eu-west-2.amazonaws.com/"+avatar_url;
-       String email = intent.getStringExtra("Email");
-        String id = String.valueOf(getIntent().getIntExtra("id", 0));
+
+        String email = intent.getStringExtra("Email");
+        receiverId = String.valueOf(getIntent().getIntExtra("id", 0));
         String source = getIntent().getStringExtra("source_adapter");
+
 
 
         if (source != null && source.equals("ColleagueAdapter")) {
             Log.d("InnerChats", "Launched from ColleagueAdapter");
 
         }
-
 
 
         Glide.with(this)
@@ -171,6 +177,9 @@ public class InnerChats extends AppCompatActivity {
 
         Log.d("InnerChats", "Received Channel: " + channel);
 
+        Log.w("InnerChats", "Receiver ID --->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + receiverId);
+        FirebaseRetrieveDataManager firebaseRetrieveDataManager = new FirebaseRetrieveDataManager(receiverId);
+
 
 
         String chatMessagesJson = getIntent().getStringExtra("chatAPIData");
@@ -191,6 +200,7 @@ public class InnerChats extends AppCompatActivity {
         }
 
         chatOff.setOnClickListener(v -> {
+            ClickAnimationManager.applyClickAnimation(v);
             v.postDelayed(() -> {
                 showChatInput.setVisibility(View.VISIBLE);
                 v.postDelayed(() -> {
@@ -231,8 +241,8 @@ public class InnerChats extends AppCompatActivity {
         String hhtpAvatar_urlSender;
 
         try {
-            if (id != null && !id.isEmpty()) {
-                receiverMemberId = Integer.parseInt(id);
+            if (receiverId != null && !receiverId.isEmpty()) {
+                receiverMemberId = Integer.parseInt(receiverId);
                 currentUserId = Integer.parseInt(currentUserID);
             } else {
                 receiverMemberId = 0;
@@ -304,9 +314,11 @@ public class InnerChats extends AppCompatActivity {
 
 
         }
-
         AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
-        getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username,currentUserID,avatar_receiver,hhtpAvatar_url);
+        getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username,currentUserID,avatar_receiver,hhtpAvatar_url,firebaseRetrieveDataManager);
+
+
+
 
         recyclerView_messages.setHasFixedSize(true);
         recyclerView_messages.setLayoutManager(new LinearLayoutManager(this));
@@ -314,13 +326,113 @@ public class InnerChats extends AppCompatActivity {
 
 
 
+
     }
 
 
-
-
     private void getAccessTokenAndLoadChats(AccessTokenRequest tokenRequest, ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, int secondMemberId, String avatar_receiver,
-                                            String currentUser, String username, String currentUserID, String hhtpAvatar_url) {
+                                            String currentUser, String username, String currentUserID, String hhtpAvatar_url, FirebaseRetrieveDataManager firebaseRetrieveDataManager) {
+
+
+        firebaseRetrieveDataManager.retrieveUserData(new FirebaseRetrieveDataManager.UserDataCallback() {
+            @Override
+            public void onUserDataRetrieved(String userId, String notificationToken) {
+                if (userId != null && notificationToken != null) {
+                    Log.w(TAG, "User ID:  -------------->> " + userId + ", Token: -------------->>  " + notificationToken);
+
+
+                    messageManager.getAccessToken(tokenRequest, new MessageManager.AccessTokenCallback() {
+                        @Override
+                        public void onAccessTokenReceived(String token) {
+                            accessToken = token;
+                            Log.d("InnerChats", "|-  AccessTokenAndLoadChats  -| ");
+                            Log.d("InnerChats", "Access Token received: " + token);
+                            Log.d("InnerChats", "Receiver Avatar: " + avatar_receiver);
+                            Log.d("InnerChats", "Receiver ID: " + secondMemberId);
+                            Log.d("InnerChats", "CurrentUser Name: " + currentUser);
+                            Log.d("InnerChats", "CurrentUser ID: " + id);
+                            Log.d("InnerChats", "CurrentUser Avatar: " + hhtpAvatar_url);
+
+
+                            sendButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    ClickAnimationManager.applyClickAnimation(v);
+                                    String receiver = String.valueOf(secondMemberId);
+                                    String chatchannel = String.valueOf(channel);
+                                    String sender = String.valueOf(id);
+                                    String message = messageInput.getText().toString().trim();
+                                    String avatar = avatar_receiver;
+                                    String date = "2025-02-03";
+                                    String time = "11:02:59 PM";
+                                    String name = currentUser;
+
+                                    if (!message.isEmpty()) {
+                                        SendMessageApiManager.sendMessage(receiver, chatchannel, sender, message, avatar, date, time, name, token, new SendMessageApiManager.ApiCallback() {
+                                            @Override
+                                            public void onSuccess() {
+                                                messageInput.post(() -> {
+                                                    Toast.makeText(v.getContext(), "Message sent successfully!", Toast.LENGTH_SHORT).show();
+                                                    messageInput.setText("");
+
+                                                    InnerChatAPIItem newMessage = new InnerChatAPIItem();
+                                                    newMessage.setSender(sender);
+                                                    newMessage.setMessage(message);
+                                                    newMessage.setAvatar_path(avatar);
+                                                    newMessage.setName(name);
+
+
+                                                    sendFCMNotification(notificationToken, message, currentUser);
+
+                                                    // ✅ Update RecyclerView
+                                                    messagesAdapter.addMessage(newMessage);
+                                                    recyclerView_messages.scrollToPosition(messagesAdapter.getItemCount() - 1);
+
+                                                });
+                                            }
+
+                                            @Override
+                                            public void onFailure(String error) {
+                                                messageInput.post(() ->
+                                                        Toast.makeText(v.getContext(), "Failed to send message: " + error, Toast.LENGTH_SHORT).show()
+                                                );
+                                            }
+                                        });
+                                    } else {
+                                        Toast.makeText(v.getContext(), "Message cannot be empty!", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+
+                            loadChatsWithToken(progressBar, id, channel, membersList, username, currentUserID, hhtpAvatar_url);
+                        }
+
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            Log.e("InnerChats", "Error fetching access token: " + errorMessage);
+                            progressBar.setVisibility(View.GONE);
+
+
+                        }
+                    });
+
+
+                } else {
+                    Log.d(TAG, "No user data found.");
+                    UserHasNoNotificationToken(tokenRequest, progressBar, id, channel, membersList, secondMemberId, avatar_receiver,
+                            currentUser, username, currentUserID, hhtpAvatar_url, firebaseRetrieveDataManager);
+
+
+                }
+            }
+        });
+
+
+    }
+
+    private void UserHasNoNotificationToken(AccessTokenRequest tokenRequest, ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, int secondMemberId, String avatar_receiver, String currentUser, String username, String currentUserID, String hhtpAvatar_url, FirebaseRetrieveDataManager firebaseRetrieveDataManager) {
+
         messageManager.getAccessToken(tokenRequest, new MessageManager.AccessTokenCallback() {
             @Override
             public void onAccessTokenReceived(String token) {
@@ -329,15 +441,14 @@ public class InnerChats extends AppCompatActivity {
                 Log.d("InnerChats", "Access Token received: " + token);
                 Log.d("InnerChats", "Receiver Avatar: " + avatar_receiver);
                 Log.d("InnerChats", "Receiver ID: " + secondMemberId);
-                Log.d("InnerChats", "CurrentUser Name: " + currentUser);
+                Log.d("InnerChats", "CurrentUser Name: " + InnerChats.this.currentUser);
                 Log.d("InnerChats", "CurrentUser ID: " + id);
-                Log.d("InnerChats", "CurrentUser Avatar: " + hhtpAvatar_url);
-
-
+                Log.d("InnerChats", "CurrentUser Avatar: " + InnerChats.this.hhtpAvatar_url);
 
                 sendButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        ClickAnimationManager.applyClickAnimation(v);
                         String receiver = String.valueOf(secondMemberId);
                         String chatchannel = String.valueOf(channel);
                         String sender = String.valueOf(id);
@@ -345,7 +456,7 @@ public class InnerChats extends AppCompatActivity {
                         String avatar = avatar_receiver;
                         String date = "2025-02-03";
                         String time = "11:02:59 PM";
-                        String name = currentUser;
+                        String name = InnerChats.this.currentUser;
 
                         if (!message.isEmpty()) {
                             SendMessageApiManager.sendMessage(receiver, chatchannel, sender, message, avatar, date, time, name, token, new SendMessageApiManager.ApiCallback() {
@@ -380,18 +491,39 @@ public class InnerChats extends AppCompatActivity {
                         }
                     }
                 });
-
-
-                loadChatsWithToken(progressBar, id, channel, membersList,username,currentUserID,hhtpAvatar_url);
+                loadChatsWithToken(progressBar, id, channel, membersList,username,currentUserID, InnerChats.this.hhtpAvatar_url);
             }
-
             @Override
             public void onError(String errorMessage) {
                 Log.e("InnerChats", "Error fetching access token: " + errorMessage);
                 progressBar.setVisibility(View.GONE);
             }
         });
+
     }
+
+    private void sendFCMNotification(String notificationToken, String message, String currentUser) {
+        new Thread(() -> {
+            try {
+
+                String tok = "cJ8_yGiBThWD_elJuKGugN:APA91bFBQHDPLoq2mORQqQ6e7AuPg5Yhe4rLag7r82ImIZ1rKFHBWQ0_cTgVDQSqQd1PZGItWzkZvoiYOwLIYBxIfhSQPAF1-5_GXQ4rxymxVTRLMxQD1as";
+                String token = "dh2HSw3oRpC1S4n-4OoNif:APA91bH2reoSsMuZVtApoh8fOxfXqiLrzV-Qls_u85qEqRgJGREOi-_EJX7HgxuXHGWz7W8SSzYT_cxOyy1VEdPq7NbBRZ26qnCQxrXQxej5-Fq6oWadQuU";
+                String title = "Hello!";
+                String body = "This is a test notification";
+
+                FCM fcm = new FCM();
+                fcm.sendNotification(getApplicationContext(), notificationToken, currentUser, message);
+
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error sending notification: " + e.getMessage(), e);
+            }
+        }).start();
+    }
+
+
+
+
 
     private void loadChatsWithToken(ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, String username, String currentUserID, String hhtpAvatar_url) {
         if (isLoading) return;
@@ -516,7 +648,7 @@ public class InnerChats extends AppCompatActivity {
                     l_1.setVisibility(View.VISIBLE);
                     cardView4.setVisibility(View.VISIBLE);
                     showChatInput.setVisibility(View.GONE);
-                    
+
                     dialog.dismiss();
 
                 })

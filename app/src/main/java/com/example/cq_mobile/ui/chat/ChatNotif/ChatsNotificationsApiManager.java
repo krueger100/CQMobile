@@ -1,6 +1,9 @@
 package com.example.cq_mobile.ui.chat.ChatNotif;
 
 import android.util.Log;
+
+import com.google.gson.Gson;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -36,10 +39,12 @@ public class ChatsNotificationsApiManager {
             public void onResponse(Call<NotificationAPIResponse> call, Response<NotificationAPIResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Log.d(TAG, "Notifications fetched successfully");
+                    Log.d(TAG, "Response Body: " + new Gson().toJson(response.body()));  // Log the response data
                     callback.onSuccess(response.body());
                 } else {
                     String errorResponse = response.errorBody() != null ? response.errorBody().toString() : "Unknown error";
                     Log.e(TAG, "Request Failed: " + response.code() + " - " + errorResponse);
+                    Log.e(TAG, "Error Response Body: " + errorResponse);  // Log detailed error response
                     callback.onFailure("Failed to fetch notifications: " + errorResponse);
                 }
             }
@@ -47,8 +52,10 @@ public class ChatsNotificationsApiManager {
             @Override
             public void onFailure(Call<NotificationAPIResponse> call, Throwable t) {
                 Log.e(TAG, "Error fetching notifications: " + t.getMessage(), t);
+                Log.e(TAG, "Exception details: ", t);  // Log full exception stack trace
                 callback.onFailure("Error fetching notifications: " + t.getMessage());
             }
         });
     }
 }
+//?token=11049|JsORTQetZ0a7zWElGUBtsxyK0CuFeNBqNJm8z3aV
