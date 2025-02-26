@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.databinding.FragmentMapBinding;;
+import com.example.cq_mobile.databinding.FragmentMapBinding;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.RouteApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.Routemain;
 import com.example.cq_mobile.ui.map.RouteFolder.RouteManager;

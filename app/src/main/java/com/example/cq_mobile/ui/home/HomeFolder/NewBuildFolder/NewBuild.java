@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -20,11 +22,15 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
+import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
+import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
+import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
@@ -32,10 +38,8 @@ import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.DocsFolder.DocsActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.SheetsFolder.SheetsAcitivy;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.DocsFilesManager;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
 import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.AllFileItem;
@@ -51,6 +55,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +68,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private NavigationManagerForNewBuild navigationManager;
-    TextView showBottomSheet;
+    TextView showBottomSheet,start_job;
     private SetupMainTaskManager setupMainTaskManager;
     private SetupRecyclerViewManager setupRecyclerViewManager;
     private Marker marker;
@@ -82,6 +87,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     String taskId;
     String jobId;
     String accessToken;
+    String userId;
+    String email ;
+    String password ;
     String cqLocal = "https://aws.customquoter.co.uk";
     List<String> sheetTitlesList;
     List<String> sheetOtherTitlesList;
@@ -106,13 +114,13 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
          accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
+         userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
-        String email = sharedPrefManager.getEmail();
-
+         email = sharedPrefManager.getEmail();
+         password = sharedPrefManager.getPassword();
         Log.d("NewBuild", "Retrieved User Data: ");
-        Log.d("NewBuild", "Access Token: " + accessToken);
+
         Log.d("NewBuild", "User ID: " + userId);
 
         customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
@@ -123,6 +131,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         progress_circular = findViewById(R.id.progress_circular);
         progress_circular_2 = findViewById(R.id.progress_circular_2);
         statusImageView = findViewById(R.id.statusImageView);
+        start_job = findViewById(R.id.start_job);
 
 
 
@@ -137,7 +146,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
 
 
         // Handle Job ------------------>>
-        SheetsFilesManager sheetsFilesManager = new SheetsFilesManager(this, accessToken);
+      /*  SheetsFilesManager sheetsFilesManager = new SheetsFilesManager(this, accessToken);
         sheetsFilesManager.loadFiles(cqLocal, Integer.parseInt(jobId), 1, 10, sheets_job, new SheetsFilesManager.FilesCallback() {
             @Override
             public void onFilesLoaded(List<AllFileItem> files) {
@@ -168,7 +177,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
             @Override
             public void onError(String errorMessage) {
                 // Handle the error
-                Log.e("SheetsFilesManager", "Error: " + errorMessage);
+                Log.e("SheetsFilesManager", "Error: --->>> " + errorMessage);
             }
         });
 
@@ -187,9 +196,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
             @Override
             public void onError(String errorMessage) {
                 // Handle the error
-                Log.e("MainActivity", "Error: " + errorMessage);
+                Log.e("NewBuild", "Error: --->>> " + errorMessage);
             }
         });
+
+       */
         // Handle Job <<--------------------
 
 
@@ -204,7 +215,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
 
 
-
     }
 
     @Override
@@ -212,10 +222,21 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         this.googleMap = googleMap;
         routeNewBuildManager.setGoogleMap(googleMap);
 
-        setupRecyclerViewManager = new SetupRecyclerViewManager(NewBuild.this, findViewById(R.id.recycler_view));
-        setupMainTaskManager = new SetupMainTaskManager(NewBuild.this, googleMap, findViewById(R.id.task_title), findViewById(R.id.task_description),
-                findViewById(R.id.task_location), findViewById(R.id.task_number), findViewById(R.id.spinner_task),
-                NewBuild.this, category_todo, statusImageView);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            setupRecyclerViewManager = new SetupRecyclerViewManager(NewBuild.this, findViewById(R.id.recycler_view));
+            setupMainTaskManager = new SetupMainTaskManager(
+                    NewBuild.this,
+                    googleMap,
+                    findViewById(R.id.task_title),
+                    findViewById(R.id.task_description),
+                    findViewById(R.id.task_location),
+                    findViewById(R.id.task_number),
+                    findViewById(R.id.spinner_task),
+                    NewBuild.this,
+                    category_todo,
+                    statusImageView
+            );
+        }, 2000);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -232,7 +253,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
+
+
                 Log.d("MapLoad", "Google Map has fully loaded");
+
+
                 checkBoxData(jobId, accessToken, taskId, progress_circular_2);
                 navigationInitialization();
 
@@ -308,10 +333,21 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
                 mapCameraManager.setDestination(userLocation, taskLatLng);
                 progress_circular.setVisibility(View.GONE);
 
+                try {
+                    int parsedUserId = Integer.parseInt(userId);
+                    int parsedJobId = Integer.parseInt(jobId);
+
+                    start_Job(parsedUserId, parsedJobId, email, password, latitude, longitude);
+                } catch (NumberFormatException e) {
+                    Log.e("start_Job", "Invalid userId or jobId: " + e.getMessage());
+                }
+
+
 
             } else {
                 Log.e("onCoordinatesReceived", "Invalid LatLng: " + latitude + ", " + longitude);
                 progress_circular.setVisibility(View.GONE);
+
 
             }
         } else {
@@ -320,6 +356,129 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
 
         }
     }
+
+    private void start_Job(int userId, int jobId, String email, String password, Double latOut, Double longOut) {
+
+        start_job.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AccessTokenRequest request = new AccessTokenRequest(email, password);
+                StartJobAPIManager startJobAPIManager = new StartJobAPIManager();
+                Gson gson = new Gson();
+                ClickAnimationManager.applyClickAnimation(v);
+
+                Log.d("start_Job", "Access Token: " + accessToken);
+                Log.d("start_Job", "userId: " + userId);
+                Log.d("start_Job", "jobId: " + jobId);
+                Log.d("start_Job", "email: " + email);
+                Log.d("start_Job", "latOut: " + latOut);
+                Log.d("start_Job", "longOut: " + longOut);
+
+                startJobAPIManager.startJobWithToken(userId, jobId, latOut, longOut, request, new StartJobAPIManager.ApiCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                        StartJobResponse startJobResponse = gson.fromJson(response, StartJobResponse.class);
+                        Log.d("StartJob", "Job started successfully: " + response);
+
+                        if (startJobResponse != null && startJobResponse.isSuccess()) {
+                            // Get main message
+                            String message = startJobResponse.getMessage();
+                            Log.d("StartJob", "Server Message: " + message);
+
+                            // Check for additional message (message2)
+                            StartJobResponse.Data data = startJobResponse.getData();
+                            if (data != null) {
+                                String message2 = data.getMessage2();
+                                if (message2 != null && !message2.isEmpty()) {
+                                    Log.d("StartJob", "Additional Message: " + message2);
+                                }
+
+                                // Log Data fields
+                                Log.d("StartJob", "Status: " + data.getStatus());
+                                Log.d("StartJob", "Event: " + data.getEvent());
+
+                                // Handle Work Object
+                                StartJobResponse.Data.Work work = data.getWork();
+                                if (work != null) {
+                                    Log.d("StartJob", "Work ID: " + work.getId());
+                                    Log.d("StartJob", "Organization ID: " + work.getOrganization_id());
+                                    Log.d("StartJob", "User ID: " + work.getUser_id());
+                                    Log.d("StartJob", "Job ID: " + work.getJob_id());
+                                    Log.d("StartJob", "Start Time: " + work.getStart_time());
+                                    Log.d("StartJob", "End Time: " + work.getEnd_time());
+
+                                    // Handle Remarks (coordinates)
+                                    StartJobResponse.Data.Work.Remarks remarks = work.getRemarks();
+                                    if (remarks != null) {
+                                        Log.d("StartJob", "Latitude: " + remarks.getLat());
+                                        Log.d("StartJob", "Longitude: " + remarks.getLongitude());
+                                    } else {
+                                        Log.d("StartJob", "No location info available in remarks.");
+                                    }
+
+                                    // Handle Job inside Work
+                                    StartJobResponse.Data.Work.Job job = work.getJob();
+                                    if (job != null) {
+                                        Log.d("StartJob", "Job Title: " + job.getTitle());
+                                        Log.d("StartJob", "Job Description: " + job.getDescription());
+                                        Log.d("StartJob", "Job Status: " + job.getJob_status());
+                                    } else {
+                                        Log.d("StartJob", "No job info available.");
+                                    }
+                                } else {
+                                    Log.d("StartJob", "No work info available.");
+                                }
+                            } else {
+                                Log.d("StartJob", "No data section in response.");
+                            }
+                        } else {
+                            Log.e("StartJob", "Failed response or success flag is false.");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("StartJob", "Failed to start job: " + error);
+                    }
+                });
+            }
+        });
+
+
+
+    }
+
+    /*
+
+    @Override
+public void onSuccess(String response) {
+    Log.d("StartJob", "Job started successfully: " + response);
+
+    // Initialize Gson
+    Gson gson = new Gson();
+
+    // Parse the JSON response into StartJobResponse object
+    StartJobResponse startJobResponse = gson.fromJson(response, StartJobResponse.class);
+
+    // Access fields from the parsed response
+    if (startJobResponse != null && startJobResponse.success) {
+        String message = startJobResponse.message;
+        String workMessage = startJobResponse.data != null ? startJobResponse.data.message2 : "No work message";
+
+        Log.d("StartJob", "Server Message: " + message);
+        Log.d("StartJob", "Work Status: " + workMessage);
+
+        // Example: Access job title
+        if (startJobResponse.data != null && startJobResponse.data.work != null && startJobResponse.data.work.job != null) {
+            String jobTitle = startJobResponse.data.work.job.title;
+            Log.d("StartJob", "Job Title: " + jobTitle);
+        }
+    } else {
+        Log.e("StartJob", "Failed response or success flag is false.");
+    }
+}
+
+     */
 
 
     private void checkBoxData(String jobId, String accessToken, String taskId, ProgressBar progress_circular_2) {
@@ -364,12 +523,10 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
             } catch (NumberFormatException e) {
                 Log.e("checkBoxData", "Invalid Job ID or Task ID: " + jobId + ", " + taskId);
                 progress_circular_2.setVisibility(View.GONE);
-                Toast.makeText(this, "Invalid Job or Task ID format", Toast.LENGTH_SHORT).show();
             }
         } else {
             Log.e("checkBoxData", "Job ID or Task ID is null or empty.");
             progress_circular_2.setVisibility(View.GONE);
-            Toast.makeText(this, "Job ID or Task ID cannot be null or empty", Toast.LENGTH_SHORT).show();
         }
     }
 

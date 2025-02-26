@@ -13,8 +13,11 @@ import android.text.style.ImageSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
@@ -39,7 +42,7 @@ public class ClockOutManager {
             DrawableCompat.setTint(drawable, ContextCompat.getColor(context, R.color.white));
 
             int drawableSize = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 20, context.getResources().getDisplayMetrics()); // Convert dp to px
+                    TypedValue.COMPLEX_UNIT_DIP, 20, context.getResources().getDisplayMetrics());
             drawable.setBounds(0, 0, drawableSize, drawableSize);
 
             ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
@@ -53,20 +56,28 @@ public class ClockOutManager {
         clockOutBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
 
-        // Clockout button listener
         clockOutBtn.setOnClickListener(v -> {
-            progressBar.setVisibility(v.VISIBLE);
+            progressBar.setVisibility(View.VISIBLE);
 
-            if (context != null) {
-                SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.clear();
-                editor.apply();
-                Log.d("ClockActivity", "Clock Out Successful");
+            int jobScheduleId = -1;
+            int taskId = 823;
+            int ticketMessageId = 208;
+            String accessToken = "11440|SCCvtwapd6CIsge4KwhlMhmmLnFCTnLN6JEoRagl";
+            int userId = 3;
 
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    progressBar.setVisibility(v.GONE);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            ClockOUTApiManager.clockOUT(jobScheduleId, taskId, ticketMessageId, progressBar, accessToken, userId, new ClockOUTApiManager.ApiCallback() {
+                @Override
+                public void onSuccess() {
+                    Log.d("ClockOutManager", "Clock Out Successful");
+
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        progressBar.setVisibility(View.GONE);
+
+                        // Clear SharedPreferences after successful clock out
+                        SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
+                        sharedPreferences.edit().clear().apply();
+
+                        // Navigate to ClockActivity
                         Intent intent = new Intent(context, ClockActivity.class);
                         intent.putExtra("key", "value");
                         context.startActivity(intent);
@@ -74,13 +85,23 @@ public class ClockOutManager {
                         if (context instanceof Activity) {
                             ((Activity) context).finish();
                         }
-                    }, 1000);
+                    });
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Log.e("ClockOutManager", "Clock Out Failed: " + error);
+
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(context, "Failed to clock out: " + error, Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
 
 
-                }, 2000);
-
-            }
         });
+
 
     }
 }

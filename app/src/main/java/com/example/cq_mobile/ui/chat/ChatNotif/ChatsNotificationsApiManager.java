@@ -3,6 +3,7 @@ package com.example.cq_mobile.ui.chat.ChatNotif;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,9 +23,13 @@ public class ChatsNotificationsApiManager {
 
     private static NotifApi getNotifApi() {
         if (retrofit == null) {
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ChatNotificationItem.class, new ChatNotificationItem.ChatNotificationItemDeserializer())
+                    .create();
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
         }
         return retrofit.create(NotifApi.class);
@@ -39,12 +44,11 @@ public class ChatsNotificationsApiManager {
             public void onResponse(Call<NotificationAPIResponse> call, Response<NotificationAPIResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Log.d(TAG, "Notifications fetched successfully");
-                    Log.d(TAG, "Response Body: " + new Gson().toJson(response.body()));  // Log the response data
+                    Log.d(TAG, "Response Body: " + new Gson().toJson(response.body()));
                     callback.onSuccess(response.body());
                 } else {
                     String errorResponse = response.errorBody() != null ? response.errorBody().toString() : "Unknown error";
                     Log.e(TAG, "Request Failed: " + response.code() + " - " + errorResponse);
-                    Log.e(TAG, "Error Response Body: " + errorResponse);  // Log detailed error response
                     callback.onFailure("Failed to fetch notifications: " + errorResponse);
                 }
             }
@@ -52,7 +56,6 @@ public class ChatsNotificationsApiManager {
             @Override
             public void onFailure(Call<NotificationAPIResponse> call, Throwable t) {
                 Log.e(TAG, "Error fetching notifications: " + t.getMessage(), t);
-                Log.e(TAG, "Exception details: ", t);  // Log full exception stack trace
                 callback.onFailure("Error fetching notifications: " + t.getMessage());
             }
         });

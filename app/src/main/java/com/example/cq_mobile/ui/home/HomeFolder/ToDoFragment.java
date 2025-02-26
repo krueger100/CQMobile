@@ -1,65 +1,71 @@
 package com.example.cq_mobile.ui.home.HomeFolder;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ImageSpan;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
+import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerService;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class ToDoFragment extends Fragment {
+
+public class ToDoFragment extends Fragment implements TimerManager.TimerListener {
 
     private RecyclerView recyclerView;
     private TodoAdapter todoAdapter;
-    private List<Todo> joblist = new ArrayList<>(); // Use List<Todo>
+    private List<Todo> joblist = new ArrayList<>();
     private ProgressBar progressBar;
     private TextView clockout_btn;
-
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
+    private TimerManager timerManager;
+    private TextView timerText;
+    private FloatingActionButton fab;
+    private BroadcastReceiver timerReceiver;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_todo, container, false);
 
-        // Initialize Views
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
         clockout_btn = view.findViewById(R.id.clockout_btn);
+        timerText = view.findViewById(R.id.timer_text);
+        fab = view.findViewById(R.id.fab_timer);
 
-        // Set up RecyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         todoAdapter = new TodoAdapter(getContext(), joblist);
@@ -67,17 +73,7 @@ public class ToDoFragment extends Fragment {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
         String accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
-        String firstName = sharedPrefManager.getFirstName();
-        String lastName = sharedPrefManager.getLastName();
-        String email = sharedPrefManager.getEmail();
-
-        Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
-        Log.d("ToDoFragmentSharedPreff", "Access Token: " + accessToken);
-        Log.d("ToDoFragmentSharedPreff", "User ID: " + userId);
-        Log.d("ToDoFragmentSharedPreff", "First Name: " + firstName);
-        Log.d("ToDoFragmentSharedPreff", "Last Name: " + lastName);
-        Log.d("ToDoFragmentSharedPreff", "Email: " + email);
+        loadMessages(accessToken);
 
         ClockOutManager clockOutManager = new ClockOutManager(getContext(),progressBar);
         clockOutManager.setupClockOutButton(clockout_btn);
@@ -99,13 +95,56 @@ public class ToDoFragment extends Fragment {
             }
         });
 
-        // Load initial data
-        loadMessages(accessToken);
+        clockout_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ClockActivity.class);
+                intent.putExtra("key", "value");
+                startActivity(intent);
+                getActivity().finish();
+            }
+        });
 
+
+        timerManager = TimerManager.getInstance();
+        timerManager.setListener(this);
+
+
+        fab.setOnClickListener(v -> {
+            MainActivity activity = (MainActivity) getActivity();
+            if (activity != null) {
+                // Stop the TimerManager
+                activity.getTimerManager().stopTimer(); // Using the correct getter
+
+                // Stop the TimerService
+                Intent stopIntent = new Intent(getContext(), TimerService.class);
+                getContext().stopService(stopIntent);
+
+                // Show a toast
+                Toast.makeText(getContext(), "Timer Stopped", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+
+        timerReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(TimerService.TIMER_UPDATE_ACTION)) {
+                    String time = intent.getStringExtra("time");
+                    timerText.setText(time);
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(TimerService.TIMER_UPDATE_ACTION);
+        ContextCompat.registerReceiver(requireActivity(), timerReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
 
         return view;
     }
+
+
 
     private void loadMessages(String accessToken) {
         if (isLoading) return; // Prevent fetching while already loading data
@@ -153,6 +192,58 @@ public class ToDoFragment extends Fragment {
                     Log.d("Paginated Data", "Error loading data: " + error);
                 });
             }
+
+
+
         });
+
     }
+
+
+    @Override
+    public void onTimerUpdate(String time) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> timerText.setText(time));
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Remove listener to avoid memory leaks
+        timerManager.setListener(null);
+    }
+
 }
+
+
+/*
+    private TimerManager timerManager;
+    private TextView timerText;
+    private FloatingActionButton fab;
+    private BroadcastReceiver timerReceiver;
+
+        timerManager = new TimerManager((TimerManager.TimerListener) this);
+        timerManager.startTimer();
+
+        timerReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String time = intent.getStringExtra("time");
+                if (timerText != null) {
+                    timerText.setText(time);
+                }
+            }
+        };
+
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(timerReceiver, new IntentFilter("TIMER_UPDATE"));
+
+        fab.setOnClickListener(v -> {
+            MainActivity activity = (MainActivity) getActivity();
+            if (activity != null) {
+                activity.getTimerManager().stopTimer(); // Using the correct getter
+                Toast.makeText(getContext(), "Timer Stopped", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+ */

@@ -1,8 +1,10 @@
 package com.example.cq_mobile.ui.ticket;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,9 +13,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,6 +28,7 @@ import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager
 import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
 import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
@@ -33,10 +38,11 @@ import com.example.cq_mobile.ui.ticket.TicketSearchFolder.TicketSearchManager;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
-public class TicketFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener {
+public class TicketFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener{
     private FragmentTicketBinding binding;
     private TicketCategoryManager ticketCategoryManager;
     private TicketSearchManager ticketSearchManager;
@@ -50,6 +56,8 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     private BottomSheetBehavior<View> bottomSheetBehavior;
     String email;
     String password;
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -65,7 +73,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         Log.d("TicketFragment", "Password  : "+password);
         context = getContext();
         ticketCategoryManager = new TicketCategoryManager(context, accessToken);
-
 
 
         setupBottomSheet();
@@ -170,11 +177,19 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
             loadCategoryTickets(accessToken);
 
 
+            registerTimerReceiver();
 
 
         }
         return root;
     }
+
+    private void registerTimerReceiver() {
+
+
+
+    }
+
 
     @Override
     public void onCategoryClick(int categoryId) {
@@ -404,26 +419,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        ticketManager.cancelAllCalls();
-        binding = null;
-    }
-
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (binding != null && binding.progressBar.getVisibility() == View.VISIBLE) {
-            Log.d("ProgressBar", "ProgressBar is visible, waiting...");
-        } else {
-            checkProgressBarAndReload();
-        }
-
-    }
 
     private void checkProgressBarAndReload() {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -459,6 +454,26 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
                 Log.d("reloadFragment", " No data, handle accordingly");
             }
         }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (binding != null && binding.progressBar.getVisibility() == View.VISIBLE) {
+            Log.d("ProgressBar", "ProgressBar is visible, waiting...");
+        } else {
+            checkProgressBarAndReload();
+        }
+
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        binding = null;
     }
 
 

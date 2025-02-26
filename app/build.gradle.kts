@@ -58,6 +58,8 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
+
+
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.android.gms:play-services-maps:19.0.0")
@@ -98,6 +100,10 @@ dependencies {
     implementation ("com.google.firebase:firebase-messaging:23.3.1")
     implementation ("com.google.auth:google-auth-library-oauth2-http:1.17.0")
     implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+
+    implementation ("androidx.room:room-runtime:2.5.0")
+    annotationProcessor ("androidx.room:room-compiler:2.5.0")
+
 
 
 }

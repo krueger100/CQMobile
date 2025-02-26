@@ -24,11 +24,11 @@ public class TicketCategoryManager {
     public void loadCategoryTickets(int page, int pageSize, final TicketsCallback callback) {
         // Construct the proper URL with the provided parameters
         String url = baseUrl + "api/m/tickets/categories?page=" + page + "&per_page=" + pageSize;
-
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
 
         TicketCategoryApi ticketCategoryApi = retrofit.create(TicketCategoryApi.class);
 

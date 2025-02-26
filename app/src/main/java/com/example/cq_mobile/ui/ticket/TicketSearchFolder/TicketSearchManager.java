@@ -9,6 +9,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIResponse;
+import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -62,10 +63,14 @@ public class TicketSearchManager {
 
     public void loadSearchTickets(int page, int pageSize, String search, int categoryId, final SearchTicketsCallback callback) {
         if (accessToken == null) {
+            Log.e("TicketSearchManager", "Access token is missing.");
             callback.onError("Access token is missing.");
             return;
         }
         String url = baseUrl + "api/m/tickets/";
+
+        Log.d("TicketSearchManager", "API URL: " + url);
+        Log.d("TicketSearchManager", "Params - Page: " + page + ", PageSize: " + pageSize + ", Search: " + search + ", CategoryID: " + categoryId);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -88,18 +93,18 @@ public class TicketSearchManager {
             @Override
             public void onResponse(Call<TicketSearchAPIResponse> call, Response<TicketSearchAPIResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Successfully received the tickets
+                    Log.d("TicketSearchManager", "Successful response: " + new Gson().toJson(response.body()));
                     callback.onSearchTicketsLoaded(response.body().getData());
                 } else {
-                    // Handle the error
                     String errorMessage = response.message() != null ? response.message() : "Unknown error";
+                    Log.e("TicketSearchManager", "API Error: " + errorMessage);
                     callback.onError(errorMessage);
                 }
             }
 
             @Override
             public void onFailure(Call<TicketSearchAPIResponse> call, Throwable t) {
-                // Handle the failure
+                Log.e("TicketSearchManager", "API Failure: " + t.getMessage());
                 callback.onError(t.getMessage());
             }
         });

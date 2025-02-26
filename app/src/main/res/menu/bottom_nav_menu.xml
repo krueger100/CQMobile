@@ -23,5 +23,5 @@
     <item
         android:id="@+id/navigation_more"
         android:icon="@drawable/more__1__2"
-        android:title="@string/nav_my_jobs" />
+        android:title="@string/nav_more" />
 </menu>

@@ -12,6 +12,12 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -153,11 +159,6 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".HelperManagers.Notifications.ChatNotif_folder.Reply_Chat"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme"/>
 
         <receiver android:name=".HelperManagers.Notifications.ChatNotif_folder.ChatReceiver"
             android:exported="false"/>
@@ -175,6 +176,13 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
+
+
+        <service
+            android:name=".Clock.ClockFolder.ClockInAPIFolder.TimerService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
+
 
 
 

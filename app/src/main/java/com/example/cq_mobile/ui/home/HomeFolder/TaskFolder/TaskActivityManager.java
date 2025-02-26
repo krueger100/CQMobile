@@ -1,6 +1,10 @@
 package com.example.cq_mobile.ui.home.HomeFolder.TaskFolder;
 
+import android.content.Intent;
 import android.util.Log;
+
+import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.MainActivity;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -94,6 +98,8 @@ public class TaskActivityManager {
                 } else {
                     // Handle error in response, e.g., show error code
                     callback.onTaskFetchError("Error: " + response.code());
+
+
                 }
             }
 

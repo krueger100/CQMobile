@@ -23,47 +23,51 @@ public class ClockINApiManager {
         void onFailure(String error);
     }
 
-    public static void clockIN(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, ApiCallback callback) {
+    public static void clockIN(int jobScheduleId, int taskId, String accessToken, int userId, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiClockINTask(jobScheduleId, taskId, ticketMessageId, progressBar, accessToken, callback));
+        executorService.execute(new ApiClockINTask(jobScheduleId, taskId, accessToken, userId, callback));
     }
 
     private static class ApiClockINTask implements Runnable {
 
         private final int jobScheduleId;
         private final int taskId;
-        private final int ticketMessageId;
-        private final ProgressBar progressBar;
         private final String accessToken;
         private final ApiCallback callback;
+        private final int userId; // ✅ Ensure userId is correctly assigned
 
-        public ApiClockINTask(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, ApiCallback callback) {
+        public ApiClockINTask(int jobScheduleId, int taskId, String accessToken, int userId, ApiCallback callback) {
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
-            this.ticketMessageId = ticketMessageId;
-            this.progressBar = progressBar;
             this.accessToken = accessToken;
+            this.userId = userId;
             this.callback = callback;
         }
-
         @Override
         public void run() {
             String baseUrl = "https://aws.customquoter.co.uk";
-            String endpoint = "/api/v1/start-working/timedIn/3";
+
+            // ✅ Ensure userId is formatted correctly
+            if (userId <= 0) {
+                Log.e(TAG, "Invalid userId: " + userId);
+                callback.onFailure("Invalid user ID");
+                return;
+            }
+
+            String endpoint = "/api/m/start-working/timed_in/" + userId;
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-            String jsonBody = String.format("{\"job_schedule_id\": %d, \"task_id\": %d, \"ticket_message_id\": %d}", jobScheduleId, taskId, ticketMessageId);
-
-            postStartClockIn(baseUrl, endpoint, accessToken, apiKey, jsonBody);
+            postStartClockIn(baseUrl, endpoint, accessToken, apiKey);
         }
 
-        private void postStartClockIn(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
+        private void postStartClockIn(String baseUrl, String endpoint, String accessToken, String apiKey) {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+            String jsonBody = "{}"; // ✅ Ensure jsonBody is properly defined
+            RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
 
             Request request = new Request.Builder()
                     .url(baseUrl + endpoint)
@@ -80,12 +84,11 @@ public class ClockINApiManager {
                     String responseBody = response.body() != null ? response.body().string() : null;
                     if (response.isSuccessful()) {
                         Log.d(TAG, "Work started successfully. Response: " + responseBody);
-                        progressBar.post(() -> progressBar.setVisibility(View.GONE));
                         callback.onSuccess();
                     } else {
                         Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());
                         Log.e(TAG, "Error Body: " + responseBody);
-                        progressBar.post(() -> progressBar.setVisibility(View.GONE));
+
                         callback.onFailure("Failed to start work: " + responseBody);
                     }
                 }
@@ -93,7 +96,6 @@ public class ClockINApiManager {
                 @Override
                 public void onFailure(okhttp3.Call call, IOException e) {
                     Log.e(TAG, "Error starting work: " + e.getMessage(), e);
-                    progressBar.post(() -> progressBar.setVisibility(View.GONE));
                     callback.onFailure("Error starting work: " + e.getMessage());
                 }
             });
@@ -103,7 +105,7 @@ public class ClockINApiManager {
 
 
 /*
-curl -X POST "https://aws.customquoter.co.uk/api/v1/start-working/timedIn/4" \
+curl -X POST "https://aws.customquoter.co.uk/api/v1/start-working/timedIn/3" \
 -H "Authorization: Bearer 7324|ydfJPOHwE5TymiX5vzSKOfbUglApfgw3sI9Y6bcG" \
 -H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
 -H "Accept: application/json" \
@@ -120,6 +122,60 @@ curl -X POST "https://aws.customquoter.co.uk/api/v1/start-working/timedIn/4" \
   "ticket_id": 178,
   "checklist_id": 497,
   "ticket_message_id": 767
+}'
+
+
+
+Clockout
+
+curl -X POST "https://aws.customquoter.co.uk/api/v1/start-working/timed_out/3" \
+-H "Authorization: Bearer 7324|ydfJPOHwE5TymiX5vzSKOfbUglApfgw3sI9Y6bcG" \
+-H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "User-Agent: PostmanRuntime/7.43.0" \
+-H "Accept-Encoding: gzip, deflate, br" \
+-H "Connection: keep-alive" \
+-d '{
+  "job_schedule_id": 5699,
+  "task_id": 828,
+  "job_schedule_ids": [5682],
+  "note_id": 125,
+  "ticket_category_id": 1,
+  "ticket_id": 192,
+  "checklist_id": 497,
+  "ticket_message_id": 767
+}'
+
+
+$ curl -X PUT "https://aws.customquoter.co.uk/api/m/start-working/timed_out/3" \
+-H "Authorization: Bearer 7324|ydfJPOHwE5TymiX5vzSKOfbUglApfgw3sI9Y6bcG" \
+-H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "User-Agent: PostmanRuntime/7.43.0" \
+-H "Accept-Encoding: gzip, deflate, br" \
+-H "Connection: keep-alive" \
+-d '{
+  "job_schedule_id": 123,
+  "task_id": 456,
+  "ticket_message_id": 789
+}'
+{"message":"Unauthenticated."}
+
+ClockOut
+curl -X PUT "https://aws.customquoter.co.uk/api/m/start-working/timed_out/379" \
+-H "Authorization: Bearer 7324|ydfJPOHwE5TymiX5vzSKOfbUglApfgw3sI9Y6bcG" \
+-H "x-api-key: BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2" \
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-H "User-Agent: PostmanRuntime/7.43.0" \
+-H "Accept-Encoding: gzip, deflate, br" \
+-H "Connection: keep-alive" \
+-d '{
+  "job_schedule_id": 123,
+  "task_id": 456,
+  "ticket_message_id": 789
 }'
 
 

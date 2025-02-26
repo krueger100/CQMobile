@@ -60,7 +60,7 @@ public class TodoApiManager {
                             callback.onError("No jobs found.");
                         }
                     } catch (JsonSyntaxException e) {
-                        Log.e("JSON Error", "Failed to parse JSON response: " + jsonResponse);
+                        Log.d("JSON Error", "Failed to parse JSON response: " + jsonResponse);
                         callback.onError("JSON parsing error: " + e.getMessage());
                     }
                 } else {

@@ -17,8 +17,8 @@
 
         <ImageView
             android:id="@+id/header_Notification"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginTop="10dp"
             android:layout_marginEnd="10dp"
             android:src="@drawable/bell"
@@ -29,13 +29,39 @@
 
         <ImageView
             android:id="@+id/Notification_indication_on"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:src="@drawable/indicator_on"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@+id/header_Notification"
             app:layout_constraintEnd_toEndOf="@+id/header_Notification"
             app:tint="#F57C00" />
 
+        <TextView
+            android:id="@+id/notification_count"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_gravity="end|top"
+            android:gravity="center"
+            android:textColor="@color/black"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/Notification_indication_on"
+            app:layout_constraintEnd_toEndOf="@+id/Notification_indication_on"
+            app:layout_constraintStart_toStartOf="@+id/Notification_indication_on"
+            app:layout_constraintTop_toTopOf="@+id/Notification_indication_on" />
+
+        <ProgressBar
+            android:id="@+id/notification_progress_bar"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerInParent="true"
+            android:elevation="15dp"
+            android:indeterminateTint="@color/cq_secondary_color"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/header_Notification"
+            app:layout_constraintEnd_toEndOf="@+id/header_Notification"
+            app:layout_constraintStart_toStartOf="@+id/header_Notification"
+            app:layout_constraintTop_toTopOf="@+id/header_Notification" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

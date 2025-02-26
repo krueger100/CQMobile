@@ -8,14 +8,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.R;
 
 import retrofit2.Call;
@@ -30,18 +33,26 @@ public class Login extends AppCompatActivity {
     String email;
     String password;
     private static final String BASE_URL = "https://aws.customquoter.co.uk/";
+    private NetworkManager networkManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-
-
-        // Hide the ActionBar if present
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
+
+
+        // -->>> Check Network Status
+        networkManager = new NetworkManager(this);
+        if (!networkManager.isConnected()) {
+            networkManager.showNoConnectionDialog();
+        } else {
+
+        }
+        // <<<-- Check Network Status
+
 
         // Initialize UI components for the login screen
         emailField = findViewById(R.id.emailInput);
@@ -51,7 +62,8 @@ public class Login extends AppCompatActivity {
 
         // Set login button click listener
         loginButton.setOnClickListener(v -> {
-             email = emailField.getText().toString().trim();
+            ClickAnimationManager.applyClickAnimation(v);
+            email = emailField.getText().toString().trim();
              password = passwordField.getText().toString().trim();
             AccessTokenRequest request = new AccessTokenRequest(email, password);
             progressBar.setVisibility(View.VISIBLE);
@@ -124,23 +136,26 @@ public class Login extends AppCompatActivity {
 
                             navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar,avatar);  // Pass data here
                         } else {
-                            Log.e("Login", "Invalid user ID: " + userId);
+                            Log.e("Login", "Invalid user ID: --->>> " + userId);
+                            networkManager.loginAPINullUserDialog();
                             progressBar.setVisibility(View.GONE);
                         }
                     } else {
                         Log.e("Login", "User data is null");
+                       networkManager.loginAPINullUserDialog();
                         progressBar.setVisibility(View.GONE);
                     }
                 } else {
-                    Log.e("Login", "Error: " + response.message());
+                    Log.e("Login", "Error:  --->>> " + response.message());
+                    networkManager.loginAPINoConnectionDialog(response.message());
                     progressBar.setVisibility(View.GONE);
                 }
             }
-
             @Override
             public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
                 // Log the failure (e.g., network error)
-                Log.e("Login", "Failure: " + t.getMessage());
+                Log.e("Login", "Failure: --->>> " + t.getMessage());
+                networkManager.loginAPIFailedDialog(t.getMessage());
             }
         });
 

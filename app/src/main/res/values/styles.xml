@@ -33,4 +33,11 @@
         <item name="android:navigationBarColor">#2D3666</item>
     </style>
 
+
+    <style name="CustomFABShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+
 </resources>

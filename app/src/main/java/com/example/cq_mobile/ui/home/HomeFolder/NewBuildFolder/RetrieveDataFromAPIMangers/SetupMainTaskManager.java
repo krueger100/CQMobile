@@ -1,6 +1,7 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -12,7 +13,6 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
@@ -114,10 +114,15 @@ public class SetupMainTaskManager {
                                     double longitude = Double.parseDouble(coordinates.getLongitude());
                                     LatLng taskLatLng = new LatLng(latitude, longitude);
 
+                                    Log.d("SetupMainTaskManager", "Parsed coordinates: Latitude = " + latitude + ", Longitude = " + longitude);
+
                                     // Pass coordinates to listener (NewBuild)
                                     if (coordinatesReceivedListener != null) {
                                         coordinatesReceivedListener.onCoordinatesReceived(latitude, longitude);
+                                    } else {
+                                        Log.e("SetupMainTaskManager", "coordinatesReceivedListener is null");
                                     }
+
 
                                     // Add marker to the map
                                     googleMap.addMarker(new MarkerOptions()
@@ -158,24 +163,20 @@ public class SetupMainTaskManager {
                     spinnerTask.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            if (position >= 0 && position < data.size()) { // Ensure position is within bounds
+                            if (position >= 0 && position < data.size()) {
                                 Taskmain selectedTask = data.get(position);
 
-                                // Set the task's title and description on the UI
                                 taskTitleView.setText(selectedTask.getName());
                                 taskDescriptionView.setText(selectedTask.getDescription());
 
-                                // Get the category and category color
                                 String categories = selectedTask.getCategory() != null && !selectedTask.getCategory().trim().isEmpty()
                                         ? selectedTask.getCategory().trim()
                                         : "No Category";
                                 String categoriesColors = String.valueOf(selectedTask.getCategory_color()).trim();
 
-                                // Set the category background using CategoryColorManager
                                 Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
                                 category_todo.setText(categories);
 
-                                // Set the category color and background
                                 if (categoriesColors != null && !categoriesColors.isEmpty()) {
                                     try {
                                         int categoryColor = Color.parseColor(categoriesColors);
@@ -190,7 +191,6 @@ public class SetupMainTaskManager {
                                     category_todo.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
                                 }
 
-                                // Set client info and address on the UI
                                 String clientInfo = selectedTask.getClient_details() != null
                                         ? selectedTask.getClient_details().getPhone()
                                         : "No client info";
@@ -227,13 +227,28 @@ public class SetupMainTaskManager {
             @Override
             public void onError(String error) {
                 ((Activity) context).runOnUiThread(() -> {
-                    Toast.makeText(context, "Error fetching data: " + error, Toast.LENGTH_SHORT).show();
+                    Log.e("SetupMainTaskManager","fetching data: " +error);
+                    showErrorDialog(context,error);
                 });
             }
         });
     }
 
-    // Interface to pass coordinates to NewBuild
+    private void showErrorDialog(Context context, String error) {
+        new AlertDialog.Builder(context)
+                .setTitle("API Response:")
+                .setMessage(error)
+                .setPositiveButton("Ok", (dialog, which) -> {
+                    if (context instanceof Activity) {
+                        ((Activity) context).finish();
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .setCancelable(false)
+                .show();
+    }
+
     public interface OnCoordinatesReceivedListener {
         void onCoordinatesReceived(double latitude, double longitude);
     }

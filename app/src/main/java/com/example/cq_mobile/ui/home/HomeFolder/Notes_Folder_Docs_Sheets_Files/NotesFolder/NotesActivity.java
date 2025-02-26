@@ -128,7 +128,9 @@ public class NotesActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<NotesResponse> call, Throwable t) {
                 isLoading = false;
-                Toast.makeText(NotesActivity.this, "Failed to load notes: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+             //   Toast.makeText(NotesActivity.this, "Failed to load notes: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(NotesActivity.this, "Empty notes: ", Toast.LENGTH_SHORT).show();
+
             }
         });
     }
