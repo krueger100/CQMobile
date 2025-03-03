@@ -16,7 +16,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 public class UserPositionMarkerManager {
 
-    private static final int DIAMETER = 150;
+    private static final int DIAMETER = 180;
     private static final int PADDING = 35;
 
     public BitmapDescriptor getCustomCircleMarkerIcon(Context context) {

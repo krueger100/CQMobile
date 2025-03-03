@@ -84,7 +84,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
          accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
+        int userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();

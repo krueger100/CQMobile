@@ -1,8 +1,7 @@
 package com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder;
 
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
+
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;

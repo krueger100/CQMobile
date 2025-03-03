@@ -1,9 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,23 +8,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.Clock.ClockActivity;
-import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerService;
+
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.Done;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.DoneAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.DoneApiManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,13 +31,11 @@ public class DoneFragment extends Fragment {
     private List<Done> donelist = new ArrayList<>();
     private ProgressBar progressBar;
     private TextView clockout_btn;
-    private TextView timerText;
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
-    private BroadcastReceiver timerReceiver;
-    private FloatingActionButton fab;
+
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_done, container, false);
@@ -56,25 +47,30 @@ public class DoneFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         doneAdapter = new DoneAdapter(getContext(), donelist);
         recyclerView.setAdapter(doneAdapter);
-        timerText = view.findViewById(R.id.timerText);
-        fab = view.findViewById(R.id.fab_timer);
+
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
         String accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
+        int userID = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();
+        int savedJobId = sharedPrefManager.getJobId();
+        int savedTaskId = sharedPrefManager.getTaskId();
 
-        Log.d("DoneFragmentSharedPreff", "Retrieved User Data: ");
-        Log.d("DoneFragmentSharedPreff", "Access Token: " + accessToken);
-        Log.d("DoneFragmentSharedPreff", "User ID: " + userId);
-        Log.d("DoneFragmentSharedPreff", "First Name: " + firstName);
-        Log.d("DoneFragmentSharedPreff", "Last Name: " + lastName);
-        Log.d("DoneFragmentSharedPreff", "Email: " + email);
 
-        ClockOutManager clockOutManager = new ClockOutManager(getContext(),progressBar);
-        clockOutManager.setupClockOutButton(clockout_btn);
+        Log.d("SkippedFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("SkippedFragmentSharedPreff", "Access Token: " + accessToken);
+        Log.d("SkippedFragmentSharedPreff", "User ID: " + userID);
+        Log.d("SkippedFragmentSharedPreff", "First Name: " + firstName);
+        Log.d("SkippedFragmentSharedPreff", "Last Name: " + lastName);
+        Log.d("SkippedFragmentSharedPreff", "Email: " + email);
+        Log.d("SkippedFragmentSharedPreff", "Retrieved Job ID: " + savedJobId);
+        Log.d("SkippedFragmentSharedPreff", "Retrieved Task ID: " + savedTaskId);
+        Log.d("SkippedFragmentSharedPreff", "Retrieved user ID: " + userID);
+
+        ClockOutManager clockOutManager = new ClockOutManager(getContext(),progressBar,savedJobId,savedTaskId,userID);
+        clockOutManager.setupClockOutButton(clockout_btn, accessToken, savedJobId);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -103,26 +99,6 @@ public class DoneFragment extends Fragment {
                 getActivity().finish();
             }
         });
-
-
-        fab.setOnClickListener(v -> {
-            MainActivity activity = (MainActivity) getActivity();
-            if (activity != null) {
-                // Stop the TimerManager
-                activity.getTimerManager().stopTimer(); // Using the correct getter
-
-                // Stop the TimerService
-                Intent stopIntent = new Intent(getContext(), TimerService.class);
-                getContext().stopService(stopIntent);
-
-                // Show a toast
-                Toast.makeText(getContext(), "Timer Stopped", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-        registerTimerReceiver();
-
 
 
         return view;
@@ -184,31 +160,5 @@ public class DoneFragment extends Fragment {
 
 
     }
-
-
-    private void registerTimerReceiver() {
-        timerReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (TimerService.TIMER_UPDATE_ACTION.equals(intent.getAction())) {
-                    String time = intent.getStringExtra("time");
-                    timerText.setText(time);  // Update Timer TextView
-                }
-            }
-        };
-
-        IntentFilter filter = new IntentFilter(TimerService.TIMER_UPDATE_ACTION);
-        ContextCompat.registerReceiver(requireActivity(), timerReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
-    }
-
-    // Unregister BroadcastReceiver to avoid memory leaks
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (timerReceiver != null) {
-            requireActivity().unregisterReceiver(timerReceiver);
-        }
-    }
-
 
 }

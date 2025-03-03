@@ -118,23 +118,24 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             doneHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    TransitionAnimationManager.zoomOut(v, 100);
+                    TransitionAnimationManager.zoomOut(v, 150);
                     v.postDelayed(() -> {
                         v.postDelayed(() -> {
                             TransitionAnimationManager.zoomIn(v, 50);
-                        }, 100);
-                        doneHolder.progressBar.setVisibility(View.VISIBLE);
-                        Intent intent = new Intent(context, NewBuild.class);
-                        intent.putExtra("job_id", id);
+                            doneHolder.progressBar.setVisibility(View.VISIBLE);
+                            Intent intent = new Intent(context, NewBuild.class);
+                            intent.putExtra("job_id", id);
 
-                        try {
-                            context.startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            doneHolder.progressBar.setVisibility(View.GONE);
-                        }
-                    }, 100);
+                            try {
+                                context.startActivity(intent);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                doneHolder.progressBar.setVisibility(View.GONE);
+                            }
+                        }, 150);
+
+                    }, 150);
 
 
                 }

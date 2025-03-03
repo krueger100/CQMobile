@@ -54,7 +54,7 @@ public class ViewListTodoFragment extends Fragment {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
         String accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
+        int userId = Integer.parseInt(String.valueOf(sharedPrefManager.getUserId()));
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();

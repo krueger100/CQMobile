@@ -4,13 +4,12 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 public class NewBuildButtonManager {
-    private LinearLayout notes, folder, docs, sheets;
+    private LinearLayout notes, folder;
 
-    public NewBuildButtonManager(LinearLayout notes, LinearLayout folder, LinearLayout docs, LinearLayout sheets) {
+    public NewBuildButtonManager(LinearLayout notes, LinearLayout folder) {
         this.notes = notes;
         this.folder = folder;
-        this.docs = docs;
-        this.sheets = sheets;
+
     }
 
     // Example method to show/hide buttons
@@ -18,23 +17,20 @@ public class NewBuildButtonManager {
         int visibility = isVisible ? View.VISIBLE : View.GONE;
         notes.setVisibility(visibility);
         folder.setVisibility(visibility);
-        docs.setVisibility(visibility);
-        sheets.setVisibility(visibility);
+
     }
 
     // Example method to add click listeners
     public void setButtonClickListener(View.OnClickListener listener) {
         notes.setOnClickListener(listener);
         folder.setOnClickListener(listener);
-        docs.setOnClickListener(listener);
-        sheets.setOnClickListener(listener);
+
     }
 
     // Example method to update button states
     public void updateButtonStates(boolean isEnabled) {
         notes.setEnabled(isEnabled);
         folder.setEnabled(isEnabled);
-        docs.setEnabled(isEnabled);
-        sheets.setEnabled(isEnabled);
+
     }
 }

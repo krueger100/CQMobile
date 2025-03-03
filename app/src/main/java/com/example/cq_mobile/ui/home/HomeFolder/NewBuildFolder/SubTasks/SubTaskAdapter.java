@@ -124,7 +124,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
 
             SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
             String accessToken = sharedPrefManager.getAccessToken();
-            String userId = sharedPrefManager.getUserId();
+            int userId = sharedPrefManager.getUserId();
             String firstName = sharedPrefManager.getFirstName();
             String lastName = sharedPrefManager.getLastName();
             String email = sharedPrefManager.getEmail();

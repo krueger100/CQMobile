@@ -1,10 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.TaskFolder;
 
-import android.content.Intent;
 import android.util.Log;
-
-import com.example.cq_mobile.Clock.ClockActivity;
-import com.example.cq_mobile.MainActivity;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -12,13 +8,13 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+
 public class TaskActivityManager {
     private static final String BASE_URL = "https://aws.customquoter.co.uk";
     private final TaskApi taskApi;
 
     public interface TaskFetchCallback {
-        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked
-        ,  String checklistsName, String checklistsInfo);
+        void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked, String checklistsName, String checklistsInfo);
         void onTaskFetchError(String errorMessage);
     }
 
@@ -38,78 +34,74 @@ public class TaskActivityManager {
             public void onResponse(Call<Task> call, Response<Task> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Task task = response.body();
-
-                    // Check if task.getData() is not null before accessing it
                     if (task.getData() != null) {
-                        String title = task.getData().getTitle();
-                        String description = task.getData().getDescription();
-                        String priority = task.getData().getPriority();
-                        String status = task.getData().getStatus();
-                        String startDate = task.getData().getStartDate();
-                        String endDate = task.getData().getEndDate();
+                        Task.Data taskData = task.getData();
 
-                        // Extract assignee data with null check for assignees
-                        Task.Data.Assignee[] assignees = task.getData().getAssignees();
+                        String title = taskData.getTitle() != null ? taskData.getTitle() : "No title available";
+                        String description = taskData.getDescription() != null ? taskData.getDescription() : "No description available";
+                        String priority = taskData.getPriority() != null ? taskData.getPriority() : "No priority available";
+                        String status = taskData.getStatus() != null ? taskData.getStatus() : "No status available";
+                        String startDate = taskData.getStartDate() != null ? taskData.getStartDate().trim() : "N/A";
+                        String endDate = taskData.getEndDate() != null ? taskData.getEndDate().trim() : "N/A";
+
+
+                        // Extract assignee data with null check
+                        Task.Data.Assignee[] assignees = taskData.getAssignees();
                         StringBuilder assigneeInfo = new StringBuilder();
                         StringBuilder assigneeName = new StringBuilder();
 
-                        Task.Data.Checklist[] checklists = task.getData().getChecklist();
-                        StringBuilder checklistsInfo = new StringBuilder();
-                        StringBuilder checklistsName = new StringBuilder();
-
-
-                        if (checklists != null && checklists.length > 0) {
-                            for (Task.Data.Checklist checklist : checklists) {
-                                checklistsInfo.append("Id: ").append(checklist.getId()).append(", ")
-                                        .append("Name: ").append(checklist.getName()).append(", ")
-                                        .append("Checked: ").append(checklist.getChecked()).append("\n");
-                                checklistsName.append(checklist.getName());
-
-                            }
-                        } else {
-                            checklistsInfo.append("No checklistsInfo found.\n");
-                        }
-
-
-
-                        boolean isChecked = task.getData().isChecked();
-                        Log.d("TaskActivityManager", "isChecked: " + isChecked);
-
                         if (assignees != null && assignees.length > 0) {
                             for (Task.Data.Assignee assignee : assignees) {
-                                assigneeInfo.append("Assignee ID: ").append(assignee.getId()).append(", ")
-                                        .append("Name: ").append(assignee.getName()).append(", ")
-                                        .append("Avatar: ").append(assignee.getAvatar()).append("\n");
+                                if (assignee != null) {
+                                    assigneeInfo.append("Assignee ID: ").append(assignee.getId()).append(", ")
+                                            .append("Name: ").append(assignee.getName() != null ? assignee.getName() : "Unknown").append(", ")
+                                            .append("Avatar: ").append(assignee.getAvatar() != null ? assignee.getAvatar() : "No avatar").append("\n");
 
-                                assigneeName.append(assignee.getName());
-
+                                    assigneeName.append(assignee.getName() != null ? assignee.getName() : "Unknown");
+                                }
                             }
                         } else {
                             assigneeInfo.append("No assignees found.\n");
                         }
 
-                        // Notify via callback with assignee info
-                        callback.onTaskFetched(title, description, priority, status, startDate, endDate, assigneeInfo.toString()
-                        ,assigneeName.toString(), isChecked,checklistsName.toString(),checklistsInfo.toString());
+                        // Extract checklist data with null check
+                    Task.Data.Checklist[] checklists = taskData.getChecklist();
+                        StringBuilder checklistsInfo = new StringBuilder();
+                        StringBuilder checklistsName = new StringBuilder();
 
+                        if (checklists != null && checklists.length > 0) {
+                            for (Task.Data.Checklist checklist : checklists) {
+                                if (checklist != null) {
+                                    checklistsInfo.append("Id: ").append(checklist.getId()).append(", ")
+                                            .append("Name: ").append(checklist.getName() != null ? checklist.getName() : "Unknown").append(", ")
+                                            .append("Checked: ").append(checklist.getChecked()).append("\n");
+                                    checklistsName.append(checklist.getName() != null ? checklist.getName() : "Unknown");
+                                }
+                            }
+                        } else {
+                            checklistsInfo.append("No checklists found.\n");
+                        }
+
+                        boolean isChecked = taskData.isChecked();
+                        Log.d("TaskActivityManager", "isChecked: " + isChecked);
+
+                        // Notify via callback
+                        callback.onTaskFetched(title, description, priority, status, startDate, endDate, assigneeInfo.toString(), assigneeName.toString(), isChecked, checklistsName.toString(), checklistsInfo.toString());
                     } else {
+                        Log.e("TaskActivityManager", "Error: Task data is null.");
                         callback.onTaskFetchError("Error: Task data is null.");
                     }
                 } else {
-                    // Handle error in response, e.g., show error code
+                    Log.e("TaskActivityManager", "Error: " + response.code());
                     callback.onTaskFetchError("Error: " + response.code());
-
-
                 }
             }
 
             @Override
             public void onFailure(Call<Task> call, Throwable t) {
-                // Handle failure scenario, e.g., network issues
+                Log.e("TaskActivityManager", "API call failed: " + t.getMessage(), t);
                 callback.onTaskFetchError("API call failed: " + t.getMessage());
             }
         });
     }
-
-
 }

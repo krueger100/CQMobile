@@ -53,7 +53,8 @@ public class myJobFragment  extends Fragment {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
         String accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
+        int userId = sharedPrefManager.getUserId();
+
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();

@@ -120,24 +120,24 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             skippedHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                    TransitionAnimationManager.zoomOut(v, 100);
+                    TransitionAnimationManager.zoomOut(v, 150);
                     v.postDelayed(() -> {
                         v.postDelayed(() -> {
                             TransitionAnimationManager.zoomIn(v, 50);
-                        }, 100);
-                        skippedHolder.progressBar.setVisibility(View.VISIBLE);
-                        Intent intent = new Intent(context, NewBuild.class);
-                        intent.putExtra("job_id", id);
+                            skippedHolder.progressBar.setVisibility(View.VISIBLE);
+                            Intent intent = new Intent(context, NewBuild.class);
+                            intent.putExtra("job_id", id);
 
-                        try {
-                            context.startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            skippedHolder.progressBar.setVisibility(View.GONE);
-                        }
-                    }, 100);
+                            try {
+                                context.startActivity(intent);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                skippedHolder.progressBar.setVisibility(View.GONE);
+                            }
+                        }, 150);
+
+                    }, 150);
 
                 }
             });

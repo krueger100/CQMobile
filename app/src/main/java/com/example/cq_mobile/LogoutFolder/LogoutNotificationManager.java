@@ -25,7 +25,6 @@ public class LogoutNotificationManager {
     public void deleteNotificationToken(String userId, LogoutCallback callback) {
         // Path to the user's notificationToken
         DatabaseReference notificationTokenRef = usersRef.child(userId).child("notificationToken");
-
         // Set the value to null to delete it
         notificationTokenRef.setValue(null, new DatabaseReference.CompletionListener() {
             @Override

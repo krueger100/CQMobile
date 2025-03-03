@@ -17,8 +17,8 @@ public class FirebaseDataManager {
     private DatabaseReference userRef;
     private ValueEventListener valueEventListener;
 
-    public FirebaseDataManager(String userId) {
-        userRef = FirebaseDatabase.getInstance().getReference(USERS_NODE).child(userId);
+    public FirebaseDataManager(int userId) {
+        userRef = FirebaseDatabase.getInstance().getReference(USERS_NODE).child(String.valueOf(userId));
     }
 
     public void saveUserData(String accessToken, String userId, String avatar, String firstName, String lastName, String notificationToken) {

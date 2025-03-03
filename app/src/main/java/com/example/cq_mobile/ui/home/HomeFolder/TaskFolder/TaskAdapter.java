@@ -84,11 +84,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
                 TaskChecklistUpdateRequest updateRequest = new TaskChecklistUpdateRequest(isChecked_task ? 1 : 0);
                 TaskChecklistApi api = RetrofitClient.getClient().create(TaskChecklistApi.class);
-                Call<TaskChecklistResponse> call = api.updateTaskChecklist(
-                        jobId, taskId, checklistItemId,
-                        "Bearer " + accessToken, apiKey,
-                        updateRequest
-                );
+                Call<TaskChecklistResponse> call = api.updateTaskChecklist(jobId, taskId, checklistItemId, "Bearer " + accessToken, apiKey, updateRequest);
                 call.enqueue(new Callback<TaskChecklistResponse>() {
                     @Override
                     public void onResponse(Call<TaskChecklistResponse> call, Response<TaskChecklistResponse> response) {

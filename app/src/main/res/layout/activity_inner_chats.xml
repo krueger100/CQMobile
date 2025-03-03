@@ -25,6 +25,21 @@
             android:layout_height="60dp"
             android:orientation="horizontal">
 
+            <ImageView
+                android:id="@+id/showChatINput"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/background_white"
+                android:layout_margin="6dp"
+                android:padding="10dp"
+                android:elevation="10dp"
+                android:src="@drawable/baseline_chat_bubble_24"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/linearLayout5"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="#1976D2" />
+
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/Avatar"
@@ -42,14 +57,16 @@
                 android:id="@+id/receiver_Name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:ellipsize="end"
                 android:maxLines="2"
+                android:layout_marginEnd="5dp"
                 android:text=""
-                android:layout_marginStart="10dp"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/showChatINput"
                 app:layout_constraintStart_toEndOf="@+id/Avatar"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -85,17 +102,47 @@
     </androidx.cardview.widget.CardView>
 
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView_messages"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardViewMessageRec"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="6dp"
+        android:visibility="visible"
+        app:cardCornerRadius="10dp"
+        android:layout_marginVertical="5dp"
+        app:cardElevation="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/cardViewMessage"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cardView2"
-        app:layout_constraintVertical_bias="0.0" />
+        tools:ignore="UnknownId">
+
+
+        <LinearLayout
+            android:id="@+id/messageInputContainerRec"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:elevation="25dp"
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView_messages"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="5dp"
+                app:layout_constraintBottom_toTopOf="@+id/cardViewMessage"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardView2"
+                app:layout_constraintVertical_bias="0.0" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+
+
+
 
     <LinearLayout
         android:id="@+id/l_1"
@@ -143,10 +190,11 @@
         android:id="@+id/cardViewMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        app:cardCornerRadius="25dp"
+        android:layout_marginHorizontal="6dp"
+        app:cardCornerRadius="10dp"
         app:cardElevation="10dp"
-        android:layout_marginBottom="55dp"
+        android:visibility="visible"
+        android:layout_marginBottom="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -173,12 +221,12 @@
 
                 <ImageView
                     android:id="@+id/chatInputHide"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
                     android:layout_gravity="end"
                     android:layout_marginStart="1dp"
                     android:elevation="10dp"
-                    android:padding="10dp"
+                    android:padding="5dp"
                     android:src="@drawable/baseline_close_24"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -258,23 +306,6 @@
     </androidx.cardview.widget.CardView>
 
 
-
-
-        <ImageView
-            android:id="@+id/showChatINput"
-            android:layout_width="55dp"
-            android:layout_height="55dp"
-            android:src="@drawable/baseline_chat_bubble_24"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="65dp"
-            android:background="@drawable/search_bar_background"
-            android:padding="10dp"
-            android:visibility="gone"
-            android:elevation="10dp"
-            android:layout_marginEnd="55dp"
-            android:backgroundTint="#BFE4E4EB"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:tint="#1976D2" />
 
 
 

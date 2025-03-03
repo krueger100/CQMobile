@@ -84,7 +84,7 @@ public class InnerChats extends AppCompatActivity {
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
         String username = sharedPrefManager.getFirstName() +" "+ sharedPrefManager.getLastName();
-        String currentUserID = sharedPrefManager.getUserId();
+        int currentUserID = sharedPrefManager.getUserId();
 
 
 
@@ -243,7 +243,7 @@ public class InnerChats extends AppCompatActivity {
         try {
             if (receiverId != null && !receiverId.isEmpty()) {
                 receiverMemberId = Integer.parseInt(receiverId);
-                currentUserId = Integer.parseInt(currentUserID);
+                currentUserId = currentUserID;
             } else {
                 receiverMemberId = 0;
                 currentUserId = 0;
@@ -315,7 +315,7 @@ public class InnerChats extends AppCompatActivity {
 
         }
         AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
-        getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username,currentUserID,avatar_receiver,hhtpAvatar_url,firebaseRetrieveDataManager);
+        getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username, String.valueOf(currentUserID),avatar_receiver,hhtpAvatar_url,firebaseRetrieveDataManager);
 
 
 

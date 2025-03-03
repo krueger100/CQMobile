@@ -60,6 +60,9 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             TodoViewHolder todoHolder = (TodoViewHolder) holder;
             Todo todo = todoList.get(position);
 
+
+
+
             todoHolder.nameTextView.setText(todo.getName());
             todoHolder.stateDescription.setText(todo.getDescription());
             String id = String.valueOf(todo.getId());
@@ -89,15 +92,14 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             todoHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    TransitionAnimationManager.zoomOut(v, 100);
+                    TransitionAnimationManager.zoomOut(v, 150);
                     v.postDelayed(() -> {
                         v.postDelayed(() -> {
                             TransitionAnimationManager.zoomIn(v, 50);
-                        }, 100);
                         todoHolder.progressBar.setVisibility(View.VISIBLE);
                         Intent intent = new Intent(context, NewBuild.class);
                         intent.putExtra("job_id", id);
-
+                            intent.putExtra("task_id", id);
                         try {
                             context.startActivity(intent);
                         } catch (Exception e) {
@@ -105,10 +107,13 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         } finally {
                             todoHolder.progressBar.setVisibility(View.GONE);
                         }
-                    }, 100);
+                        }, 150);
+
+                    }, 150);
 
                 }
             });
+
 
 
 

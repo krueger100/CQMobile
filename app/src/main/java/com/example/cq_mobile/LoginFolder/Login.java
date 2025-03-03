@@ -3,9 +3,11 @@ package com.example.cq_mobile.LoginFolder;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,6 +61,21 @@ public class Login extends AppCompatActivity {
         passwordField = findViewById(R.id.passwordInput);
         loginButton = findViewById(R.id.loginButton);
         progressBar = findViewById(R.id.progressBar);
+
+        EditText passwordInput = findViewById(R.id.passwordInput);
+        ImageView showPasswordToggle = findViewById(R.id.showPasswordToggle);
+        showPasswordToggle.setOnClickListener(v -> {
+            if (passwordInput.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                showPasswordToggle.setImageResource(R.drawable.baseline_visibility_24); // Eye open icon
+            } else {
+                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                showPasswordToggle.setImageResource(R.drawable.baseline_visibility_off_24);
+            }
+            passwordInput.setSelection(passwordInput.getText().length());
+        });
+
+
 
         // Set login button click listener
         loginButton.setOnClickListener(v -> {
@@ -117,6 +134,7 @@ public class Login extends AppCompatActivity {
                             Log.d("Login", "User First Name: " + firstName);
                             Log.d("Login", "User Last Name: " + lastName);
                             Log.d("Login", "User Email: " + email);
+                            Log.d("Login", "User Password: " + password);
                             Log.d("Login", "Avatar: " + avatar);
 
 

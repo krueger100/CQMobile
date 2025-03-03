@@ -8,9 +8,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +24,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
@@ -36,41 +40,41 @@ import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupMainTaskManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupRecyclerViewManager;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FilesActivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.NotesFolder.NotesActivity;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.DocsFilesManager;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupTaskRecyclerViewManager;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SetupMainTaskSpinnerAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FilesActivity;
+import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFolder.NotesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.AllFileItem;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.SheetsFilesManager;
-import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivityManager;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateJobApiManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, SetupMainTaskManager.OnCoordinatesReceivedListener {
-    private int currentPage = 1; // Start from page 1
-    private final int pageSize = 15; // Number of items per page
+public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
+    int page = 1;
+    int pageSize = 10;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private BackPressManager backPressManager;
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private NavigationManagerForNewBuild navigationManager;
     TextView showBottomSheet,start_job;
-    private SetupMainTaskManager setupMainTaskManager;
-    private SetupRecyclerViewManager setupRecyclerViewManager;
+    private SetupTaskRecyclerViewManager setupTaskRecyclerViewManager;
     private Marker marker;
     private RouteNewBuildManager routeNewBuildManager;
     LatLng taskLatLng;
@@ -87,39 +91,53 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
     String taskId;
     String jobId;
     String accessToken;
-    String userId;
+    int userId;
     String email ;
     String password ;
     String cqLocal = "https://aws.customquoter.co.uk";
     List<String> sheetTitlesList;
     List<String> sheetOtherTitlesList;
+    SharedPrefManager sharedPrefManager;
+    RecyclerView recycler_view;
+    TextView task_title ;
+    TextView task_location;
+    TextView task_number ;
+    TextView task_description;
+    Spinner spinner_task ;
+    String firstName ;
+    String lastName;
 
+    private boolean isChecked;
+
+
+    private static final String TAG = "NewBuild";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
-         jobId = getIntent().getStringExtra("job_id");
+
+        jobId = getIntent().getStringExtra("job_id");
+        taskId = getIntent().getStringExtra("task_id");
+         sharedPrefManager = new SharedPrefManager(NewBuild.this);
 
         SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
         taskId = sharedPrefTaskADandJobID.getTaskId();
         if (taskId != null) {
-            Log.d("TASKID", "Task ID: " + taskId);
-            Log.d("TASKID", "Job ID: " + jobId);
+            Log.d(TAG, "Task ID: " + taskId);
+            Log.d(TAG, "Job ID: " + jobId);
         } else {
-            taskId = "782";
-            jobId = "5703";
-            Log.d("TASKID", "No Job or Task ID found in SharedPreferences");
+            taskId = String.valueOf(sharedPrefManager.getTaskId());
+            jobId = String.valueOf(sharedPrefManager.getJobId());
+            Log.d(TAG, "Job ID -> SharedPrefManager  " + taskId);
+            Log.d(TAG, "Task ID -> SharedPrefManager  " + jobId);
         }
 
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
          accessToken = sharedPrefManager.getAccessToken();
          userId = sharedPrefManager.getUserId();
-        String firstName = sharedPrefManager.getFirstName();
-        String lastName = sharedPrefManager.getLastName();
+         firstName = sharedPrefManager.getFirstName();
+         lastName = sharedPrefManager.getLastName();
          email = sharedPrefManager.getEmail();
          password = sharedPrefManager.getPassword();
-        Log.d("NewBuild", "Retrieved User Data: ");
 
         Log.d("NewBuild", "User ID: " + userId);
 
@@ -134,74 +152,19 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         start_job = findViewById(R.id.start_job);
 
 
+         recycler_view = findViewById(R.id.recycler_view);
+         task_title = findViewById(R.id.task_title);
+         task_location = findViewById(R.id.task_location);
+         task_number = findViewById(R.id.task_number);
+         task_description = findViewById(R.id.task_description);
+         spinner_task = findViewById(R.id.spinner_task);
+
 
         notes  = findViewById(R.id.notes);
         folder = findViewById(R.id.folder);
-        docs = findViewById(R.id.docs);
-        sheets  = findViewById(R.id.sheets);
-        newBuildButtonManager = new NewBuildButtonManager(notes, folder, docs, sheets);
 
-        String sheets_job = "sheets";
-        String docs_job = "docs";
+        newBuildButtonManager = new NewBuildButtonManager(notes, folder);
 
-
-        // Handle Job ------------------>>
-      /*  SheetsFilesManager sheetsFilesManager = new SheetsFilesManager(this, accessToken);
-        sheetsFilesManager.loadFiles(cqLocal, Integer.parseInt(jobId), 1, 10, sheets_job, new SheetsFilesManager.FilesCallback() {
-            @Override
-            public void onFilesLoaded(List<AllFileItem> files) {
-                // Handle the loaded files
-               sheetTitlesList = new ArrayList<>();
-             sheetOtherTitlesList = new ArrayList<>();
-
-                if (files != null && !files.isEmpty()) {
-                    for (AllFileItem file : files) {
-                        String sheetTitle = file.getTitle();
-                        String sheetOtherTitle = file.getOther_title();
-
-                        // Collect titles in lists
-                        sheetTitlesList.add(sheetTitle);
-                        sheetOtherTitlesList.add(sheetOtherTitle);
-
-                        Log.d("SheetsFilesManager", "File ID: " + file.getId());
-                        Log.d("SheetsFilesManager", "File Title: " + sheetTitle);
-                        Log.d("SheetsFilesManager", "File Other_title: " + sheetOtherTitle);
-                    }
-
-                    // Optional: Use sheetTitlesList and sheetOtherTitlesList for further processing or UI updates
-                } else {
-                    Log.d("SheetsFilesManager", "No files found or list is empty");
-                }
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                // Handle the error
-                Log.e("SheetsFilesManager", "Error: --->>> " + errorMessage);
-            }
-        });
-
-        DocsFilesManager docsFilesManager = new DocsFilesManager(this, accessToken);
-        docsFilesManager.loadFilesDocs(cqLocal, Integer.parseInt(jobId), 1, 10, docs_job, new DocsFilesManager.FilesDocsCallback() {
-            @Override
-            public void onFilesDocsLoaded(List<AllFileItem> files) {
-                // Handle the loaded files
-                for (AllFileItem file : files) {
-                    Log.d("DocsFilesManager", "File ID: " + file.getId());
-                    Log.d("DocsFilesManager", "File Title: " + file.getTitle());
-                    Log.d("DocsFilesManager", "File Other_title: " + file.getOther_title());
-                }
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                // Handle the error
-                Log.e("NewBuild", "Error: --->>> " + errorMessage);
-            }
-        });
-
-       */
-        // Handle Job <<--------------------
 
 
         // Initialize map fragment
@@ -214,92 +177,226 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
         }
         routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
 
+        fetchData();
 
     }
 
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        this.googleMap = googleMap;
-        routeNewBuildManager.setGoogleMap(googleMap);
+    private void fetchData() {
+        NewBuildApiManager.fetchNewBuiltApiData(jobId, accessToken, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
+            @Override
+            public void onDataFetched(List<Taskmain> data) {
+                runOnUiThread(() -> {
+                    if (!data.isEmpty()) {
+                        Taskmain task = data.get(0); // Assuming we need the first task
+                        task_title.setText(task.getName());
+                        task_location.setText(task.getAddress().getCity() + ", " + task.getAddress().getCountry());
+                        task_number.setText(String.valueOf(task.getId()));
+                        task_description.setText(task.getDescription());
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            setupRecyclerViewManager = new SetupRecyclerViewManager(NewBuild.this, findViewById(R.id.recycler_view));
-            setupMainTaskManager = new SetupMainTaskManager(
-                    NewBuild.this,
-                    googleMap,
-                    findViewById(R.id.task_title),
-                    findViewById(R.id.task_description),
-                    findViewById(R.id.task_location),
-                    findViewById(R.id.task_number),
-                    findViewById(R.id.spinner_task),
-                    NewBuild.this,
-                    category_todo,
-                    statusImageView
-            );
-        }, 2000);
+                        // Get the status from the API response
+                        String status_main = task.getStatus();
+
+                        // Define a list of statuses
+                        List<String> statusList = Arrays.asList("Todo", "Skipped", "Done");
+
+                        // Setup Spinner Adapter
+                        SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
+                                NewBuild.this,
+                                R.layout.task_spinner_item,
+                                statusList,
+                                jobId,
+                                statusImageView,
+                                status_main,
+                                accessToken
+                        );
+
+                        // Set adapter to the spinner
+                        spinner_task.setAdapter(adapter);
+
+                        // Find the position of the current status and set selection
+                        int position = statusList.indexOf(status_main);
+                        if (position >= 0) {
+                            spinner_task.setSelection(position);
+                        }
+
+                        // **Set OnItemSelectedListener here**
+                        spinner_task.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                String selectedStatus = (String) parent.getItemAtPosition(position);
+
+                                // Update the status in API when the user changes the selection
+                                UpdateJobApiManager.updateJobStatus(jobId, taskId, selectedStatus, accessToken);
+
+                                // Update the statusImageView based on selection
+                                if (selectedStatus.equalsIgnoreCase("Todo")) {
+                                    statusImageView.setImageResource(R.drawable.button_orange);
+                                } else if (selectedStatus.equalsIgnoreCase("Skipped")) {
+                                    statusImageView.setImageResource(R.drawable.button_blue);
+                                } else if (selectedStatus.equalsIgnoreCase("Done")) {
+                                    statusImageView.setImageResource(R.drawable.button_green);
+                                } else {
+                                    statusImageView.setImageResource(R.drawable.button_grey);
+                                }
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                // Do nothing
+                            }
+                        });
+
+                        // Call fetchSubTasks() to get subtasks
+                        fetchSubTasks();
+                    } else {
+                        Toast.makeText(NewBuild.this, "No data found.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> Toast.makeText(NewBuild.this, "Error: " + error, Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+    private void fetchSubTasks() {
+        NewBuildApiManager.fetchSecondaryApiData(jobId, page, pageSize, accessToken, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
+            @Override
+            public void onDataFetched(List<SubTask> data) {
+                runOnUiThread(() -> {
+                    if (!data.isEmpty()) {
+                        Log.d("SubTask", "Subtasks received: " + data.size());
+
+                        for (SubTask subTask : data) {
+                            Log.d("SubTask", "-----------------------------");
+                            Log.d("SubTask", "ID: " + subTask.getId());
+                            Log.d("SubTask", "Title: " + subTask.getTitle());
+                            Log.d("SubTask", "Description: " + subTask.getDescription());
+                            Log.d("SubTask", "Priority: " + subTask.getPriority());
+                            Log.d("SubTask", "Status: " + subTask.getStatus());
+                            Log.d("SubTask", "Start Date: " + subTask.getStartDate());
+                            Log.d("SubTask", "End Date: " + subTask.getEndDate());
+                            Log.d("SubTask", "Is Checked: " + subTask.isChecked());
+                            Log.d("SubTask", "-----------------------------");
+
+                            setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view);
+                            setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
+                                progress_circular_2.setVisibility(View.GONE);
+                        }
+
+                    } else {
+                        Log.d("SubTask", "No subtasks found.");
+                        Toast.makeText(NewBuild.this, "No tasks found.", Toast.LENGTH_SHORT).show();
+                        progress_circular_2.setVisibility(View.GONE);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    Log.e("SubTask", "Error fetching subtasks: " + error);
+                    Toast.makeText(NewBuild.this, "Error fetching subtasks: " + error, Toast.LENGTH_SHORT).show();
+                    progress_circular_2.setVisibility(View.GONE);
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        this.googleMap = map;
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             enableUserLocation();
         } else {
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE
-            );
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
 
+        routeNewBuildManager.setGoogleMap(googleMap);
 
-        googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-            @Override
-            public void onMapLoaded() {
-
-
-                Log.d("MapLoad", "Google Map has fully loaded");
-
-
-                checkBoxData(jobId, accessToken, taskId, progress_circular_2);
-                navigationInitialization();
-
-            }
+        googleMap.setOnMapLoadedCallback(() -> {
+            Log.d("MapLoad", "Google Map has fully loaded");
+            navigationInitialization();
         });
     }
-
     private void enableUserLocation() {
+        if (googleMap == null) {
+            Log.e("enableUserLocation", "GoogleMap is null. Cannot enable user location.");
+            return;
+        }
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
+            Log.e("enableUserLocation", "Location permission not granted.");
             Toast.makeText(this, "Permission not granted to access location", Toast.LENGTH_SHORT).show();
             return;
         }
 
         googleMap.setMyLocationEnabled(true);
+        Log.d("enableUserLocation", "My location enabled on Google Map.");
 
-        // Get the user's current location
+        // Get user's current location
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
-                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-             //  googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                Log.d("UserLocation", "Retrieved user location: Lat=" + userLocation.latitude + ", Lon=" + userLocation.longitude);
+
+                SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
+                List<Taskmain.Coordinates> coordinatesList = sharedPrefManager.getCoordinatesList();
+                Log.d("enableUserLocation", "Retrieved coordinates list: " + coordinatesList.size() + " entries found.");
+
+                MarkerManager markerManager = new MarkerManager();
+                BitmapDescriptor taskMarkerIcon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+
                 UserPositionMarkerManager userPositionMarkerManager = new UserPositionMarkerManager();
                 BitmapDescriptor customMarkerIcon = userPositionMarkerManager.getCustomCircleMarkerIcon(this);
+                Log.d("enableUserLocation", "Custom marker icon created.");
 
-                Marker userMarker;
-                userMarker =  googleMap.addMarker(new MarkerOptions()
+
+                if (!coordinatesList.isEmpty()) {
+                    Taskmain.Coordinates firstCoordinate = coordinatesList.get(0);
+                    taskLatLng = new LatLng(firstCoordinate.getLatitude(), firstCoordinate.getLongitude());
+                    Log.d("enableUserLocation", "First saved coordinate: Lat=" + firstCoordinate.getLatitude() + ", Lon=" + firstCoordinate.getLongitude());
+
+                    // Update task marker with custom icon
+                    taskMarkerIcon = markerManager.getCustomCircleMarkerIcon(this);
+                } else {
+                    Log.e("enableUserLocation", "No saved coordinates found.");
+                }
+
+                // Add user location marker
+                googleMap.addMarker(new MarkerOptions()
                         .position(userLocation)
                         .title("You are here")
-                        .anchor(0.6f, 0.9f)
+                        .anchor(0.5f, 0.8f)
                         .zIndex(8.0f)
                         .icon(customMarkerIcon));
+                Log.d("enableUserLocation", "User location marker added on map.");
 
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                Log.d("enableUserLocation", "Camera moved to user location.");
 
-                Log.d("UserLocation", userLocation.latitude + " " + userLocation.longitude);
+                // Set destination if taskLatLng is available
+                if (taskLatLng != null) {
+                    new MapCameraManager(googleMap, routeNewBuildManager, taskMarkerIcon)
+                            .setDestination(userLocation, taskLatLng);
+                    Log.d("enableUserLocation", "Destination set on map with custom icon: Lat=" + taskLatLng.latitude + ", Lon=" + taskLatLng.longitude);
+                    progress_circular.setVisibility(View.GONE);
+                } else {
+                    Log.w("enableUserLocation", "No task destination set. taskLatLng is null.");
+                    progress_circular.setVisibility(View.GONE);
+                }
 
             } else {
+                Log.e("enableUserLocation", "Unable to retrieve current location.");
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
+                progress_circular.setVisibility(View.GONE);
             }
         });
-
-
     }
 
     @Override
@@ -311,49 +408,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback, S
             } else {
                 Toast.makeText(this, "Location permission is required to display your position", Toast.LENGTH_SHORT).show();
             }
-        }
-    }
-
-    @Override
-    public void onCoordinatesReceived(double latitude, double longitude) {
-        // Check if coordinates are valid
-        if (latitude != 0.0 && longitude != 0.0) {
-            taskLatLng = new LatLng(latitude, longitude);
-
-            // Make sure taskLatLng is not null
-            if (taskLatLng != null) {
-                marker = googleMap.addMarker(new MarkerOptions()
-                        .position(taskLatLng)
-                       .icon(customMarkerIcon)
-                        .anchor(0.5f, 0.8f)
-                        .zIndex(5.0f));
-
-
-                mapCameraManager = new MapCameraManager(googleMap, routeNewBuildManager, customMarkerIcon);
-                mapCameraManager.setDestination(userLocation, taskLatLng);
-                progress_circular.setVisibility(View.GONE);
-
-                try {
-                    int parsedUserId = Integer.parseInt(userId);
-                    int parsedJobId = Integer.parseInt(jobId);
-
-                    start_Job(parsedUserId, parsedJobId, email, password, latitude, longitude);
-                } catch (NumberFormatException e) {
-                    Log.e("start_Job", "Invalid userId or jobId: " + e.getMessage());
-                }
-
-
-
-            } else {
-                Log.e("onCoordinatesReceived", "Invalid LatLng: " + latitude + ", " + longitude);
-                progress_circular.setVisibility(View.GONE);
-
-
-            }
-        } else {
-            Log.e("onCoordinatesReceived", "Received invalid coordinates: " + latitude + ", " + longitude);
-            progress_circular.setVisibility(View.GONE);
-
         }
     }
 
@@ -480,21 +534,18 @@ public void onSuccess(String response) {
 
      */
 
+    /*
+      checkBoxData(accessToken,jobId, taskId, progress_circular_2);
 
-    private void checkBoxData(String jobId, String accessToken, String taskId, ProgressBar progress_circular_2) {
+    private void checkBoxData(String accessToken, String jobId, String taskId, ProgressBar progress_circular_2) {
         TaskActivityManager manager = new TaskActivityManager();
 
-        if (jobId != null && !jobId.isEmpty() && taskId != null && !taskId.isEmpty()) {
+        if (this.jobId != null && !this.jobId.isEmpty() && this.taskId != null && !this.taskId.isEmpty()) {
             try {
-                int parsedJobId = Integer.parseInt(jobId); // job_schedule_id
-                int parsedTaskId = Integer.parseInt(taskId); // task_id
+                int parsedJobId = Integer.parseInt(this.jobId);
+                int parsedTaskId = Integer.parseInt(this.taskId);
 
-                manager.fetchTask(
-                        parsedJobId,
-                        parsedTaskId,
-                        accessToken, // token
-                        "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2", // api_key
-                        new TaskActivityManager.TaskFetchCallback() {
+                manager.fetchTask(parsedJobId, parsedTaskId,accessToken, "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2", new TaskActivityManager.TaskFetchCallback() {
                             @Override
                             public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
                                                       String checklistsName, String checklistsInfo) {
@@ -503,32 +554,37 @@ public void onSuccess(String response) {
 
                                 if (jobId != null) {
                                     setupMainTaskManager.setupMainTask(jobId);
-                                    setupRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
+                                    setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked,accessToken, taskId);
                                     progress_circular_2.setVisibility(View.GONE);
                                 }
                             }
-
                             @Override
                             public void onTaskFetchError(String errorMessage) {
                                 Log.e("checkBoxData", "Error fetching task: " + errorMessage);
+                                Log.w("checkBoxData", "jobId:  ------------>>>>>>>>>>>>>>>> " + jobId);
+                                Log.w("checkBoxData", "jobId:  ------------>>>>>>>>>>>>>>>> " + accessToken);
+                                Log.w("checkBoxData", "jobId:  ------------>>>>>>>>>>>>>>>> " + taskId);
 
-                                if (jobId != null) {
+                                if (NewBuild.this.jobId != null) {
                                     setupMainTaskManager.setupMainTask(jobId);
-                                    setupRecyclerViewManager.setupRecyclerView(jobId, false, accessToken, taskId);
+                                    setupTaskRecyclerViewManager.setupRecyclerView(jobId, false,accessToken,taskId);
                                     progress_circular_2.setVisibility(View.GONE);
                                 }
+
                             }
                         }
                 );
             } catch (NumberFormatException e) {
-                Log.e("checkBoxData", "Invalid Job ID or Task ID: " + jobId + ", " + taskId);
-                progress_circular_2.setVisibility(View.GONE);
+                Log.e("checkBoxData", "Invalid Job ID or Task ID: " + this.jobId + ", " + this.taskId);
+                this.progress_circular_2.setVisibility(View.GONE);
             }
         } else {
             Log.e("checkBoxData", "Job ID or Task ID is null or empty.");
-            progress_circular_2.setVisibility(View.GONE);
+            this.progress_circular_2.setVisibility(View.GONE);
         }
     }
+
+ */
 
 
 
@@ -548,24 +604,7 @@ public void onSuccess(String response) {
                     intent.putExtra("task_id", taskId);
                     startActivity(intent);
                 }
-    /*        } else if (view == docs) {
-                if (jobId != null) {
-                    Intent intent = new Intent(NewBuild.this, DocsActivity.class);
-                    intent.putExtra("job_id", jobId);
-                    intent.putExtra("task_id", taskId);
-                    startActivity(intent);
-                }
 
-            } else if (view == sheets) {
-                Intent intent = new Intent(this, SheetsAcitivy.class);
-                intent.putExtra("job_id", jobId);
-                intent.putExtra("task_id", taskId);
-                intent.putStringArrayListExtra("sheetTitle", new ArrayList<>(sheetTitlesList));
-                intent.putStringArrayListExtra("sheetOtherTitle", new ArrayList<>(sheetOtherTitlesList));
-                startActivity(intent);
-
-
-     */
 
             }
         });

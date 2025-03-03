@@ -18,7 +18,7 @@ import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.FilesFoler.FileItem;
+import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FileItem;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FileAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.FilesINTaskFolder.FilesManager;
 
@@ -48,7 +48,7 @@ public class TaskActivity extends AppCompatActivity {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(TaskActivity.this);
         String accessToken = sharedPrefManager.getAccessToken();
-        String userId = sharedPrefManager.getUserId();
+        int userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();
@@ -121,12 +121,7 @@ taskBack.setOnClickListener(new View.OnClickListener() {
      TaskActivityManager manager = new TaskActivityManager();
 
         // Fetch task using TaskActivityManager
-        manager.fetchTask(
-                Integer.parseInt(jobId), // job_schedule_id
-                taskId,                  // task_id
-                accessToken, // token
-                "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2",             // api_key
-                new TaskActivityManager.TaskFetchCallback() {
+        manager.fetchTask(Integer.parseInt(jobId), taskId, accessToken, "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2", new TaskActivityManager.TaskFetchCallback() {
                     @Override
                     public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
                                               String checklistsName, String checklistsInfo) {

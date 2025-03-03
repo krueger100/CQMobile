@@ -1,5 +1,4 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder;
-
 public class Taskmain {
     private int id;
     private String name;
@@ -12,44 +11,113 @@ public class Taskmain {
     private String route_order;
     private ClientDetails client_details;
     private Address address;
+    private String timezone;
     private Coordinates coordinates;
 
-    // Getters and setters for all fields
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getName() {
+        return name;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getDescription() {
+        return description;
+    }
 
-    public String getCategory_color() { return category_color; }
-    public void setCategory_color(String category_color) { this.category_color = category_color; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public String getStart_date() { return start_date; }
-    public void setStart_date(String start_date) { this.start_date = start_date; }
+    public String getStatus() {
+        return status;
+    }
 
-    public String getEnd_date() { return end_date; }
-    public void setEnd_date(String end_date) { this.end_date = end_date; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-    public String getRoute_order() { return route_order; }
-    public void setRoute_order(String route_order) { this.route_order = route_order; }
+    public String getCategory() {
+        return category;
+    }
 
-    public ClientDetails getClient_details() { return client_details; }
-    public void setClient_details(ClientDetails client_details) { this.client_details = client_details; }
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-    public Address getAddress() { return address; }
-    public void setAddress(Address address) { this.address = address; }
+    public String getCategory_color() {
+        return category_color;
+    }
 
-    public Coordinates getCoordinates() { return coordinates; }
-    public void setCoordinates(Coordinates coordinates) { this.coordinates = coordinates; }
+    public void setCategory_color(String category_color) {
+        this.category_color = category_color;
+    }
+
+    public String getStart_date() {
+        return start_date;
+    }
+
+    public void setStart_date(String start_date) {
+        this.start_date = start_date;
+    }
+
+    public String getEnd_date() {
+        return end_date;
+    }
+
+    public void setEnd_date(String end_date) {
+        end_date = end_date;
+    }
+
+    public String getRoute_order() {
+        return route_order;
+    }
+
+    public void setRoute_order(String route_order) {
+        this.route_order = route_order;
+    }
+
+    public ClientDetails getClient_details() {
+        return client_details;
+    }
+
+    public void setClient_details(ClientDetails client_details) {
+        this.client_details = client_details;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Coordinates getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(Coordinates coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
 
     public static class ClientDetails {
         private String company;
@@ -59,10 +127,9 @@ public class Taskmain {
         private String last_name;
         private String phone;
         private String mobile;
+        private String timezone;
 
-        // Getters and setters for client details
-
-
+        // Getters and Setters
         public String getCompany() {
             return company;
         }
@@ -118,6 +185,14 @@ public class Taskmain {
         public void setMobile(String mobile) {
             this.mobile = mobile;
         }
+
+        public String getTimezone() {
+            return timezone;
+        }
+
+        public void setTimezone(String timezone) {
+            this.timezone = timezone;
+        }
     }
 
     public static class Address {
@@ -127,8 +202,7 @@ public class Taskmain {
         private String postal_code;
         private String country;
 
-        // Getters and setters for address
-
+        // Getters and Setters
         public String getAddress() {
             return address;
         }
@@ -171,24 +245,28 @@ public class Taskmain {
     }
 
     public static class Coordinates {
-        private String latitude;
-        private String longitude;
+        private double latitude;
+        private double longitude;
 
-        // Getters and setters for coordinates
+        public Coordinates(double latitude, double longitude) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
 
-        public String getLatitude() {
+        // Getters and Setters
+        public double getLatitude() {
             return latitude;
         }
 
-        public void setLatitude(String latitude) {
+        public void setLatitude(double latitude) {
             this.latitude = latitude;
         }
 
-        public String getLongitude() {
+        public double getLongitude() {
             return longitude;
         }
 
-        public void setLongitude(String longitude) {
+        public void setLongitude(double longitude) {
             this.longitude = longitude;
         }
     }

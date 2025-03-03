@@ -247,6 +247,8 @@ public class ReplyTicket extends AppCompatActivity {
             reply.setVisibility(View.GONE);
         });
 
+
+
         // Send reply
         reply.setOnClickListener(v -> {
             ClickAnimationManager.applyClickAnimation(v);

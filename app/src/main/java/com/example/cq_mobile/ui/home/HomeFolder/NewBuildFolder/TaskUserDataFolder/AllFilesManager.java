@@ -3,8 +3,8 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskUserDataFold
 import android.content.Context;
 import android.util.Log;
 
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.AllFileItem;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.AllFilesResponse;
+import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.UserInfoFolderForFiles.AllFileItem;
+import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.UserInfoFolderForFiles.AllFilesResponse;
 
 import java.util.List;
 

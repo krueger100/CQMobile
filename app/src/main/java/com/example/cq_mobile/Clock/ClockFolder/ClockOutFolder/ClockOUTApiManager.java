@@ -4,7 +4,12 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.google.firebase.database.annotations.NotNull;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +30,7 @@ public class ClockOUTApiManager {
     }
 
     public static void clockOUT(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, int userId, ApiCallback callback) {
+        Log.d(TAG, "clockOUT called with jobScheduleId: " + jobScheduleId + ", taskId: " + taskId + ", ticketMessageId: " + ticketMessageId + ", userId: " + userId);
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(new ApiClockOUTTask(jobScheduleId, taskId, ticketMessageId, progressBar, accessToken, userId, callback));
     }
@@ -51,13 +57,16 @@ public class ClockOUTApiManager {
 
         @Override
         public void run() {
+            Log.d(TAG, "Starting ClockOUT API call for user: " + userId);
+
             String baseUrl = "https://aws.customquoter.co.uk";
-            String endpoint = String.format("/api/v1/start-working/timed_out/%d", userId);
-
+            String endpoint = String.format("/api/m/start-working/timed_out/%d", userId);
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
+            String jsonBody = String.format("{\"user_id\": %d, \"status\": \"stop\"}", userId);
 
-            String jsonBody = String.format("{\"job_schedule_id\": %d, \"task_id\": %d, \"ticket_message_id\": %d}", jobScheduleId, taskId, ticketMessageId);
-            Log.w(TAG, "jsonBody: " + jsonBody);
+            Log.d(TAG, "Constructed API endpoint: " + baseUrl + endpoint);
+            Log.d(TAG, "JSON Body: " + jsonBody);
+
             postStopClockOut(baseUrl, endpoint, accessToken, apiKey, jsonBody);
         }
 
@@ -67,39 +76,62 @@ public class ClockOUTApiManager {
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+            MediaType mediaType = MediaType.get("application/json");
+            RequestBody body = RequestBody.create(jsonBody, mediaType);
 
             Request request = new Request.Builder()
-                    .url(baseUrl + endpoint)
-                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .url(String.format(Locale.US, "%s%s", baseUrl, endpoint))
+                    .addHeader("Authorization", String.format(Locale.US, "Bearer %s", accessToken))
                     .addHeader("x-api-key", apiKey)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("Accept", "application/json")
-                    .addHeader("User-Agent", "PostmanRuntime/7.43.0")
-                    .addHeader("Accept-Encoding", "gzip, deflate, br")
-                    .addHeader("Connection", "keep-alive")
                     .put(body)
                     .build();
 
+            // Logging request details
+            Log.d(TAG, "Sending request to: " + request.url());
+            Log.d(TAG, "Request Method: " + request.method());
+            Log.d(TAG, "Request Headers: " + request.headers());
+            Log.d(TAG, "Request Body: " + jsonBody.trim());
+
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
-                public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                public void onResponse(@NotNull okhttp3.Call call, @NotNull okhttp3.Response response) throws IOException {
                     String responseBody = response.body() != null ? response.body().string() : null;
-                    if (response.isSuccessful()) {
-                        Log.d(TAG, "Clocked out successfully. Response: " + responseBody);
-                        progressBar.post(() -> progressBar.setVisibility(View.GONE));
-                        callback.onSuccess();
+
+                    Log.d(TAG, "Response Code: " + response.code());
+                    Log.d(TAG, "Response Message: " + response.message());
+                    Log.d(TAG, "Response Headers: " + response.headers());
+                    Log.d(TAG, "Response Body: " + responseBody);
+
+                    progressBar.post(() -> progressBar.setVisibility(View.GONE));
+
+                    if (response.isSuccessful() && responseBody != null) {
+                        try {
+                            Gson gson = new Gson();
+                            ClockOutApiResponse apiResponse = gson.fromJson(responseBody, ClockOutApiResponse.class);
+
+                            if (apiResponse != null && apiResponse.success) {
+                                Log.i(TAG, "Clock-out successful: " + apiResponse.message);
+                                callback.onSuccess();
+                            } else {
+                                String errorMessage = apiResponse != null ? apiResponse.message : "Unknown error";
+                                Log.e(TAG, "Clock-out failed: " + errorMessage);
+                                callback.onFailure("Failed to clock out: " + errorMessage);
+                            }
+                        } catch (JsonSyntaxException e) {
+                            Log.e(TAG, "JSON Parsing Error: " + e.getMessage(), e);
+                            callback.onFailure("Failed to parse response");
+                        }
                     } else {
-                        Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());
-                        Log.e(TAG, "Error Body: " + responseBody);
-                        progressBar.post(() -> progressBar.setVisibility(View.GONE));
-                        callback.onFailure("Failed to clock out: " + responseBody);
+                        Log.e(TAG, "Request failed with status: " + response.code());
+                        callback.onFailure("Request failed with status: " + response.code());
                     }
                 }
 
                 @Override
-                public void onFailure(okhttp3.Call call, IOException e) {
-                    Log.e(TAG, "Error clocking out: " + e.getMessage(), e);
+                public void onFailure(@NotNull okhttp3.Call call, @NotNull IOException e) {
+                    Log.e(TAG, "Request Failed: " + e.getMessage(), e);
                     progressBar.post(() -> progressBar.setVisibility(View.GONE));
                     callback.onFailure("Error clocking out: " + e.getMessage());
                 }
@@ -107,4 +139,3 @@ public class ClockOUTApiManager {
         }
     }
 }
-

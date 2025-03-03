@@ -1,5 +1,5 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskUserDataFolder;
-import com.example.cq_mobile.ui.home.HomeFolder.Notes_Folder_Docs_Sheets_Files.UserInfoFolderForFiles.AllFilesResponse;
+import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.UserInfoFolderForFiles.AllFilesResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

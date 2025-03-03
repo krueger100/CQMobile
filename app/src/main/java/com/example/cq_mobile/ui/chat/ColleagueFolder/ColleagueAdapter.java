@@ -63,7 +63,7 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
         accessToken = sharedPrefManager.getAccessToken();
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
-        String id_user = sharedPrefManager.getUserId();
+        int id_user = sharedPrefManager.getUserId();
         String avatar_url = sharedPrefManager.getAvatarUrl();
 
         Log.d(TAG, "Email: " + email);

@@ -7,13 +7,12 @@ import android.content.SharedPreferences;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.Log;
 
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class LogoutManager {
@@ -25,23 +24,30 @@ public class LogoutManager {
         // First, clear user-related data from SharedPreferences
         SharedPreferences sharedPreferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear(); // Remove all keys from SharedPreferences
+        editor.clear();
         editor.apply();
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        sharedPrefManager.clearUserData();
-        Log.d("SharedPrefManager", "All user data has been cleared from SharedPreferences.");
+        sharedPrefManager.clearUserId();
+        sharedPrefManager.clearUserName();
+        sharedPrefManager.clearAddress();
+        sharedPrefManager.clearAvatarUrl();
+        sharedPrefManager.clearEmail();
+        sharedPrefManager.clearPassword();
 
-        // Make POST request to logout API
+        SharedPreferences clockPrefs= context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
+        clockPrefs.edit().clear().apply();
+
+        Log.d("SharedPrefManager", "All user data has been cleared.");
+
         String url = "https://aws.customquoter.co.uk/api/m/logout";
-
         OkHttpClient client = new OkHttpClient();
+        RequestBody requestBody = RequestBody.create("", MediaType.get("text/plain"));
         Request request = new Request.Builder()
                 .url(url)
-                .post(okhttp3.RequestBody.create(null, new byte[0])) // Empty POST body
+                .post(requestBody)
                 .build();
 
-        // Execute the request in a background thread
         new Thread(() -> {
             try {
                 Response response = client.newCall(request).execute();
