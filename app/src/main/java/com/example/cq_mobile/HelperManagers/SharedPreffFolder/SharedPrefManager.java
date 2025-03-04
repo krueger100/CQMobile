@@ -4,12 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.util.Log;
-
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -45,6 +40,8 @@ public class SharedPrefManager {
     public SharedPrefManager(Context context) {
         sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
+
+
     }
 
     // Save methods
@@ -121,13 +118,19 @@ public class SharedPrefManager {
         Type type = new TypeToken<List<Taskmain.Coordinates>>() {}.getType();
         return gson.fromJson(json, type);
     }
-    public void saveStartDate(String startDate) {
+
+    public void saveClockinStartDate(String startDate) {
+        if (startDate == null || startDate.isEmpty()) {
+            Log.e("SharedPrefManager", "Attempted to save empty startDate!");
+            return;
+        }
         editor.putString(KEY_START_DATE, startDate).apply();
-        Log.w("SharedPrefManager", "KEY_START_DATE   -->> Updated");
+        Log.w("SharedPrefManager", "KEY_START_DATE saved as: " + startDate);
     }
 
-    public void saveStopDate(String stopDate) {
-        editor.putString(KEY_STOP_DATE, stopDate).apply();
+
+    public void saveClockinStopDate(String stopTime) {
+        editor.putString(KEY_STOP_DATE, stopTime).apply();
         Log.w("SharedPrefManager", "KEY_STOP_DATE   -->> Updated");
     }
 
@@ -204,6 +207,7 @@ public class SharedPrefManager {
     public String getKeyStartDate() {
         return sharedPreferences.getString(KEY_START_DATE, null);
     }
+
 
     public String getKeyStopDate() {
         return sharedPreferences.getString(KEY_STOP_DATE, null);

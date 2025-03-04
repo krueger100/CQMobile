@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     String password;
     String userName;
     String notificationToken;
-    int userId = -1;
     int jobId = -1 ;
     int taskId = -1;
     String firstName;
@@ -84,9 +83,8 @@ public class MainActivity extends AppCompatActivity {
             networkManager.showNoConnectionDialog();
         }
 
-        rootView = findViewById(android.R.id.content);
-        timerManager = TimerManager.getInstance(this);
-        timerUIManager = new TimerUIManager(rootView);
+
+
 
 
         SharedPreferences sharedPreferences = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
@@ -183,10 +181,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        timerManager.restoreSavedTime(this);
-
-
-
 
 
     }
@@ -195,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
     private void initializeApp(String currentUser_notification_token, int userId, String avatarUrl) {
         FirebaseApp.initializeApp(this);
         StatusBarManager.setStatusBarLight(this);
-
         sharedPrefManager = new SharedPrefManager(this);
         accessToken = sharedPrefManager.getAccessToken();
         userId = sharedPrefManager.getUserId();
@@ -205,18 +198,24 @@ public class MainActivity extends AppCompatActivity {
         jobId = sharedPrefManager.getJobId();
         taskId = sharedPrefManager.getTaskId();
         String startDate = sharedPrefManager.getKeyStartDate();
-        String stopDate = sharedPrefManager.getKeyStopDate();
+
+
 
         if (startDate == null) {
             Log.w("MainActivity", "Warning: Start date is null, using default value 0.");
         }
+        Log.w("MainActivity", "Start time ----->>>> " + startDate);
 
-        if (stopDate == null) {
-            Log.w("MainActivity", "Warning: Stop date is null, using default value 0.");
-        }
+        rootView = findViewById(android.R.id.content);
+        timerManager = TimerManager.getInstance(this,startDate);
+        timerUIManager = new TimerUIManager(rootView,startDate);
+        timerManager.startTimer();
 
-        Log.w("MainActivity", "Stop time ----->>>> " + startDate);
-        Log.w("MainActivity", "Start time ----->>>> " + stopDate);
+
+        timerManager.restoreSavedTime(this);
+
+
+
 
 
 
@@ -253,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         } else {
-            Log.e("MainActivity", "Error: userId is null or empty. FirebaseDataManager initialization skipped.");
+            Log.d("MainActivity", "Error: userId is null or empty. FirebaseDataManager initialization skipped.");
         }
 
 
@@ -270,10 +269,6 @@ public class MainActivity extends AppCompatActivity {
 
         navigationManager.setupNavigation();
 
-        // Start timer with delay
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            timerManager.startTimer();
-        }, 1000);
     }
 
 

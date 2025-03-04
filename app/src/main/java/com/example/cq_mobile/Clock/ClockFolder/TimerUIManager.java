@@ -2,7 +2,6 @@ package com.example.cq_mobile.Clock.ClockFolder;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
@@ -32,7 +31,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
     private boolean isHidden = false;
     private final TimerManager timerManager;
 
-    public TimerUIManager(View rootView) {
+    public TimerUIManager(View rootView, String startDate) {
         Log.d(TAG, "Initializing TimerUIManager...");
 
         this.rootView = rootView;
@@ -40,11 +39,10 @@ public class TimerUIManager implements TimerManager.TimerListener {
         this.fab = rootView.findViewById(R.id.fab_timer);
         this.clockOutController = rootView.findViewById(R.id.clockOutController);
         this.progressBarTimer = rootView.findViewById(R.id.progress_bar_timer);
-
-        timerManager = TimerManager.getInstance(rootView.getContext());
+        timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
         timerManager.setListener(this);
 
-        restoreTimerState();
+        restoreTimerState(startDate);
         setupListeners();
     }
 
@@ -60,14 +58,14 @@ public class TimerUIManager implements TimerManager.TimerListener {
             Context context = rootView.getContext();
             if (context instanceof MainActivity) {
                 MainActivity activity = (MainActivity) context;
-                activity.getTimerManager().stopTimer();
-                activity.getTimerManager().resetTimer();
+                activity.getTimerManager().resetTimer(context);
 
                 SharedPrefManager sharedPrefManager = new SharedPrefManager(fab.getContext());
                 String accessToken = sharedPrefManager.getAccessToken();
                 int userID = sharedPrefManager.getUserId();
                 int savedJobId = sharedPrefManager.getJobId();
                 int savedTaskId = sharedPrefManager.getTaskId();
+                String startTime = sharedPrefManager.getKeyStartDate();
 
                 if (accessToken == null || accessToken.isEmpty()) {
                     Toast.makeText(context, "Error: Access token missing", Toast.LENGTH_SHORT).show();
@@ -75,11 +73,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
                 }
 
                 ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID);
-                clockOutManager.AutoClockOut(accessToken, savedJobId);
-
-
-                progressBarTimer.setVisibility(View.VISIBLE);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> progressBarTimer.setVisibility(View.GONE), 2000);
+                clockOutManager.AutoClockOutWithoutLogout(accessToken, savedJobId);
 
                 Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
             }
@@ -101,9 +95,12 @@ public class TimerUIManager implements TimerManager.TimerListener {
         isHidden = !isHidden;
     }
 
-    private void restoreTimerState() {
+    private void restoreTimerState(String startDate) {
         Log.d(TAG, "Restoring timer state...");
+        Log.d(TAG, "startDate  "  + startDate);
         timerManager.restoreSavedTime(rootView.getContext());
+
+
     }
 
     @Override
@@ -112,9 +109,8 @@ public class TimerUIManager implements TimerManager.TimerListener {
         if (rootView.getContext() instanceof Activity) {
             ((Activity) rootView.getContext()).runOnUiThread(() -> {
                 timerTextView.setText(time);
-                progressBarTimer.setVisibility(View.VISIBLE);
                 uiHandler.postDelayed(() -> {
-                    progressBarTimer.setVisibility(View.GONE);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> progressBarTimer.setVisibility(View.GONE), 1000);
                     Log.d(TAG, "Progress bar hidden after update.");
                 }, 2000);
             });

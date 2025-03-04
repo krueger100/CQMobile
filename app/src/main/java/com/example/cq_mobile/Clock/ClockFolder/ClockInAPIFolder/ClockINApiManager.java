@@ -1,7 +1,13 @@
 package com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder;
 
+import android.content.Context;
 import android.util.Log;
 
+
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -22,9 +28,9 @@ public class ClockINApiManager {
         void onFailure(String error);
     }
 
-    public static void clockIN(int jobScheduleId, int taskId, String accessToken, int userId, ApiCallback callback) {
+    public static void clockIN(int jobScheduleId, int taskId, String accessToken, int userId, Context context, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiClockINTask(jobScheduleId, taskId, accessToken, userId, callback));
+        executorService.execute(new ApiClockINTask(jobScheduleId, taskId, accessToken, userId,context, callback));
     }
 
     private static class ApiClockINTask implements Runnable {
@@ -34,12 +40,13 @@ public class ClockINApiManager {
         private final String accessToken;
         private final ApiCallback callback;
         private final int userId; // ✅ Ensure userId is correctly assigned
-
-        public ApiClockINTask(int jobScheduleId, int taskId, String accessToken, int userId, ApiCallback callback) {
+        Context context;
+        public ApiClockINTask(int jobScheduleId, int taskId, String accessToken, int userId, Context context, ApiCallback callback) {
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
             this.accessToken = accessToken;
             this.userId = userId;
+            this.context = context;
             this.callback = callback;
         }
         @Override
@@ -83,6 +90,28 @@ public class ClockINApiManager {
                     String responseBody = response.body() != null ? response.body().string() : null;
                     if (response.isSuccessful()) {
                         Log.d(TAG, "Work started successfully. Response: " + responseBody);
+
+                        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+
+                        // Parse response using Gson
+                        Gson gson = new Gson();
+                        try {
+                            JsonObject jsonObject = gson.fromJson(responseBody, JsonObject.class);
+                            JsonObject dataObject = jsonObject.getAsJsonObject("data");
+
+                            if (dataObject != null && dataObject.has("start_time")) {
+                                String startTime = dataObject.get("start_time").getAsString();
+                                sharedPrefManager.saveClockinStartDate(startTime); // Save start time
+
+
+                            } else {
+                                Log.e(TAG, "start_time not found in response");
+                            }
+                        } catch (JsonSyntaxException e) {
+                            Log.e(TAG, "Failed to parse JSON response", e);
+                        }
+
+
                         callback.onSuccess();
                     } else {
                         Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());

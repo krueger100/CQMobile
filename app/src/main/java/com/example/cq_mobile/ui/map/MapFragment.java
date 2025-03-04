@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
+import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.RouteApiManager;
@@ -27,6 +28,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -46,7 +48,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     MarkerManager markerManager = new MarkerManager();
     BitmapDescriptor customMarkerIcon;
-    String jobId;
+    int jobId;
     String accessToken;
     private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
@@ -85,6 +87,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
          accessToken = sharedPrefManager.getAccessToken();
         int userId = sharedPrefManager.getUserId();
+        jobId = sharedPrefManager.getJobId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();
@@ -97,8 +100,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         Log.d("MapFragmentSharedPreff", "Email: " + email);
 
         // Retrieve the job_id from arguments
-         jobId = getArguments() != null ? getArguments().getString("job_id") : null;
-        Log.d("MapFragment", "Received Job ID in MapFragment: " + jobId);
+        Log.w("MapFragment", "Received Job ID in MapFragment: -> " + jobId);
 
 
 
@@ -116,11 +118,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         googleMap.setOnMapLoadedCallback(() -> {
             Log.d("MapFragment", "Google Map has fully loaded");
 
-            if (jobId != null) {
+            if (jobId == -1) {
                 fetchRouteData(jobId,accessToken);
             } else {
                 Log.e("MapFragment", "job_id is null in MapFragment!");
-                fetchRouteData("5654", accessToken);
+                fetchRouteData(-1, accessToken);
             }
         });
 
@@ -141,6 +143,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             if (marker.getTag() != null && marker.getTag() instanceof Routemain) {
                 Routemain route = (Routemain) marker.getTag();
                 destinationLatLng = marker.getPosition();
+
+
 
                 // Clear only specific markers related to the route
                 // googleMap.clear();
@@ -171,10 +175,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         .icon(customMarkerIcon)
                         .title(routeData.getName()));
 
-                // Set a tag to this marker so we can identify it later
                 routeMarker.setTag(routeData);
-
-                // Optionally, move the camera to focus on the route location
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(routeLocation, 15));
 
                 Log.d("MapFragment", "Route location marker added: Lat: " + lat + ", Lng: " + lng);
@@ -184,8 +185,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void fetchRouteData(String jobId, String accessToken) {
-        RouteApiManager.fetchRouteApiData(jobId,accessToken, new RouteApiManager.ApiResponseCallback<Routemain>() {
+    private void fetchRouteData(int jobId, String accessToken) {
+        RouteApiManager.fetchRouteApiData(String.valueOf(jobId),accessToken, new RouteApiManager.ApiResponseCallback<Routemain>() {
             @Override
             public void onDataFetched(List<Routemain> data) {
                 if (!data.isEmpty()) {
@@ -200,7 +201,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             @Override
             public void onError(String error) {
-                Toast.makeText(getContext(), "Failed to fetch route data: " + error, Toast.LENGTH_SHORT).show();
                 Log.e("MapFragment", "API Error: " + error);
             }
         });
@@ -222,15 +222,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         // Display the user's coordinates
                         Log.d("MapFragment", "Latitude: " + userLocationLatLng.latitude + ", Longitude: " + userLocationLatLng.longitude);
 
-                        // Add marker to the user's location
+
+                        UserPositionMarkerManager userPositionMarkerManager = new UserPositionMarkerManager();
+                        BitmapDescriptor customMarkerIcon = userPositionMarkerManager.getCustomCircleMarkerIcon(getContext());
+                        Log.d("enableUserLocation", "Custom marker icon created.");
+
                         googleMap.addMarker(new MarkerOptions()
                                 .position(userLocationLatLng)
-                                .title("Your Location"));
+                                .title("You are here")
+                                .anchor(0.5f, 0.8f)
+                                .zIndex(8.0f)
+                                .icon(customMarkerIcon));
 
                         // Move the camera to the user's location and zoom in
                         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocationLatLng, 15));
                     } else {
                         Toast.makeText(getContext(), "Unable to retrieve location", Toast.LENGTH_SHORT).show();
+
                     }
                 });
     }

@@ -73,7 +73,9 @@ public class ClockOutManager {
         initiateClockOutAndLogOut(accessToken, jobId, savedTaskId);
     }
 
-
+    public void AutoClockOutWithoutLogout(String accessToken, int jobId) {
+        initiateClockOut(accessToken, jobId, savedTaskId);
+    }
 
     private void initiateClockOut(String accessToken, int jobId, int taskId) {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);

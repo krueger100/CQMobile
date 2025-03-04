@@ -20,6 +20,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class StartJobAPIManager {
 
     private static final String TAG = "StartJobAPIManager";
@@ -34,19 +37,16 @@ public class StartJobAPIManager {
         void onError(String error);
     }
 
-    // Method to get the access token and notify the caller via a callback
+    // Method to get the access token
     public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
         AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-
         Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
 
         call.enqueue(new Callback<AccessTokenResponse>() {
             @Override
             public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    AccessTokenResponse accessTokenResponse = response.body();
-                    String accessToken = accessTokenResponse.getAccessToken();
-
+                    String accessToken = response.body().getAccessToken();
                     if (accessToken != null) {
                         Log.d(TAG, "Access Token: " + accessToken);
                         callback.onAccessTokenReceived(accessToken);
@@ -65,6 +65,7 @@ public class StartJobAPIManager {
         });
     }
 
+    // Start job with token
     public void startJobWithToken(int userId, int jobId, Double latOut, Double longOut, AccessTokenRequest tokenRequest, ApiCallback callback) {
         getAccessToken(tokenRequest, new AccessTokenCallback() {
             @Override
@@ -79,6 +80,7 @@ public class StartJobAPIManager {
         });
     }
 
+    // Start job execution
     public static void startJob(int userId, int jobId, Double latOut, Double longOut, String accessToken, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(new ApiStartJobTask(userId, jobId, latOut, longOut, accessToken, callback));
@@ -107,13 +109,26 @@ public class StartJobAPIManager {
             String baseUrl = "https://aws.customquoter.co.uk";
             String endpoint = String.format("/api/m/jobs/work-status/start/%d", userId);
 
-            String jsonBody = String.format("{\"status\": \"start\", \"job\": %d, \"custom_job\": null, \"lat_out\": %f, \"long_out\": %f}", jobId, latOut, longOut);
+            // Create JSON body properly
+            String jsonBody = createJsonBody(jobId, latOut, longOut);
+
             Log.d(TAG, "jsonBody: --->>> " + jsonBody);
             postStartJob(baseUrl, endpoint, accessToken, jsonBody);
+        }
 
-            Log.w(TAG, "Job started : " + userId +"  ----------- "+ jobId);
-            Log.w(TAG, "Job started : " +" latOut "+ latOut +"  ----------- "+" longOut "+ longOut);
-
+        // Create JSON object correctly
+        private String createJsonBody(int jobId, Double latOut, Double longOut) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("status", "start");
+                jsonObject.put("job", jobId);
+                jsonObject.put("custom_job", JSONObject.NULL);
+                jsonObject.put("lat_out", latOut);
+                jsonObject.put("long_out", longOut);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return jsonObject.toString();
         }
 
         private void postStartJob(String baseUrl, String endpoint, String accessToken, String jsonBody) {
@@ -132,7 +147,6 @@ public class StartJobAPIManager {
                     .addHeader("Accept", "application/json")
                     .put(body)
                     .build();
-
 
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
@@ -157,6 +171,7 @@ public class StartJobAPIManager {
         }
     }
 }
+
 
 /*
 CALL

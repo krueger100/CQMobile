@@ -4,12 +4,9 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -111,6 +108,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
 
+
         jobId = getIntent().getStringExtra("job_id");
         taskId = getIntent().getStringExtra("task_id");
         sharedPrefManager = new SharedPrefManager(NewBuild.this);
@@ -181,6 +179,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                         task_location.setText(task.getAddress().getCity() + ", " + task.getAddress().getCountry());
                         task_number.setText(String.valueOf(task.getId()));
                         task_description.setText(task.getDescription());
+                        category_todo.setText(task.getCategory());
 
                         // Get the status from the API response
                         String status_main = task.getStatus();
@@ -490,59 +489,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
 
     }
-
-
-    /*
-      checkBoxData(accessToken,jobId, taskId, progress_circular_2);
-
-    private void checkBoxData(String accessToken, String jobId, String taskId, ProgressBar progress_circular_2) {
-        TaskActivityManager manager = new TaskActivityManager();
-
-        if (this.jobId != null && !this.jobId.isEmpty() && this.taskId != null && !this.taskId.isEmpty()) {
-            try {
-                int parsedJobId = Integer.parseInt(this.jobId);
-                int parsedTaskId = Integer.parseInt(this.taskId);
-
-                manager.fetchTask(parsedJobId, parsedTaskId,accessToken, "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2", new TaskActivityManager.TaskFetchCallback() {
-                            @Override
-                            public void onTaskFetched(String title, String description, String priority, String status, String startDate, String endDate, String assigneeInfo, String assigneeName, boolean isChecked,
-                                                      String checklistsName, String checklistsInfo) {
-                                Log.d("checkBoxData", "Task Fetched Successfully:");
-                                Log.d("checkBoxData", "Is Checked: " + isChecked);
-
-                                if (jobId != null) {
-                                    setupMainTaskManager.setupMainTask(jobId);
-                                    setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked,accessToken, taskId);
-                                    progress_circular_2.setVisibility(View.GONE);
-                                }
-                            }
-                            @Override
-                            public void onTaskFetchError(String errorMessage) {
-                                Log.e("checkBoxData", "Error fetching task: " + errorMessage);
-                                Log.w("checkBoxData", "jobId:  ------------>>>>>>>>>>>>>>>> " + jobId);
-                                Log.w("checkBoxData", "jobId:  ------------>>>>>>>>>>>>>>>> " + accessToken);
-                                Log.w("checkBoxData", "jobId:  ------------>>>>>>>>>>>>>>>> " + taskId);
-
-                                if (NewBuild.this.jobId != null) {
-                                    setupMainTaskManager.setupMainTask(jobId);
-                                    setupTaskRecyclerViewManager.setupRecyclerView(jobId, false,accessToken,taskId);
-                                    progress_circular_2.setVisibility(View.GONE);
-                                }
-
-                            }
-                        }
-                );
-            } catch (NumberFormatException e) {
-                Log.e("checkBoxData", "Invalid Job ID or Task ID: " + this.jobId + ", " + this.taskId);
-                this.progress_circular_2.setVisibility(View.GONE);
-            }
-        } else {
-            Log.e("checkBoxData", "Job ID or Task ID is null or empty.");
-            this.progress_circular_2.setVisibility(View.GONE);
-        }
-    }
-
- */
 
 
 

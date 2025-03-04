@@ -278,8 +278,9 @@ public class ClockActivity extends AppCompatActivity {
                         Log.w("ClockActivity", ">>>>>> Status <<<<<<< " + task.getStatus());
                         Log.w("ClockActivity", ">>>>>> Start_date <<<<<<< " + task.getStart_date());
                         Log.w("ClockActivity", ">>>>>> End_date <<<<<<< " + task.getEnd_date());
-                        sharedPrefManager.saveStartDate( task.getStart_date());
-                        sharedPrefManager.saveStopDate(task.getEnd_date());
+
+
+
 
 
                         sharedPrefManager.saveJobId(task.getId());
@@ -406,7 +407,7 @@ public class ClockActivity extends AppCompatActivity {
                         ClickAnimationManager.applyClickAnimation(v);
                     }
 
-                    ClockINApiManager.clockIN(jobId, subTaskId, accessToken, userId, new ClockINApiManager.ApiCallback() {
+                    ClockINApiManager.clockIN(jobId, subTaskId, accessToken, userId,getApplicationContext(), new ClockINApiManager.ApiCallback() {
                         @Override
                         public void onSuccess() {
                             Log.d("ClockActivity", "Clock IN Successful");
