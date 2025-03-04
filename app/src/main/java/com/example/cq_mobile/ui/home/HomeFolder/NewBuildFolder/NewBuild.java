@@ -81,7 +81,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     LatLng userLocation;
     MarkerManager markerManager = new MarkerManager();
     BitmapDescriptor customMarkerIcon;
-    MapCameraManager mapCameraManager;
     ProgressBar progress_circular;
     ProgressBar progress_circular_2;
     TextView category_todo;
@@ -94,9 +93,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     int userId;
     String email ;
     String password ;
-    String cqLocal = "https://aws.customquoter.co.uk";
-    List<String> sheetTitlesList;
-    List<String> sheetOtherTitlesList;
     SharedPrefManager sharedPrefManager;
     RecyclerView recycler_view;
     TextView task_title ;
@@ -106,11 +102,10 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     Spinner spinner_task ;
     String firstName ;
     String lastName;
-
     private boolean isChecked;
-
-
     private static final String TAG = "NewBuild";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,7 +113,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         jobId = getIntent().getStringExtra("job_id");
         taskId = getIntent().getStringExtra("task_id");
-         sharedPrefManager = new SharedPrefManager(NewBuild.this);
+        sharedPrefManager = new SharedPrefManager(NewBuild.this);
 
         SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
         taskId = sharedPrefTaskADandJobID.getTaskId();
@@ -150,24 +145,18 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         progress_circular_2 = findViewById(R.id.progress_circular_2);
         statusImageView = findViewById(R.id.statusImageView);
         start_job = findViewById(R.id.start_job);
-
-
          recycler_view = findViewById(R.id.recycler_view);
          task_title = findViewById(R.id.task_title);
          task_location = findViewById(R.id.task_location);
          task_number = findViewById(R.id.task_number);
          task_description = findViewById(R.id.task_description);
          spinner_task = findViewById(R.id.spinner_task);
-
-
         notes  = findViewById(R.id.notes);
         folder = findViewById(R.id.folder);
 
         newBuildButtonManager = new NewBuildButtonManager(notes, folder);
 
 
-
-        // Initialize map fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -502,37 +491,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
     }
 
-    /*
-
-    @Override
-public void onSuccess(String response) {
-    Log.d("StartJob", "Job started successfully: " + response);
-
-    // Initialize Gson
-    Gson gson = new Gson();
-
-    // Parse the JSON response into StartJobResponse object
-    StartJobResponse startJobResponse = gson.fromJson(response, StartJobResponse.class);
-
-    // Access fields from the parsed response
-    if (startJobResponse != null && startJobResponse.success) {
-        String message = startJobResponse.message;
-        String workMessage = startJobResponse.data != null ? startJobResponse.data.message2 : "No work message";
-
-        Log.d("StartJob", "Server Message: " + message);
-        Log.d("StartJob", "Work Status: " + workMessage);
-
-        // Example: Access job title
-        if (startJobResponse.data != null && startJobResponse.data.work != null && startJobResponse.data.work.job != null) {
-            String jobTitle = startJobResponse.data.work.job.title;
-            Log.d("StartJob", "Job Title: " + jobTitle);
-        }
-    } else {
-        Log.e("StartJob", "Failed response or success flag is false.");
-    }
-}
-
-     */
 
     /*
       checkBoxData(accessToken,jobId, taskId, progress_circular_2);
