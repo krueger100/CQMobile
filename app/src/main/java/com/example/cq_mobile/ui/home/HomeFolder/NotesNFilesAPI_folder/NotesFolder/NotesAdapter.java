@@ -3,6 +3,7 @@ package com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFold
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,9 +19,21 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
     private List<Note> notesList;
     NotesActivity notesActivity;
-    public NotesAdapter(List<Note> notesList, NotesActivity notesActivity) {
+    private View emptyStateView;
+    public NotesAdapter(List<Note> notesList, NotesActivity notesActivity, LinearLayout emptyStateView) {
         this.notesList = notesList;
+        this.emptyStateView = emptyStateView;
         this.notesActivity = notesActivity;
+        checkEmptyState();
+    }
+    private void checkEmptyState() {
+        if (emptyStateView != null) {
+            if (notesList.isEmpty()) {
+                emptyStateView.setVisibility(View.VISIBLE);
+            } else {
+                emptyStateView.setVisibility(View.GONE);
+            }
+        }
     }
 
     @NonNull
@@ -48,6 +61,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
 
     @Override
     public int getItemCount() {
+        checkEmptyState();
         return notesList.size();
     }
 
@@ -55,6 +69,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         int startPos = notesList.size();
         notesList.addAll(newNotes);
         notifyItemRangeInserted(startPos, newNotes.size());
+        checkEmptyState();
     }
 
 

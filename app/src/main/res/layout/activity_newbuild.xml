@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+
         <fragment
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -36,7 +37,9 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" >
+
+        </FrameLayout>
 
 
         <TextView
@@ -57,7 +60,7 @@
     <LinearLayout
         android:id="@+id/new_built_bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="765dp"
+        android:layout_height="755dp"
         android:orientation="vertical"
         android:background="@color/white"
         app:behavior_hideable="false"
@@ -243,22 +246,62 @@
             android:textColor="@color/black"
             android:textSize="16sp" />
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_weight="1"
-                    android:clipToPadding="false"
-                    android:padding="8dp"
-                    android:layout_marginTop="5dp"
-                    android:scrollbars="vertical"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:padding="8dp"
+                android:scrollbars="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/emptyTask"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:elevation="25dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/recycler_view"
+                app:layout_constraintEnd_toEndOf="@+id/recycler_view"
+                app:layout_constraintStart_toStartOf="@+id/recycler_view"
+                app:layout_constraintTop_toTopOf="@+id/recycler_view">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:contentDescription="No tasks available"
+                    android:src="@drawable/android12splash_orange" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:text="No subtasks available"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <ProgressBar
             android:id="@+id/progress_circular_2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"/>
+
+
+
 
 
         <LinearLayout
@@ -276,7 +319,7 @@
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="185dp"
-                    android:layout_height="70dp"
+                    android:layout_height="80dp"
                     app:cardCornerRadius="8dp"
                     android:elevation="10dp"
                     android:layout_margin="10dp"
@@ -303,7 +346,7 @@
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="185dp"
-                    android:layout_height="70dp"
+                    android:layout_height="80dp"
                     app:cardCornerRadius="8dp"
                     android:elevation="10dp"
                     android:padding="10dp">
@@ -391,6 +434,7 @@
                 android:id="@+id/custom_bottom_nav_view"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
+                android:layout_gravity="bottom"
                 android:layout_alignParentBottom="true"
                 tools:ignore="MissingClass" />
 
@@ -404,5 +448,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
@@ -19,13 +21,14 @@ import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMoreBinding;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 
 public class MoreFragment extends Fragment {
     private Context context;
 
     private FragmentMoreBinding binding;
     private SharedPrefManager sharedPrefManager;
-
 
 
 
@@ -62,11 +65,16 @@ public class MoreFragment extends Fragment {
         context = getContext();
 
         if (avatar != null && !avatar.isEmpty()) {
+            String baseUrl = "https://customquoteruk-live-uploads.s3.eu-west-2.amazonaws.com/"; // S3 Base URL
+            String fullAvatarUrl = baseUrl + avatar; // Construct full image URL
+
+            Log.d("MoreActivity", "Full Avatar URL: " + fullAvatarUrl); // Debugging
+
             Glide.with(this)
-                    .load(avatar)
-                    .placeholder(R.drawable.baseline_circle)
-                    .error(R.drawable.emptyglide)
-                    .into(binding.imageProfile);
+                    .load(fullAvatarUrl)
+                    .placeholder(R.drawable.circular_background) // Placeholder image
+                    .error(R.drawable.emptyglide) // Error image
+                    .into(binding.circleImageView);
         }
 
         // Set up click listeners

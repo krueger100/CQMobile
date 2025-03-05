@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,7 +55,7 @@ public class FilesActivity extends AppCompatActivity {
 TextView add_files;
     String jobId;
     private ActivityResultLauncher<Intent> filePickerLauncher;
-
+    LinearLayout emptyTask;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +69,7 @@ TextView add_files;
         files_back = findViewById(R.id.files_back);
         files_back2 = findViewById(R.id.files_back2);
         add_files = findViewById(R.id.add_files);
-
+        emptyTask = findViewById(R.id.emptyTask);
         // Initialize ActivityResultLauncher
         filePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -117,7 +118,7 @@ TextView add_files;
         // RecyclerView setup
         recyclerView = findViewById(R.id.recyclerview_files);
         filesList = new ArrayList<>();
-        filesAdapter = new FilesAdapter(this, filesList, baseUrl, accessToken, apiKey);
+        filesAdapter = new FilesAdapter(this, filesList, baseUrl, accessToken, apiKey ,emptyTask);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(filesAdapter);
@@ -244,7 +245,7 @@ TextView add_files;
             @Override
             public void onResponse(Call<FilesResponse> call, Response<FilesResponse> response) {
                 isLoading = false;
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
                     List<FileItem> newFiles = response.body().getData();
                     Log.d("FilesActivity", "Files loaded successfully.");
                     filesAdapter.addData(newFiles);
@@ -257,6 +258,7 @@ TextView add_files;
                     Log.e("FilesActivity", "Error loading files: " + response.message());
                     Toast.makeText(FilesActivity.this, "Error loading files", Toast.LENGTH_SHORT).show();
                 }
+
             }
 
             @Override

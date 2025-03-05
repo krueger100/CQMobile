@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +58,7 @@ public class NotesActivity extends AppCompatActivity {
     EditText Notes_body;
    CardView cardViewNotesInput;
    ImageButton addNotesButton;
+    LinearLayout emptyTask;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +71,7 @@ public class NotesActivity extends AppCompatActivity {
         cardViewNotesInput = findViewById(R.id.cardViewNotesInput);
         Notes_off= findViewById(R.id.Notes_off);
         Notes_body  = findViewById(R.id.Notes_body);
-
+        emptyTask  = findViewById(R.id.emptyTask);
 
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(NotesActivity.this);
@@ -95,7 +97,7 @@ public class NotesActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerview_notes);
         notesList = new ArrayList<>();
-        notesAdapter = new NotesAdapter(notesList,NotesActivity.this);
+        notesAdapter = new NotesAdapter(notesList,NotesActivity.this,emptyTask);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(notesAdapter);
@@ -181,6 +183,7 @@ public class NotesActivity extends AppCompatActivity {
                     Notes_body.setText("");
                     cardViewNotesInput.setVisibility(View.GONE);
                 });
+
             }
 
             @Override

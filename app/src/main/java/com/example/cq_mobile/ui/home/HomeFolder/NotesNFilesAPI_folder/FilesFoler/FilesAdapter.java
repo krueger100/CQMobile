@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -26,14 +27,29 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
     private String baseUrl;
     private String accessToken;
     private String apiKey;
+    private View emptyStateView;
 
-    public FilesAdapter(Context context, List<FileItem> filesList, String baseUrl, String accessToken, String apiKey) {
+    public FilesAdapter(Context context, List<FileItem> filesList, String baseUrl, String accessToken, String apiKey, LinearLayout emptyStateView) {
         this.context = context;
         this.filesList = filesList;
         this.baseUrl = baseUrl;
         this.accessToken = accessToken;
         this.apiKey = apiKey;
+        this.emptyStateView = emptyStateView;
+        checkEmptyState();
+
     }
+
+    private void checkEmptyState() {
+        if (emptyStateView != null) {
+            if (filesList.isEmpty()) {
+                emptyStateView.setVisibility(View.VISIBLE);
+            } else {
+                emptyStateView.setVisibility(View.GONE);
+            }
+        }
+    }
+
 
     @NonNull
     @Override
@@ -213,13 +229,16 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
 
     @Override
     public int getItemCount() {
+        checkEmptyState();
         return filesList.size();
     }
+
 
     public void addData(List<FileItem> newFiles) {
         int startPosition = filesList.size();
         filesList.addAll(newFiles);
         notifyItemRangeInserted(startPosition, newFiles.size());
+        checkEmptyState();
     }
 
     public static class FilesViewHolder extends RecyclerView.ViewHolder {

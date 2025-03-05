@@ -1,30 +1,31 @@
 package com.example.cq_mobile.MoreActivityFolder;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 
 public class MoreActivity extends AppCompatActivity {
     TextView back, name, logoutButton;
     ProgressBar progressBar;
+    CircleImageView circleImageView2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +34,7 @@ public class MoreActivity extends AppCompatActivity {
         name= findViewById(R.id.name);
         logoutButton= findViewById(R.id.logoutButton);
         progressBar= findViewById(R.id.progressBar);
-
+        circleImageView2 = findViewById(R.id.circleImageView2);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
         String accessToken = sharedPrefManager.getAccessToken();
@@ -41,7 +42,7 @@ public class MoreActivity extends AppCompatActivity {
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();
-
+        String avatar = sharedPrefManager.getAvatarUrl();
 
         Log.d("MoreActivity", "Retrieved User Data: ");
         Log.d("MoreActivity", "Access Token: " + accessToken);
@@ -49,10 +50,24 @@ public class MoreActivity extends AppCompatActivity {
         Log.d("MoreActivity", "First Name: " + firstName);
         Log.d("MoreActivity", "Last Name: " + lastName);
         Log.d("MoreActivity", "Email: " + email);
-
+        Log.d("MoreActivity", "avatar: " + avatar);
 
         name.setText(firstName +" "+lastName);
 
+
+
+        if (avatar != null && !avatar.isEmpty()) {
+            String baseUrl = "https://customquoteruk-live-uploads.s3.eu-west-2.amazonaws.com/"; // S3 Base URL
+            String fullAvatarUrl = baseUrl + avatar; // Construct full image URL
+
+            Log.d("MoreActivity", "Full Avatar URL: " + fullAvatarUrl); // Debugging
+
+            Glide.with(this)
+                    .load(fullAvatarUrl)
+                    .placeholder(R.drawable.circular_background) // Placeholder image
+                    .error(R.drawable.emptyglide) // Error image
+                    .into(circleImageView2);
+        }
 
 
         back.setOnClickListener(new View.OnClickListener() {

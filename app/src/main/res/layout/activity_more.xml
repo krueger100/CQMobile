@@ -41,15 +41,14 @@
             android:paddingHorizontal="16dp">
 
 
-            <ImageView
-                android:id="@+id/image1"
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/circleImageView2"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="10dp"
-                android:background="@drawable/circular_background"
-                android:src="@drawable/round_account_circle_24" />
+                android:background="@drawable/circular_background"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"

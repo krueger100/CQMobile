@@ -101,7 +101,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     String lastName;
     private boolean isChecked;
     private static final String TAG = "NewBuild";
-
+LinearLayout emptyTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,6 +151,8 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
          spinner_task = findViewById(R.id.spinner_task);
         notes  = findViewById(R.id.notes);
         folder = findViewById(R.id.folder);
+        emptyTask  = findViewById(R.id.emptyTask);
+
 
         newBuildButtonManager = new NewBuildButtonManager(notes, folder);
 
@@ -174,9 +176,10 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
             public void onDataFetched(List<Taskmain> data) {
                 runOnUiThread(() -> {
                     if (!data.isEmpty()) {
-                        Taskmain task = data.get(0); // Assuming we need the first task
+                        Taskmain task = data.get(0);
                         task_title.setText(task.getName());
-                        task_location.setText(task.getAddress().getCity() + ", " + task.getAddress().getCountry());
+                        task_location.setText((task.getAddress() != null ? ((task.getAddress().getCity() != null ? task.getAddress().getCity() : "") + (task.getAddress().getCountry() != null ? ", " + task.getAddress().getCountry() : ""))
+                       : "No Location is set"));
                         task_number.setText(String.valueOf(task.getId()));
                         task_description.setText(task.getDescription());
                         category_todo.setText(task.getCategory());
@@ -270,12 +273,13 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
                             setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view);
                             setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
-                                progress_circular_2.setVisibility(View.GONE);
                         }
+                        progress_circular_2.setVisibility(View.GONE);
 
                     } else {
                         Log.d("SubTask", "No subtasks found.");
                         Toast.makeText(NewBuild.this, "No tasks found.", Toast.LENGTH_SHORT).show();
+                        emptyTask.setVisibility(View.VISIBLE);
                         progress_circular_2.setVisibility(View.GONE);
                     }
                 });
@@ -286,6 +290,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 runOnUiThread(() -> {
                     Log.e("SubTask", "Error fetching subtasks: " + error);
                     Toast.makeText(NewBuild.this, "Error fetching subtasks: " + error, Toast.LENGTH_SHORT).show();
+                    emptyTask.setVisibility(View.VISIBLE);
                     progress_circular_2.setVisibility(View.GONE);
                 });
             }
