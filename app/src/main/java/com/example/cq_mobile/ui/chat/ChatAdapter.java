@@ -21,7 +21,7 @@ import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
 import com.example.cq_mobile.ui.chat.InnerChatsFolder.InnerChats;
-import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
+
 import com.google.gson.Gson;
 
 import java.util.ArrayList;

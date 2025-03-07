@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -32,13 +33,14 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
     private final ImageView statusImageView;
     private String taskId;  // Now taskId is a dynamic field
     String accessToken;
-    public SubTaskSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, String jobId,
-                                 ImageView statusImageView, String initialStatus, String taskId, String accessToken) {
+    ProgressBar progressbar_subtask;
+    TextView progress_text_subtask;
+    public SubTaskSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, String jobId, ImageView statusImageView, String initialStatus, String taskId, String accessToken, ProgressBar progressbar_subtask, TextView progress_text_subtask) {
         super(context, resource, objects);
         this.context = context;
         this.accessToken = accessToken;
-
-        // Ensure initialStatus is the first item if not already in the list
+        this.progressbar_subtask = progressbar_subtask;
+        this.progress_text_subtask = progress_text_subtask;
         this.items = new ArrayList<>();
         Set<String> lowerCaseSet = new HashSet<>();
 
@@ -110,7 +112,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.cq_secondary_color);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken,jobId, taskId, "in_progress");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken,jobId, taskId, "in_progress",progressbar_subtask,progress_text_subtask );
                     statusImageView.setImageResource(R.drawable.button_orange);
                 }
                 break;
@@ -118,7 +120,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.textBtnRed);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "pending");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "pending",progressbar_subtask,progress_text_subtask );
                     statusImageView.setImageResource(R.drawable.button_red);
                 }
                 break;
@@ -126,7 +128,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.color_inspection);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "under_inspection");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "under_inspection",progressbar_subtask,progress_text_subtask );
                     statusImageView.setImageResource(R.drawable.button_blue);
                 }
                 break;
@@ -134,7 +136,7 @@ public class SubTaskSpinnerAdapter extends ArrayAdapter<String> {
                 color = ContextCompat.getColor(context, R.color.color_done);
                 if (statusImageView != null) {
                     // Use dynamic taskId here for the update call
-                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "done");
+                    UpdateSubTaskApiManager.updateSubTaskApiManager(accessToken, jobId, taskId, "done",progressbar_subtask,progress_text_subtask );
                     statusImageView.setImageResource(R.drawable.button_green);
                 }
                 break;

@@ -23,7 +23,7 @@ import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
-import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.R;
 
@@ -34,13 +34,15 @@ public class ClockOutManager {
     private int savedJobId;
     private int savedTaskId;
     int userID;
+    String startDate;
 
-    public ClockOutManager(Context context, ProgressBar progressBar, int savedJobId, int savedTaskId, int userID) {
+    public ClockOutManager(Context context, ProgressBar progressBar, int savedJobId, int savedTaskId, int userID, String startDate) {
         this.context = context;
         this.progressBar = progressBar;
         this.savedJobId = savedJobId; // ✅ Assigned values
         this.savedTaskId = savedTaskId;
         this.userID = userID;
+        this.startDate = startDate;
     }
 
     public void setupClockOutButton(TextView clockOutBtn, String accessToken, int jobId) {
@@ -66,18 +68,19 @@ public class ClockOutManager {
         clockOutBtn.setGravity(Gravity.CENTER);
         clockOutBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
-        clockOutBtn.setOnClickListener(v -> initiateClockOut(accessToken, jobId, savedTaskId));
+        clockOutBtn.setOnClickListener(v -> initiateClockOut(accessToken, jobId, savedTaskId,startDate));
     }
 
     public void AutoClockOut(String accessToken, int jobId) {
-        initiateClockOutAndLogOut(accessToken, jobId, savedTaskId);
+        initiateClockOutAndLogOut(accessToken, jobId, savedTaskId,startDate);
     }
 
     public void AutoClockOutWithoutLogout(String accessToken, int jobId) {
-        initiateClockOut(accessToken, jobId, savedTaskId);
+        initiateClockOut(accessToken, jobId, savedTaskId,startDate);
     }
 
-    private void initiateClockOut(String accessToken, int jobId, int taskId) {
+    private void initiateClockOut(String accessToken, int jobId, int taskId, String startDate) {
+
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         int ticketMessageId = 0;
         ClockOUTApiManager.clockOUT(jobId, taskId, ticketMessageId, progressBar, accessToken, userID, new ClockOUTApiManager.ApiCallback() {
@@ -88,7 +91,7 @@ public class ClockOutManager {
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
 
                     // ✅ Reusable method for clearing clock-in data
-                    clearClockPrefs();
+                    clearClockPrefs(ClockOutManager.this.startDate);
 
                     // ✅ Navigate to ClockActivity
                     Intent intent = new Intent(context, ClockActivity.class);
@@ -114,16 +117,16 @@ public class ClockOutManager {
     }
 
 
-    private void initiateClockOutAndLogOut(String accessToken, int jobId, int taskId) {
+    private void initiateClockOutAndLogOut(String accessToken, int jobId, int taskId, String startDate) {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         int ticketMessageId = 0;
         ClockNLogOUTApiManager.clockOuTwithLogOut(jobId, taskId, ticketMessageId, progressBar, accessToken, userID, new ClockNLogOUTApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
-                Log.d("ClockOutManager", "Clock Out Successful");
+                Log.d("ClockOutManager", "Clock/Log Out Successful");
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    clearClockPrefs();
+                    clearClockPrefs(ClockOutManager.this.startDate);
 
                     Intent intent = new Intent(context, Login.class);
                     intent.putExtra("key", "value");
@@ -137,10 +140,10 @@ public class ClockOutManager {
 
             @Override
             public void onFailure(String error) {
-                Log.e("ClockOutManager", "Clock Out Failed: " + error);
+                Log.e("ClockOutManager", "Clock Out Failed: Clock/Log Out  " + error);
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    Toast.makeText(context, "Failed to clock out: " + error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Failed to clock out: Clock/Log Out  " + error, Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -149,10 +152,13 @@ public class ClockOutManager {
 
 
     // ✅ Extracted method to clear clock-in data
-    private void clearClockPrefs() {
+    private void clearClockPrefs(String startDate) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         sharedPreferences.edit().clear().apply();
+        Log.w("ClockOutManager", "<<<< TimerManager >>>> "+"\n" +" -->>  "+ startDate );
 
+        TimerManager timerManager = TimerManager.getInstance(context, startDate);
+        timerManager.resetTimer(context);
 
         /*
         SharedPreferences USER_PREFS_Preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);

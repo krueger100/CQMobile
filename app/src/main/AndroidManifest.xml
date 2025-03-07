@@ -12,9 +12,17 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+    <!-- Camera permission -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" android:maxSdkVersion="35"/>
 
 
 
@@ -97,17 +105,7 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".ui.home.HomeFolder.NotesNFilesAPI_folder.DocsFolder.DocsActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme"/>
 
-        <activity android:name=".ui.home.HomeFolder.NotesNFilesAPI_folder.SheetsFolder.SheetsAcitivy"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme"/>
 
 
         <activity android:name=".MoreActivityFolder.MoreActivity"
@@ -177,14 +175,15 @@
             </intent-filter>
         </service>
 
-
-        <service
-            android:name=".Clock.ClockFolder.ClockInAPIFolder.TimerService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false" />
-
-
-
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.cq_mobile.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
 
     </application>

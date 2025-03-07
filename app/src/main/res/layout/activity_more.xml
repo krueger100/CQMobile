@@ -48,6 +48,7 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="10dp"
+                android:src="@drawable/emptyglide"
                 android:background="@drawable/circular_background"/>
 
             <LinearLayout

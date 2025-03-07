@@ -68,6 +68,8 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             String id = String.valueOf(todo.getId());
             String categories = todo.getCategory() != null ? todo.getCategory().trim() : "No Category";
             String categoriesColors = String.valueOf(todo.getCategory_color()).trim();
+
+
             Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
             if (id != null) {
@@ -81,7 +83,7 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         todoHolder.category.setTextColor(categoryColor);
                         todoHolder.category.setBackground(categoryBackground);
                     } catch (IllegalArgumentException e) {
-                        Log.e("SubTaskAdapter", "Invalid category color format: " + categoriesColors, e);
+                        Log.e("Todo", "Invalid category color format: " + categoriesColors, e);
                         todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
                     }
                 } else {

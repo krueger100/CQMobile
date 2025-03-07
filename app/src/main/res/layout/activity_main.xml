@@ -43,14 +43,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="25dp"
+            android:layout_marginBottom="15dp"
             android:background="@drawable/timerbckground"
             android:backgroundTint="@color/black"
             android:elevation="15dp"
             android:orientation="horizontal"
-            android:layout_marginBottom="15dp"
             app:layout_constraintBottom_toTopOf="@+id/nav_view"
             app:layout_constraintEnd_toEndOf="parent">
-
 
 
             <ImageButton
@@ -89,7 +88,6 @@
         </LinearLayout>
 
 
-
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/nav_view"
             android:layout_width="0dp"
@@ -113,6 +111,28 @@
             app:layout_constraintTop_toTopOf="parent"
             app:navGraph="@navigation/mobile_navigation" />
 
+
+        <TextView
+            android:id="@+id/clockout_btn"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginHorizontal="16dp"
+            android:background="@drawable/clock_out_btn"
+            android:elevation="25dp"
+            android:textAllCaps="false"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline5" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="135dp" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

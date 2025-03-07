@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,7 +17,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.Clock.ClockActivity;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.Done;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.DoneAdapter;
@@ -35,13 +38,13 @@ public class DoneFragment extends Fragment {
     private boolean isLastPage = false;
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
+    private ClockOutVisibilityHandler visibilityHandler;
 
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_done, container, false);
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
-        clockout_btn = view.findViewById(R.id.clockout_btn);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
@@ -57,20 +60,20 @@ public class DoneFragment extends Fragment {
         String email = sharedPrefManager.getEmail();
         int savedJobId = sharedPrefManager.getJobId();
         int savedTaskId = sharedPrefManager.getTaskId();
+        String startDate = sharedPrefManager.getKeyStartDate();
 
 
-        Log.d("SkippedFragmentSharedPreff", "Retrieved User Data: ");
-        Log.d("SkippedFragmentSharedPreff", "Access Token: " + accessToken);
-        Log.d("SkippedFragmentSharedPreff", "User ID: " + userID);
-        Log.d("SkippedFragmentSharedPreff", "First Name: " + firstName);
-        Log.d("SkippedFragmentSharedPreff", "Last Name: " + lastName);
-        Log.d("SkippedFragmentSharedPreff", "Email: " + email);
-        Log.d("SkippedFragmentSharedPreff", "Retrieved Job ID: " + savedJobId);
-        Log.d("SkippedFragmentSharedPreff", "Retrieved Task ID: " + savedTaskId);
-        Log.d("SkippedFragmentSharedPreff", "Retrieved user ID: " + userID);
+        Log.d("DoneFragmentSharedPreff", "Retrieved User Data: ");
+        Log.d("DoneFragmentSharedPreff", "Access Token: " + accessToken);
+        Log.d("DoneFragmentSharedPreff", "User ID: " + userID);
+        Log.d("DoneFragmentSharedPreff", "First Name: " + firstName);
+        Log.d("DoneFragmentSharedPreff", "Last Name: " + lastName);
+        Log.d("DoneFragmentSharedPreff", "Email: " + email);
+        Log.d("DoneFragmentSharedPreff", "Retrieved Job ID: " + savedJobId);
+        Log.d("DoneFragmentSharedPreff", "Retrieved Task ID: " + savedTaskId);
+        Log.d("DoneFragmentSharedPreff", "Retrieved user ID: " + userID);
+        Log.d("DoneFragmentSharedPreff", "Retrieved startDate: " + startDate);
 
-        ClockOutManager clockOutManager = new ClockOutManager(getContext(),progressBar,savedJobId,savedTaskId,userID);
-        clockOutManager.setupClockOutButton(clockout_btn, accessToken, savedJobId);
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -90,15 +93,7 @@ public class DoneFragment extends Fragment {
         });
 
         loadMessages(accessToken);
-        clockout_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), ClockActivity.class);
-                intent.putExtra("key", "value");
-                startActivity(intent);
-                getActivity().finish();
-            }
-        });
+
 
 
         return view;
@@ -160,5 +155,25 @@ public class DoneFragment extends Fragment {
 
 
     }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof ClockOutVisibilityHandler) {
+            visibilityHandler = (ClockOutVisibilityHandler) context;
+        } else {
+            Log.d("DoneFragment", "Activity does not implement ClockOutVisibilityHandler");
+        }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (visibilityHandler != null) {
+            visibilityHandler.setClockOutVisibility(true);
+        }
+    }
+
 
 }

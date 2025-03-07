@@ -9,8 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -40,6 +40,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     String accessToken;
     String taskId;
     String taskStatus;
+
     public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId, boolean isChecked, String accessToken, String taskId) {
         this.context = context;
         this.jobId = jobId;
@@ -154,7 +155,8 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
 
 
             // Create spinner adapter
-            SubTaskSpinnerAdapter spinnerAdapter = new SubTaskSpinnerAdapter(context, R.layout.task_spinner_item, options, jobId, holder.spinner_task_imageBackground, taskStatus, taskId.toString(),accessToken);
+            SubTaskSpinnerAdapter spinnerAdapter = new SubTaskSpinnerAdapter(context, R.layout.task_spinner_item, options, jobId, holder.spinner_task_imageBackground, taskStatus, taskId.toString(),accessToken,
+            holder.progressbar_subtask,holder.progress_text_subtask);
 
             holder.taskSpinner.setAdapter(spinnerAdapter);
             int defaultIndex = options.indexOf(taskStatus);
@@ -230,9 +232,11 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     }
 
     static class SecondaryViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewTitle, textViewDescription, priority;
+        TextView textViewTitle, textViewDescription, priority,progress_text_subtask;
         Spinner taskSpinner;
         ImageView spinner_task_imageBackground;
+        ProgressBar progressbar_subtask;
+
 CheckBox checkBox;
         public SecondaryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -242,6 +246,9 @@ CheckBox checkBox;
             priority = itemView.findViewById(R.id.priority);
             spinner_task_imageBackground = itemView.findViewById(R.id.spinner_task_imageBackground);
             checkBox = itemView.findViewById(R.id.checkBox);
+            progressbar_subtask  = itemView.findViewById(R.id.progressbar_subtask);
+            progress_text_subtask  = itemView.findViewById(R.id.progress_text_subtask);
+
         }
     }
 }

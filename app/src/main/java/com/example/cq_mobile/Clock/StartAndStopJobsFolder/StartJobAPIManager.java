@@ -66,6 +66,159 @@ public class StartJobAPIManager {
     }
 
     // Start job with token
+    public void startJobWithToken(int userId, String jobId, double latitude, double longitude, AccessTokenRequest tokenRequest, ApiCallback callback) {
+        getAccessToken(tokenRequest, new AccessTokenCallback() {
+            @Override
+            public void onAccessTokenReceived(String accessToken) {
+                startJob(userId, jobId, latitude, longitude, accessToken, callback);
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onFailure("Failed to get access token: " + error);
+            }
+        });
+    }
+
+    // Start job execution
+    public static void startJob(int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(new ApiStartJobTask(userId, jobId, latitude, longitude, accessToken, callback));
+    }
+
+    private static class ApiStartJobTask implements Runnable {
+
+        private final int userId;
+        private final String jobId;
+        private final double latitude;
+        private final double longitude;
+        private final String accessToken;
+        private final ApiCallback callback;
+
+        public ApiStartJobTask(int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
+            this.userId = userId;
+            this.jobId = jobId;
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.accessToken = accessToken;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            String baseUrl = "https://aws.customquoter.co.uk";
+            String endpoint = "/api/m/start-working/timed_in";
+            // Create JSON body properly
+            String jsonBody = createJsonBody(userId, jobId, latitude, longitude);
+
+            postStartJob(baseUrl, endpoint, accessToken, jsonBody);
+        }
+
+        private String createJsonBody(int userId, String jobId, double latitude, double longitude) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("status", "start");  // Start the job
+                jsonObject.put("job", jobId);  // Job ID
+                jsonObject.put("custom_job", JSONObject.NULL);  // No custom job
+                jsonObject.put("lat_out", latitude);  // Latitude
+                jsonObject.put("long_out", longitude);  // Longitude
+                jsonObject.put("user_id", userId);  // Add user_id (this is likely required)
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return jsonObject.toString();
+        }
+
+        private void postStartJob(String baseUrl, String endpoint, String accessToken, String jsonBody) {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .build();
+
+            RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
+
+            Request request = new Request.Builder()
+                    .url(baseUrl + endpoint)
+                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("x-api-key", "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2")
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Accept", "application/json")
+                    .post(body)  // Changed from PUT to POST
+                    .build();
+
+            client.newCall(request).enqueue(new okhttp3.Callback() {
+                @Override
+                public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                    String responseBody = response.body() != null ? response.body().string() : null;
+                    if (response.isSuccessful()) {
+                        Log.d(TAG, "Job started successfully. Response: " + responseBody);
+                        callback.onSuccess(responseBody);
+                    } else {
+                        Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());
+                        Log.e(TAG, "Error Body: " + responseBody);
+                        callback.onFailure("Failed to start job: " + responseBody);
+                    }
+                }
+
+                @Override
+                public void onFailure(okhttp3.Call call, IOException e) {
+                    Log.e(TAG, "Error starting job: " + e.getMessage(), e);
+                    callback.onFailure("Error starting job: " + e.getMessage());
+                }
+            });
+        }
+    }
+}
+
+
+
+
+
+
+/*
+public class StartJobAPIManager {
+
+    private static final String TAG = "StartJobAPIManager";
+
+    public interface ApiCallback {
+        void onSuccess(String response);
+        void onFailure(String error);
+    }
+
+    public interface AccessTokenCallback {
+        void onAccessTokenReceived(String accessToken);
+        void onError(String error);
+    }
+
+    // Method to get the access token
+    public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
+        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
+        Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
+
+        call.enqueue(new Callback<AccessTokenResponse>() {
+            @Override
+            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String accessToken = response.body().getAccessToken();
+                    if (accessToken != null) {
+                        Log.d(TAG, "Access Token: " + accessToken);
+                        callback.onAccessTokenReceived(accessToken);
+                    } else {
+                        callback.onError("Access token not received.");
+                    }
+                } else {
+                    callback.onError("Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    // Start job with token
     public void startJobWithToken(int userId, int jobId, Double latOut, Double longOut, AccessTokenRequest tokenRequest, ApiCallback callback) {
         getAccessToken(tokenRequest, new AccessTokenCallback() {
             @Override
@@ -112,7 +265,6 @@ public class StartJobAPIManager {
             // Create JSON body properly
             String jsonBody = createJsonBody(jobId, latOut, longOut);
 
-            Log.d(TAG, "jsonBody: --->>> " + jsonBody);
             postStartJob(baseUrl, endpoint, accessToken, jsonBody);
         }
 
@@ -172,6 +324,8 @@ public class StartJobAPIManager {
     }
 }
 
+
+ */
 
 /*
 CALL

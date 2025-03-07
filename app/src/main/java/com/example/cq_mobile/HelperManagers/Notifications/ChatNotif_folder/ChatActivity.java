@@ -24,7 +24,6 @@ import com.example.cq_mobile.ui.chat.ChatNotif.NotificationAPIResponse;
 
 
 import com.example.cq_mobile.ui.chat.ColleagueFolder.Contact;
-import com.example.cq_mobile.ui.chat.InnerChatsFolder.MessageManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -49,7 +48,6 @@ public class ChatActivity extends AppCompatActivity {
     private ChatManager chatManager;
     String chatCount;
     int message_read;
-    private MessageManager messageManager;
     private String currentUser;
     String  email ;
     String password;

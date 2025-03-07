@@ -95,6 +95,12 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             String categories = skipped.getCategory() != null ? skipped.getCategory().trim() : "Empty Category";
             String categoriesColors = String.valueOf(skipped.getCategory_color()).trim();
+            if (categoriesColors == null || categoriesColors.trim().isEmpty()) {
+                categoriesColors = "#FF0000"; // Default color if null
+            } else {
+                categoriesColors = categoriesColors.trim();
+            }
+
             Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
             if (id != null) {

@@ -1,6 +1,7 @@
 package com.example.cq_mobile.ui.map;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -9,17 +10,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.cq_mobile.HelperManagers.BackPressManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.RouteApiManager;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.Routemain;
 import com.example.cq_mobile.ui.map.RouteFolder.RouteManager;
@@ -28,7 +34,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -45,11 +50,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private LatLng destinationLatLng;
     private RouteManager routeManager;
     private Routemain routeData;
-
     MarkerManager markerManager = new MarkerManager();
     BitmapDescriptor customMarkerIcon;
     int jobId;
     String accessToken;
+    private ClockOutVisibilityHandler visibilityHandler;
+
+
     private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
@@ -68,6 +75,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
 
@@ -241,11 +250,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                     }
                 });
+
+
+
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof ClockOutVisibilityHandler) {
+            visibilityHandler = (ClockOutVisibilityHandler) context;
+        } else {
+            Log.d("MapFragment", "Activity does not implement ClockOutVisibilityHandler");
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (visibilityHandler != null) {
+            visibilityHandler.setClockOutVisibility(false);
+        }
     }
 }

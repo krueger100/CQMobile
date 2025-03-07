@@ -26,6 +26,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.MainActivity;
@@ -56,7 +57,7 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     private BottomSheetBehavior<View> bottomSheetBehavior;
     String email;
     String password;
-
+    private ClockOutVisibilityHandler visibilityHandler;
 
 
     @Override
@@ -458,17 +459,22 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
 
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        if (binding != null && binding.progressBar.getVisibility() == View.VISIBLE) {
-            Log.d("ProgressBar", "ProgressBar is visible, waiting...");
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof ClockOutVisibilityHandler) {
+            visibilityHandler = (ClockOutVisibilityHandler) context;
         } else {
-            checkProgressBarAndReload();
+            Log.d("MoreFragment", "Activity does not implement ClockOutVisibilityHandler");
         }
-
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (visibilityHandler != null) {
+            visibilityHandler.setClockOutVisibility(false);
+        }
+    }
 
     @Override
     public void onDestroy() {

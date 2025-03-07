@@ -12,7 +12,6 @@ import com.example.cq_mobile.ui.chat.ChatFragment;
 import com.example.cq_mobile.ui.home.HomeFragment;
 import com.example.cq_mobile.ui.home.myJobsFolder.myJobs;
 import com.example.cq_mobile.ui.map.MapFragment;
-import com.example.cq_mobile.ui.MoreInFragment.MoreFragment;
 import com.example.cq_mobile.ui.ticket.TicketFragment;
 
 public class NavigationManagerForTask {
@@ -36,6 +35,7 @@ public class NavigationManagerForTask {
                 // Handle Map Fragment selection, assuming MapFragment exists in the app
                 switchToFragment(new MapFragment());
                 back2.setVisibility(View.VISIBLE);
+
             }
 
             @Override
@@ -44,18 +44,21 @@ public class NavigationManagerForTask {
                 Intent intent = new Intent(context, myJobs.class);
                 context.startActivity(intent);
                 back2.setVisibility(View.VISIBLE);
+
             }
 
             @Override
             public void onTicketSelected() {
                 switchToFragment(new TicketFragment());
                 back2.setVisibility(View.VISIBLE);
+
             }
 
             @Override
             public void onChatSelected() {
                 switchToFragment(new ChatFragment());
                 back2.setVisibility(View.VISIBLE);
+
             }
 
             @Override

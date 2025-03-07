@@ -16,16 +16,16 @@ import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.databinding.ActivityMainBinding;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
 
 public class MoreActivity extends AppCompatActivity {
     TextView back, name, logoutButton;
     ProgressBar progressBar;
     CircleImageView circleImageView2;
+    TextView account_setting;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +35,8 @@ public class MoreActivity extends AppCompatActivity {
         logoutButton= findViewById(R.id.logoutButton);
         progressBar= findViewById(R.id.progressBar);
         circleImageView2 = findViewById(R.id.circleImageView2);
+        account_setting = findViewById(R.id.account_setting);
+
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
         String accessToken = sharedPrefManager.getAccessToken();
@@ -68,6 +70,13 @@ public class MoreActivity extends AppCompatActivity {
                     .error(R.drawable.emptyglide) // Error image
                     .into(circleImageView2);
         }
+
+        AccountSettingManager accountSettingManager = new AccountSettingManager(this);
+
+        account_setting.setOnClickListener(v -> {
+            ClickAnimationManager.applyClickAnimation(v);
+        });
+
 
 
         back.setOnClickListener(new View.OnClickListener() {

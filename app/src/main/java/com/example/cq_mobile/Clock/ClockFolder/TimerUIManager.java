@@ -30,7 +30,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean isHidden = false;
     private final TimerManager timerManager;
-
+    String startDate;
     public TimerUIManager(View rootView, String startDate) {
         Log.d(TAG, "Initializing TimerUIManager...");
 
@@ -39,6 +39,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
         this.fab = rootView.findViewById(R.id.fab_timer);
         this.clockOutController = rootView.findViewById(R.id.clockOutController);
         this.progressBarTimer = rootView.findViewById(R.id.progress_bar_timer);
+        this.startDate = startDate;
         timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
         timerManager.setListener(this);
 
@@ -72,7 +73,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
                     return;
                 }
 
-                ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID);
+                ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID, startDate);
                 clockOutManager.AutoClockOutWithoutLogout(accessToken, savedJobId);
 
                 Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();

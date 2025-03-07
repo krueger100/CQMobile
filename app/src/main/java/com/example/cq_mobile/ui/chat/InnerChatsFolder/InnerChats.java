@@ -32,6 +32,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.sendMessageFolder.SendMessageApiManager;
+import com.example.cq_mobile.ui.chat.sendMessageFolder.UpdateReadAPIManager;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -86,6 +87,24 @@ public class InnerChats extends AppCompatActivity {
         String username = sharedPrefManager.getFirstName() +" "+ sharedPrefManager.getLastName();
         int currentUserID = sharedPrefManager.getUserId();
 
+        Intent intent2 = getIntent();
+        if (intent2 != null && intent2.getBooleanExtra("fromNotification", false)) {
+            String title = intent2.getStringExtra("title");
+            String content = intent2.getStringExtra("content");
+            String avatarUrl = intent2.getStringExtra("avatarUrl");
+            String time = intent2.getStringExtra("time");
+            String date = intent2.getStringExtra("date");
+            String channelUrl = intent2.getStringExtra("channel_url");
+
+            Log.d("InnerChats", "Opened from Notification");
+            Log.d("InnerChats", "Title: " + title);
+            Log.d("InnerChats", "Content: " + content);
+            Log.d("InnerChats", "Avatar URL: " + avatarUrl);
+            Log.d("InnerChats", "Time: " + time);
+            Log.d("InnerChats", "Date: " + date);
+            Log.d("InnerChats", "Channel URL: " + channelUrl);
+
+        }
 
 
 
@@ -130,6 +149,20 @@ public class InnerChats extends AppCompatActivity {
 
 
         int channel = -1;
+
+        UpdateReadAPIManager.updateReadStatus(channel, accessToken, new UpdateReadAPIManager.ApiCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("ChatAdapter", "Total Unread Messages: " + "Read status updated successfully!");
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.d("ChatAdapter", "Total Unread Messages: " + "Read status unsuccessfully!   "+ error);
+            }
+        });
+
+
         if (intent.hasExtra("channel")) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Serializable channelObj = intent.getSerializableExtra("channel", Serializable.class);
@@ -385,7 +418,7 @@ public class InnerChats extends AppCompatActivity {
                                                     sendFCMNotification(notificationToken, message, currentUser);
 
                                                     // ✅ Update RecyclerView
-                                                    messagesAdapter.addMessage(newMessage);
+                                                    messagesAdapter.addMessage(newMessage,recyclerView_messages);
                                                     recyclerView_messages.scrollToPosition(messagesAdapter.getItemCount() - 1);
 
                                                 });
@@ -421,7 +454,7 @@ public class InnerChats extends AppCompatActivity {
                 } else {
                     Log.d(TAG, "No user data found.");
                     UserHasNoNotificationToken(tokenRequest, progressBar, id, channel, membersList, secondMemberId, avatar_receiver,
-                            currentUser, username, currentUserID, hhtpAvatar_url, firebaseRetrieveDataManager);
+                            currentUser, username, currentUserID, hhtpAvatar_url, firebaseRetrieveDataManager,recyclerView_messages);
 
 
                 }
@@ -431,7 +464,8 @@ public class InnerChats extends AppCompatActivity {
 
     }
 
-    private void UserHasNoNotificationToken(AccessTokenRequest tokenRequest, ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, int secondMemberId, String avatar_receiver, String currentUser, String username, String currentUserID, String hhtpAvatar_url, FirebaseRetrieveDataManager firebaseRetrieveDataManager) {
+    private void UserHasNoNotificationToken(AccessTokenRequest tokenRequest, ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, int secondMemberId, String avatar_receiver,
+                                            String currentUser, String username, String currentUserID, String hhtpAvatar_url, FirebaseRetrieveDataManager firebaseRetrieveDataManager, RecyclerView recyclerView_messages) {
 
         messageManager.getAccessToken(tokenRequest, new MessageManager.AccessTokenCallback() {
             @Override
@@ -473,8 +507,8 @@ public class InnerChats extends AppCompatActivity {
                                         newMessage.setName(name);
 
                                         // ✅ Update RecyclerView
-                                        messagesAdapter.addMessage(newMessage);
-                                        recyclerView_messages.scrollToPosition(messagesAdapter.getItemCount() - 1);
+                                        messagesAdapter.addMessage(newMessage,recyclerView_messages);
+                                        InnerChats.this.recyclerView_messages.scrollToPosition(messagesAdapter.getItemCount() - 1);
 
                                     });
                                 }
@@ -626,13 +660,15 @@ public class InnerChats extends AppCompatActivity {
 
     private void displayChats(List<InnerChatAPIItem> chatItems, int id, int channel, List<ChatMember> membersList, ProgressBar progressBar, String username, String currentUserID, String hhtpAvatar_url) {
         if (messagesAdapter == null) {
-            messagesAdapter = new MessagesAdapter(this, chatItems, id,channel,membersList,currentUser,accessToken,progressBar,username,currentUserID,hhtpAvatar_url);
+            messagesAdapter = new MessagesAdapter(this, chatItems, id, channel, membersList, currentUser, accessToken, progressBar, username, currentUserID, hhtpAvatar_url);
             recyclerView_messages.setAdapter(messagesAdapter);
         } else {
-            messagesAdapter.addChats(chatItems);
+            messagesAdapter.addChats(chatItems, recyclerView_messages);
             messagesAdapter.notifyDataSetChanged();
             Log.d("InnerChats", "Added " + chatItems.size() + " new chats.");
         }
+
+        recyclerView_messages.post(() -> recyclerView_messages.scrollToPosition(messagesAdapter.getItemCount() - 1));
     }
 
 

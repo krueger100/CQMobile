@@ -3,6 +3,8 @@ package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskResponse;

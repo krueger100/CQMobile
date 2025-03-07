@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,10 +35,13 @@ public class SetupTaskRecyclerViewManager {
     boolean isChecked;
     String accessToken;
  String taskId;
-
-    public SetupTaskRecyclerViewManager(Context context, RecyclerView recyclerView) {
+    ProgressBar progressbar;
+    TextView progress_text;
+    public SetupTaskRecyclerViewManager(Context context, RecyclerView recyclerView, ProgressBar progressbar, TextView progress_text) {
         this.context = context;
         this.recyclerView = recyclerView;
+        this.progressbar = progressbar;
+        this.progress_text = progress_text;
     }
 
     public void setupRecyclerView(String jobId, boolean isChecked, String accessToken, String taskId) {

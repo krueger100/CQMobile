@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,7 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
@@ -37,9 +40,7 @@ public class ToDoFragment extends Fragment {
     private boolean isLastPage = false;
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
-
-
-
+    private ClockOutVisibilityHandler visibilityHandler;
 
 
     @Nullable
@@ -49,7 +50,6 @@ public class ToDoFragment extends Fragment {
 
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
-        clockout_btn = view.findViewById(R.id.clockout_btn);
 
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
@@ -62,7 +62,7 @@ public class ToDoFragment extends Fragment {
         int userID = sharedPrefManager.getUserId();
         int savedJobId = sharedPrefManager.getJobId();
         int savedTaskId = sharedPrefManager.getTaskId();
-
+        String startDate = sharedPrefManager.getKeyStartDate();
 
         loadMessages(accessToken);
 
@@ -70,11 +70,7 @@ public class ToDoFragment extends Fragment {
         Log.d("ToDoFragment", "Retrieved Job ID: " + savedJobId);
         Log.d("ToDoFragment", "Retrieved Task ID: " + savedTaskId);
         Log.d("ToDoFragment", "Retrieved user ID: " + userID);
-
-        ClockOutManager clockOutManager = new ClockOutManager(getContext(),progressBar,savedJobId,savedTaskId,userID);
-        clockOutManager.setupClockOutButton(clockout_btn,accessToken,savedJobId);
-
-
+        Log.d("ToDoFragment", "Retrieved startDate: " + startDate);
 
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -93,17 +89,6 @@ public class ToDoFragment extends Fragment {
                 }
             }
         });
-
-
-
-
-
-
-
-
-
-
-
 
         return view;
     }
@@ -160,6 +145,25 @@ public class ToDoFragment extends Fragment {
 
         });
 
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof ClockOutVisibilityHandler) {
+            visibilityHandler = (ClockOutVisibilityHandler) context;
+        } else {
+            Log.d("TodoFragment", "Activity does not implement ClockOutVisibilityHandler");
+        }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (visibilityHandler != null) {
+            visibilityHandler.setClockOutVisibility(true);
+        }
     }
 
 

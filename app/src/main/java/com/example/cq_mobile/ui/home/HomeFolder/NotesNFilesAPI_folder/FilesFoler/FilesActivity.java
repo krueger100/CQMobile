@@ -1,13 +1,22 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +25,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,18 +40,24 @@ import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
 import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateAddFilesApiManager;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import android.Manifest;
 
 public class FilesActivity extends AppCompatActivity {
     private TextView files_back, files_back2;
     private NavigationManagerForTask navigationManager;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
 
     private RecyclerView recyclerView;
     private FilesAdapter filesAdapter;
@@ -56,6 +74,11 @@ TextView add_files;
     String jobId;
     private ActivityResultLauncher<Intent> filePickerLauncher;
     LinearLayout emptyTask;
+    private ActivityResultLauncher<Intent> cameraLauncher;
+    private Uri photoUri;
+    private File photoFile;
+
+    ImageView add_photo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +93,8 @@ TextView add_files;
         files_back2 = findViewById(R.id.files_back2);
         add_files = findViewById(R.id.add_files);
         emptyTask = findViewById(R.id.emptyTask);
+        add_photo = findViewById(R.id.add_photo);
+
         // Initialize ActivityResultLauncher
         filePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -115,6 +140,49 @@ TextView add_files;
         });
 
 
+        // Request Camera Permission
+        cameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (!isGranted) {
+                        Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        if (Build.VERSION.SDK_INT >= 34) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+
+        // ActivityResultLauncher for handling camera capture and uploading image
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        if (photoFile != null && photoFile.exists()) {
+                            Toast.makeText(this, "Uploading Photo", Toast.LENGTH_SHORT).show();
+                            showCapturedPic(photoFile);
+                        } else {
+                            Toast.makeText(this, "Failed to capture image", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Image capture cancelled", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+
+        requestCameraPermission();
+
+        // Set OnClickListener for add_photo button
+        add_photo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openCamera();
+            }
+        });
+
+
+
         // RecyclerView setup
         recyclerView = findViewById(R.id.recyclerview_files);
         filesList = new ArrayList<>();
@@ -149,10 +217,52 @@ TextView add_files;
             }
         });
 
-
-        addFiles.setOnClickListener(v -> openFilePicker());
+        add_files.setOnClickListener(v -> openFilePicker());
     }
 
+    private void requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+    private void openCamera() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            try {
+                photoFile = createImageFile(); // Create a file to store the image
+                if (photoFile != null) {
+                    photoUri = FileProvider.getUriForFile(this, "com.example.cq_mobile.fileprovider", photoFile);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                    cameraLauncher.launch(takePictureIntent);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error creating image file", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "No camera app found!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "IMG_" + timeStamp + ".jpg";
+
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (!storageDir.exists() && !storageDir.mkdirs()) {
+            Log.e("FilesActivity", "Failed to create directory");
+        }
+
+        File image = new File(storageDir, imageFileName);
+        if (image.createNewFile()) {
+            Log.d("FilesActivity", "File created: " + image.getAbsolutePath());
+        } else {
+            Log.e("FilesActivity", "File creation failed");
+        }
+
+        return image;
+    }
     private void openFilePicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -167,9 +277,6 @@ TextView add_files;
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-
-
-        // Start uploading the file
         new Thread(() -> {
             boolean success = UpdateAddFilesApiManager.uploadTaskFiles(
                     accessToken,
@@ -178,17 +285,12 @@ TextView add_files;
                     new File[]{file},
                     apiKey
             );
+
             runOnUiThread(() -> {
                 progressDialog.dismiss();
                 if (success) {
                     Toast.makeText(this, "File uploaded successfully", Toast.LENGTH_SHORT).show();
-                    try {
-                        Thread.sleep(1000);
-                        new Handler().postDelayed(() -> showDialog(), 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }    
-                
+                    new Handler(Looper.getMainLooper()).postDelayed(this::refreshFileList, 1000);
                 } else {
                     Toast.makeText(this, "File upload failed", Toast.LENGTH_SHORT).show();
                 }
@@ -196,36 +298,38 @@ TextView add_files;
         }).start();
     }
 
-    private void showDialog() {
-        // Show a new dialog (after upload success)
-        AlertDialog.Builder builder = new AlertDialog.Builder(FilesActivity.this);
-        builder.setTitle("File Upload Complete")
-                .setMessage("The file has been successfully uploaded. Do you want to proceed?")
-                .setCancelable(false)  // Prevent dismissal by back button or outside
-                .setPositiveButton("Ok", (dialog, which) -> {
-                    // Handle OK button click and proceed with the next activity
-                    navigateToNextActivity();
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                    // Handle Cancel button click (optional, just close the dialog)
-                    dialog.dismiss();
-                });
 
-        AlertDialog progressDialog = builder.create();
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void showCapturedPic(File file) {
+        Dialog progressDialog = new Dialog(this);
+        progressDialog.setContentView(R.layout.dialog_progress);
+        progressDialog.setCancelable(false);
         progressDialog.show();
+
+        new Thread(() -> {
+            boolean success = UpdateAddFilesApiManager.uploadTaskFiles(
+                    accessToken,
+                    String.valueOf(jobScheduleId),
+                    String.valueOf(taskId),
+                    new File[]{file},
+                    apiKey
+            );
+
+            runOnUiThread(() -> {
+                progressDialog.dismiss();
+                if (success) {
+                    Toast.makeText(this, "File uploaded successfully", Toast.LENGTH_SHORT).show();
+                    new Handler(Looper.getMainLooper()).postDelayed(this::refreshFileList, 1000);
+                } else {
+                    Toast.makeText(this, "File upload failed", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).start();
     }
-    private void navigateToNextActivity() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);
-        backIntent.putExtra("job_id", jobId);
-        backIntent.putExtra("task_id", taskId);
-        startActivity(backIntent);
-        finish();
-    }
+
+
+
     private void loadFiles(int page, String token, String taskid) {
         isLoading = true;
         String url = baseUrl + "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskid + "/files?page=" + page + "&per_page=" + pageSize;
@@ -269,6 +373,13 @@ TextView add_files;
             }
         });
     }
+    private void refreshFileList() {
+        currentPage = 1; // Reset pagination
+        filesList.clear(); // Clear the list
+        filesAdapter.notifyDataSetChanged(); // Notify adapter
+        loadFiles(currentPage, accessToken, String.valueOf(taskId)); // Reload files
+    }
+
 }
 /*
             filesAdapter.notifyDataSetChanged();

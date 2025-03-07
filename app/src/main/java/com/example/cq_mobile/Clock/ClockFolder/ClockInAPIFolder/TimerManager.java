@@ -31,7 +31,7 @@ public class TimerManager {
         void onTimerUpdate(String time);
     }
 
-    private TimerManager() {}
+    public TimerManager() {}
 
     public static synchronized TimerManager getInstance(Context context, String startDate) {
         if (instance == null) {

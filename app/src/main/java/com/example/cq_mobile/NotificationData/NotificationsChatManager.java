@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.chat.ChatFolder;
+package com.example.cq_mobile.NotificationData;
 
 import android.content.Context;
 import android.util.Log;
@@ -7,7 +7,10 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
-import com.google.common.reflect.TypeToken;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIResponse;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatApi;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatManager;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -18,54 +21,19 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ChatManager {
+public class NotificationsChatManager {
     private final String baseUrl = "https://aws.customquoter.co.uk/";  // Base URL
     private String accessToken;  // Store the access token
     private final Context context;
     Call<AccessTokenResponse> call;
     Call<ChatAPIResponse> call2;
 
-    public ChatManager(Context context) {
+    public NotificationsChatManager(Context context) {
         this.context = context;
     }
 
-    // Method to get the access token and notify the caller via a callback
-    public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
-        // Create an instance of the API service
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
 
-        // Call the API
-        call = apiService.AccessTokenUser(request);
-
-        // Enqueue the call to execute asynchronously
-        call.enqueue(new Callback<AccessTokenResponse>() {
-            @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    AccessTokenResponse accessTokenResponse = response.body();
-                    accessToken = accessTokenResponse.getAccessToken();
-
-                    // Check if the access token was fetched successfully
-                    if (accessToken != null) {
-                        Log.d("ChatManager", "Access Token: " + accessToken);
-                        callback.onAccessTokenReceived(accessToken);
-                    } else {
-                        callback.onError("Access token not received.");
-                    }
-                } else {
-                    callback.onError("Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                // Log the failure (e.g., network error)
-                callback.onError("Failure: " + t.getMessage());
-            }
-        });
-    }
-
-    public void loadChats(int page, int pageSize, final AllChatsCallback callback) {
+    public void loadNotifChats(int page, int pageSize, final ChatManager.AllChatsCallback callback) {
         if (accessToken == null) {
             callback.onError("Access token is missing.");
             return;
@@ -90,6 +58,8 @@ public class ChatManager {
 
                     if (response.body().getData() == null) {
                         Log.e("ChatManager", "getData() is null! Check API response structure.");
+                        Log.d("ChatManager", "Extracted Access Token: " + accessToken);
+
                         return;
                     }
 
@@ -107,6 +77,8 @@ public class ChatManager {
                 }
             }
 
+
+
             @Override
             public void onFailure(Call<ChatAPIResponse> call2, Throwable t) {
                 // Handle the failure
@@ -114,17 +86,11 @@ public class ChatManager {
             }
         });
     }
-
-
     public void cancelAccessTokenCall() {
         if (call != null && !call.isCanceled()) {
             call.cancel();
         }
     }
-
-    /**
-     * Cancels the chat loading API call.
-     */
     public void cancelChatLoadingCall() {
         if (call2 != null && !call2.isCanceled()) {
             call2.cancel();
@@ -140,7 +106,6 @@ public class ChatManager {
     }
 
 
-
     // Callback interfaces
     public interface AccessTokenCallback {
         void onAccessTokenReceived(String accessToken);
@@ -153,6 +118,3 @@ public class ChatManager {
     }
 
 }
-
-
-

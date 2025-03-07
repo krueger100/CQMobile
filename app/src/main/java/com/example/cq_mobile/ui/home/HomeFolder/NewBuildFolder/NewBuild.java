@@ -1,9 +1,14 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -23,8 +28,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
+import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
@@ -59,6 +66,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 
@@ -99,10 +107,14 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     Spinner spinner_task ;
     String firstName ;
     String lastName;
+    String startJob;
     private boolean isChecked;
     private static final String TAG = "NewBuild";
 LinearLayout emptyTask;
-
+TextView progress_text;
+ProgressBar progressbar;
+    Double latOut;
+    Double longOut;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -131,8 +143,14 @@ LinearLayout emptyTask;
          lastName = sharedPrefManager.getLastName();
          email = sharedPrefManager.getEmail();
          password = sharedPrefManager.getPassword();
+         startJob = sharedPrefManager.getKeyStartDate();
+          latOut = sharedPrefManager.getLatitude();
+           longOut= sharedPrefManager.getLongitude();
 
         Log.d("NewBuild", "User ID: " + userId);
+        Log.d("start_Job", "latOut: " + latOut);
+        Log.d("start_Job", "longOut: " + longOut);
+
 
         customMarkerIcon = markerManager.getCustomCircleMarkerIcon(NewBuild.this);
 
@@ -152,7 +170,8 @@ LinearLayout emptyTask;
         notes  = findViewById(R.id.notes);
         folder = findViewById(R.id.folder);
         emptyTask  = findViewById(R.id.emptyTask);
-
+         progress_text= findViewById(R.id.progress_text);
+         progressbar= findViewById(R.id.progressbar);
 
         newBuildButtonManager = new NewBuildButtonManager(notes, folder);
 
@@ -166,82 +185,94 @@ LinearLayout emptyTask;
         }
         routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
 
+
+        start_job.setEnabled(false);
+        start_job.setAlpha(0.5f);
+
         fetchData();
 
+
     }
+
 
     private void fetchData() {
         NewBuildApiManager.fetchNewBuiltApiData(jobId, accessToken, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
             @Override
             public void onDataFetched(List<Taskmain> data) {
                 runOnUiThread(() -> {
-                    if (!data.isEmpty()) {
-                        Taskmain task = data.get(0);
-                        task_title.setText(task.getName());
-                        task_location.setText((task.getAddress() != null ? ((task.getAddress().getCity() != null ? task.getAddress().getCity() : "") + (task.getAddress().getCountry() != null ? ", " + task.getAddress().getCountry() : ""))
-                       : "No Location is set"));
-                        task_number.setText(String.valueOf(task.getId()));
-                        task_description.setText(task.getDescription());
-                        category_todo.setText(task.getCategory());
+                    if (data == null || data.isEmpty()) {
+                        Toast.makeText(NewBuild.this, "No data found.", Toast.LENGTH_SHORT).show();
+                        return; // Exit early to avoid crashes
+                    }
 
-                        // Get the status from the API response
-                        String status_main = task.getStatus();
+                    Taskmain task = data.get(0);
+                    if (task == null) {
+                        Toast.makeText(NewBuild.this, "Task data is missing.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                        // Define a list of statuses
-                        List<String> statusList = Arrays.asList("Todo", "Skipped", "Done");
+                    // Safely set values with null checks
+                    task_title.setText(task.getName() != null ? task.getName() : "No Title Available");
+                    task_number.setText(task.getId() == -1 ? String.valueOf(task.getId()) : "N/A");
+                    task_description.setText(task.getDescription() != null ? task.getDescription() : "No Description Available");
+                    category_todo.setText(task.getCategory() != null ? task.getCategory() : "No Category");
 
-                        // Setup Spinner Adapter
-                        SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
-                                NewBuild.this,
-                                R.layout.task_spinner_item,
-                                statusList,
-                                jobId,
-                                statusImageView,
-                                status_main,
-                                accessToken
-                        );
+                    // Handle location safely
+                    String city = (task.getAddress() != null && task.getAddress().getCity() != null) ? task.getAddress().getCity() : "";
+                    String country = (task.getAddress() != null && task.getAddress().getCountry() != null) ? task.getAddress().getCountry() : "";
+                    task_location.setText(!city.isEmpty() || !country.isEmpty() ? city + (city.isEmpty() ? "" : ", ") + country : "No Location is set");
 
-                        // Set adapter to the spinner
-                        spinner_task.setAdapter(adapter);
+                    // Handle status safely
+                    String status_main = (task.getStatus() != null) ? task.getStatus() : "Todo"; // Default to "Todo" if null
 
-                        // Find the position of the current status and set selection
-                        int position = statusList.indexOf(status_main);
-                        if (position >= 0) {
-                            spinner_task.setSelection(position);
-                        }
+                    // Define a list of statuses
+                    List<String> statusList = Arrays.asList("Todo", "Skipped", "Done");
 
-                        // **Set OnItemSelectedListener here**
-                        spinner_task.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                            @Override
-                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                String selectedStatus = (String) parent.getItemAtPosition(position);
+                    // Setup Spinner Adapter
+                    SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
+                            NewBuild.this,
+                            R.layout.task_spinner_item,
+                            statusList,
+                            jobId,
+                            statusImageView,
+                            status_main,
+                            accessToken,progressbar,progress_text
+                    );
+
+                    spinner_task.setAdapter(adapter);
+
+                    // Find the position of the current status and set selection
+                    int position = statusList.indexOf(status_main);
+                    spinner_task.setSelection(position >= 0 ? position : 0); // Default to first item if not found
+
+                    // **Set OnItemSelectedListener**
+                    spinner_task.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            String selectedStatus = (String) parent.getItemAtPosition(position);
 
                                 // Update the status in API when the user changes the selection
-                                UpdateJobApiManager.updateJobStatus(jobId, taskId, selectedStatus, accessToken);
+                                UpdateJobApiManager.updateJobStatus(jobId, taskId, selectedStatus, accessToken,progressbar,progress_text);
 
-                                // Update the statusImageView based on selection
-                                if (selectedStatus.equalsIgnoreCase("Todo")) {
-                                    statusImageView.setImageResource(R.drawable.button_orange);
-                                } else if (selectedStatus.equalsIgnoreCase("Skipped")) {
-                                    statusImageView.setImageResource(R.drawable.button_blue);
-                                } else if (selectedStatus.equalsIgnoreCase("Done")) {
-                                    statusImageView.setImageResource(R.drawable.button_green);
-                                } else {
-                                    statusImageView.setImageResource(R.drawable.button_grey);
-                                }
+                            // Update the statusImageView based on selection
+                            if ("Todo".equalsIgnoreCase(selectedStatus)) {
+                                statusImageView.setImageResource(R.drawable.button_orange);
+                            } else if ("Skipped".equalsIgnoreCase(selectedStatus)) {
+                                statusImageView.setImageResource(R.drawable.button_blue);
+                            } else if ("Done".equalsIgnoreCase(selectedStatus)) {
+                                statusImageView.setImageResource(R.drawable.button_green);
+                            } else {
+                                statusImageView.setImageResource(R.drawable.button_grey);
                             }
+                        }
 
-                            @Override
-                            public void onNothingSelected(AdapterView<?> parent) {
-                                // Do nothing
-                            }
-                        });
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+                            // Do nothing
+                        }
+                    });
 
-                        // Call fetchSubTasks() to get subtasks
-                        fetchSubTasks();
-                    } else {
-                        Toast.makeText(NewBuild.this, "No data found.", Toast.LENGTH_SHORT).show();
-                    }
+                    fetchSubTasks();
                 });
             }
 
@@ -256,32 +287,36 @@ LinearLayout emptyTask;
             @Override
             public void onDataFetched(List<SubTask> data) {
                 runOnUiThread(() -> {
-                    if (!data.isEmpty()) {
-                        Log.d("SubTask", "Subtasks received: " + data.size());
-
-                        for (SubTask subTask : data) {
-                            Log.d("SubTask", "-----------------------------");
-                            Log.d("SubTask", "ID: " + subTask.getId());
-                            Log.d("SubTask", "Title: " + subTask.getTitle());
-                            Log.d("SubTask", "Description: " + subTask.getDescription());
-                            Log.d("SubTask", "Priority: " + subTask.getPriority());
-                            Log.d("SubTask", "Status: " + subTask.getStatus());
-                            Log.d("SubTask", "Start Date: " + subTask.getStartDate());
-                            Log.d("SubTask", "End Date: " + subTask.getEndDate());
-                            Log.d("SubTask", "Is Checked: " + subTask.isChecked());
-                            Log.d("SubTask", "-----------------------------");
-
-                            setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view);
-                            setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
-                        }
-                        progress_circular_2.setVisibility(View.GONE);
-
-                    } else {
+                    if (data == null || data.isEmpty()) {
                         Log.d("SubTask", "No subtasks found.");
                         Toast.makeText(NewBuild.this, "No tasks found.", Toast.LENGTH_SHORT).show();
                         emptyTask.setVisibility(View.VISIBLE);
                         progress_circular_2.setVisibility(View.GONE);
+                        return;
                     }
+
+                    Log.d("SubTask", "Subtasks received: " + data.size());
+
+                    for (SubTask subTask : data) {
+                        if (subTask != null) { // Prevent null pointer issues
+                            Log.d("SubTask", "-----------------------------");
+                            Log.d("SubTask", "ID: " + (subTask.getId() != null ? subTask.getId() : "N/A"));
+                            Log.d("SubTask", "Title: " + (subTask.getTitle() != null ? subTask.getTitle() : "No Title"));
+                            Log.d("SubTask", "Description: " + (subTask.getDescription() != null ? subTask.getDescription() : "No Description"));
+                            Log.d("SubTask", "Priority: " + (subTask.getPriority() != null ? subTask.getPriority() : "No Priority"));
+                            Log.d("SubTask", "Status: " + (subTask.getStatus() != null ? subTask.getStatus() : "No Status"));
+                            Log.d("SubTask", "Start Date: " + (subTask.getStartDate() != null ? subTask.getStartDate() : "No Start Date"));
+                            Log.d("SubTask", "End Date: " + (subTask.getEndDate() != null ? subTask.getEndDate() : "No End Date"));
+                            Log.d("SubTask", "Is Checked: " + subTask.isChecked());
+                            Log.d("SubTask", "-----------------------------");
+                        }
+                    }
+
+                    // Setup RecyclerView **once**, not inside the loop
+                    setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view,progressbar,progress_text);
+                    setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
+
+                    progress_circular_2.setVisibility(View.GONE);
                 });
             }
 
@@ -355,6 +390,12 @@ LinearLayout emptyTask;
                     taskLatLng = new LatLng(firstCoordinate.getLatitude(), firstCoordinate.getLongitude());
                     Log.d("enableUserLocation", "First saved coordinate: Lat=" + firstCoordinate.getLatitude() + ", Lon=" + firstCoordinate.getLongitude());
 
+
+                    start_job.setEnabled(true);
+                    start_job.setAlpha(1.0f);
+               start_jobBranch(51.225142,-0.364142);
+
+
                     // Update task marker with custom icon
                     taskMarkerIcon = markerManager.getCustomCircleMarkerIcon(this);
                 } else {
@@ -392,6 +433,105 @@ LinearLayout emptyTask;
         });
     }
 
+    private void start_jobBranch(double latitude, double longitude) {
+        start_job.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AccessTokenRequest request = new AccessTokenRequest(email, password);
+                StartJobAPIManager startJobAPIManager = new StartJobAPIManager();
+                Gson gson = new Gson();
+                ClickAnimationManager.applyClickAnimation(v);
+
+                Log.d("start_Job", "Access Token: " + accessToken);
+                Log.d("start_Job", "userId: " + userId);
+                Log.d("start_Job", "jobId: " + jobId);
+                Log.d("start_Job", "email: " + email);
+                Log.d("start_Job", "latOut: " + latitude);
+                Log.d("start_Job", "longOut: " + longitude);
+
+                startJobAPIManager.startJobWithToken(userId, jobId,  latitude,longitude, request, new StartJobAPIManager.ApiCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                        Log.d("StartJob", "Job started successfully. Response: " + response);
+
+                        StartJobResponse startJobResponse = gson.fromJson(response, StartJobResponse.class);
+                        if (startJobResponse == null) {
+                            Log.e("StartJob", "Response parsing failed.");
+                            return;
+                        }
+
+                        // Log top-level response data
+                        boolean success = startJobResponse.isSuccess();
+                        String serverMessage = startJobResponse.getMessage();
+                        StartJobResponse.Data data = startJobResponse.getData();
+
+                        Log.d("StartJob", "Success: " + success);
+                        Log.d("StartJob", "Server Message: " + serverMessage);
+
+                        if (data != null) {
+                            String status = data.getStatus();
+                            String event = data.getEvent();
+                            String message2 = data.getMessage2();
+
+                            Log.d("StartJob", "Status: " + status);
+                            Log.d("StartJob", "Event: " + event);
+                            Log.d("StartJob", "Additional Message: " + (message2 != null ? message2 : "N/A"));
+
+                            // Extract work details
+                            StartJobResponse.Data.Work work = data.getWork();
+                            if (work != null) {
+                                int workId = work.getId();
+                                int organizationId = work.getOrganization_id();
+                                int workUserId = work.getUser_id();
+                                int jobId = work.getJob_id();
+                                String startTime = work.getStart_time();
+
+                                Log.d("StartJob", "Work ID: " + workId);
+                                Log.d("StartJob", "Organization ID: " + organizationId);
+                                Log.d("StartJob", "User ID: " + workUserId);
+                                Log.d("StartJob", "Job ID: " + jobId);
+                                Log.d("StartJob", "Start Time: " + startTime);
+
+                                showAlertDialog(NewBuild.this, "Job Status", serverMessage, message2, accessToken,  userId,  progress_circular,startJob,jobId,taskId);
+
+
+                                // Extract location details
+                                StartJobResponse.Data.Work.Remarks remarks = work.getRemarks();
+                                if (remarks != null) {
+                                    double latitude = remarks.getLat();
+                                    double longitude = remarks.getLongitude();
+
+                                    Log.d("StartJob", "Latitude: " + latitude);
+                                    Log.d("StartJob", "Longitude: " + longitude);
+                                }
+
+                                // Extract job details
+                                StartJobResponse.Data.Work.Job job = work.getJob();
+                                if (job != null) {
+                                    String jobTitle = job.getTitle();
+                                    int jobStatus = job.getJob_status();
+
+                                    Log.d("StartJob", "Job Title: " + jobTitle);
+                                    Log.d("StartJob", "Job Status: " + jobStatus);
+                                }
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("StartJob", "Failed to start job: " + error);
+                        showAlertDialog(NewBuild.this, "Job Status", "Can't Start Job", "Failed to start job", accessToken,  userId,
+                                progress_circular, startJob, Integer.parseInt(jobId), taskId);
+
+                    }
+                });
+            }
+        });
+
+    }
+
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -404,6 +544,148 @@ LinearLayout emptyTask;
         }
     }
 
+    private void navigationInitialization() {
+
+        newBuildButtonManager.setButtonsVisibility(true);
+        newBuildButtonManager.setButtonClickListener(view -> {
+            // Handle button clicks here
+            if (view == notes) {
+                Intent intent = new Intent(this, NotesActivity.class);
+                intent.putExtra("job_id", jobId);
+                this.startActivity(intent);
+            } else if (view == folder) {
+                if (jobId != null) {
+                    Intent intent = new Intent(NewBuild.this, FilesActivity.class);
+                    intent.putExtra("job_id", jobId);
+                    intent.putExtra("task_id", taskId);
+                    startActivity(intent);
+                }
+
+
+            }
+        });
+
+
+        View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
+        BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
+        bottomSheetBehavior.setHideable(false);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
+
+
+        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
+        navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
+        navigationManager.setUpNavigation(bottomNavView);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                backPressManager.handleBackPress(MainActivity.class);
+                finish();
+            }
+        });
+
+        showBottomSheet.setOnClickListener(v -> {
+            if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
+            } else {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+    }
+
+    private void showAlertDialog(Context context, String title, String serverMessage, String message2, String accessToken, int userId, ProgressBar progressBar, String startJob, int jobId, String taskId) {
+        WeakReference<Context> contextRef = new WeakReference<>(context);
+        Context safeContext = contextRef.get();
+        if (safeContext == null) {
+            return;
+        }
+        if (safeContext instanceof Activity) {
+            Activity activity = (Activity) safeContext;
+            if (activity.isFinishing()) {
+                return;
+            }
+        }
+
+        if (safeContext instanceof Activity) {
+            Activity activity = (Activity) safeContext;
+            activity.runOnUiThread(() -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(safeContext);
+                builder.setTitle(title);
+                builder.setMessage(serverMessage + "\n\n" + (message2 != null ? message2 : ""));
+                builder.setPositiveButton("Stop job", (dialog, which) -> {
+                    StopJobApiManager.stopJob(accessToken, userId, progressBar, new StopJobApiManager.ApiCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            // Post the AlertDialog on the main thread
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                // Create an AlertDialog to show success message
+                                showStopJobAlertDialog(NewBuild.this, "Job Status", message,message2, accessToken,  userId,  progress_circular,startJob,jobId, Integer.parseInt(taskId));
+
+                            });
+                        }
+
+
+                        @Override
+                        public void onFailure(String error) {
+                            // Post the AlertDialog on the main thread
+                            new Handler(Looper.getMainLooper()).post(() -> {
+                                showStopJobAlertDialog(NewBuild.this, "Job Status", serverMessage, message2, accessToken,  userId,
+                                        progress_circular,startJob, jobId, Integer.parseInt(taskId));
+
+                            });
+                        }
+                    });
+
+                    dialog.dismiss();
+                });
+
+                builder.setNegativeButton("Cancel",(dialog, which) -> dialog.dismiss());
+
+                AlertDialog dialog = builder.create();
+                dialog.setOnDismissListener(d -> dialog.dismiss());
+                dialog.show();
+            });
+        }
+    }
+    private void showStopJobAlertDialog(NewBuild newBuild, String jobStatus, String message, String message2, String accessToken, int userId, ProgressBar progress_circular, String startJob, int jobId, int taskId) {
+        WeakReference<Context> contextRef = new WeakReference<>(newBuild);
+        Context safeContext = contextRef.get();
+        if (safeContext != null && safeContext instanceof Activity) {
+            Activity activity = (Activity) safeContext;
+            if (!activity.isFinishing()) {
+                activity.runOnUiThread(() -> {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(safeContext);
+                    builder.setTitle(jobStatus);
+                    builder.setMessage(message + (message2 != null ? "\n\n" + message2 : ""));
+                    builder.setPositiveButton("OK", (dialog, which) -> {
+                        ClockOutManager clockOutManager = new ClockOutManager(this, progress_circular, jobId,taskId,userId,  startJob);
+                        clockOutManager.AutoClockOutWithoutLogout(accessToken, Integer.parseInt(String.valueOf(jobId)));
+                    });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                });
+            }
+        }
+    }
+
+
+    public void switchFragment(Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+
+}
+
+
+//             LatLng defaultLoc = new LatLng(51.60357351825253, 0.17148271425495226);
+
+/*
     private void start_Job(int userId, int jobId, String email, String password, Double latOut, Double longOut) {
 
         start_job.setOnClickListener(new View.OnClickListener() {
@@ -495,69 +777,4 @@ LinearLayout emptyTask;
 
     }
 
-
-
-    private void navigationInitialization() {
-
-        newBuildButtonManager.setButtonsVisibility(true);
-        newBuildButtonManager.setButtonClickListener(view -> {
-            // Handle button clicks here
-            if (view == notes) {
-                Intent intent = new Intent(this, NotesActivity.class);
-                intent.putExtra("job_id", jobId);
-                this.startActivity(intent);
-            } else if (view == folder) {
-                if (jobId != null) {
-                    Intent intent = new Intent(NewBuild.this, FilesActivity.class);
-                    intent.putExtra("job_id", jobId);
-                    intent.putExtra("task_id", taskId);
-                    startActivity(intent);
-                }
-
-
-            }
-        });
-
-
-
-        View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
-        BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
-        bottomSheetBehavior.setHideable(false);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-
-
-
-        CustomBottomNavView bottomNavView = findViewById(R.id.custom_bottom_nav_view);
-        navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
-        navigationManager.setUpNavigation(bottomNavView);
-
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                backPressManager.handleBackPress(MainActivity.class);
-                finish();
-            }
-        });
-
-        showBottomSheet.setOnClickListener(v -> {
-            if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
-            } else {
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            }
-        });
-    }
-
-
-    public void switchFragment(Fragment fragment) {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-}
-
-
-//             LatLng defaultLoc = new LatLng(51.60357351825253, 0.17148271425495226);
+ */

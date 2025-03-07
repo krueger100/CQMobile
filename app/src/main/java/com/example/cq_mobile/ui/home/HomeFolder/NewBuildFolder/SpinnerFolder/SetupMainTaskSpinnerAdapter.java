@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,11 +30,14 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
     private final String status_main;
     private final ImageView statusImageView;
     String accessToken;
-    public SetupMainTaskSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, String jobId, ImageView statusImageView, String status_main, String accessToken) {
+    ProgressBar progressbar;
+    TextView progress_text;
+    public SetupMainTaskSpinnerAdapter(@NonNull Context context, int resource, List<String> objects, String jobId, ImageView statusImageView, String status_main, String accessToken, ProgressBar progressbar, TextView progress_text) {
         super(context, resource, objects);
         this.context = context;
         this.accessToken = accessToken;
-
+        this.progressbar = progressbar;
+        this.progress_text = progress_text;
         // Ensure status_main is always the first item if it's not already in the list
         this.items = new ArrayList<>();
         Set<String> lowerCaseSet = new HashSet<>();
@@ -132,21 +136,21 @@ public class SetupMainTaskSpinnerAdapter extends ArrayAdapter<String> {
             case "todo":
                 color = ContextCompat.getColor(context, R.color.todoColor);
                 if (statusImageView != null) {
-                    UpdateJobApiManager.updateJobStatus(jobId, "373", "todo",accessToken);
+                    UpdateJobApiManager.updateJobStatus(jobId, "373", "todo",accessToken,progressbar,progress_text);
                     statusImageView.setImageResource(R.drawable.button_orange);
                 }
                 break;
             case "skipped":
                 color = ContextCompat.getColor(context, R.color.skippedColor);
                 if (statusImageView != null) {
-                    UpdateJobApiManager.updateJobStatus(jobId, "373", "skipped", accessToken);
+                    UpdateJobApiManager.updateJobStatus(jobId, "373", "skipped", accessToken,progressbar,progress_text);
                     statusImageView.setImageResource(R.drawable.button_blue);
                 }
                 break;
             case "done":
                 color = ContextCompat.getColor(context, R.color.color_done);
                 if (statusImageView != null) {
-                    UpdateJobApiManager.updateJobStatus(jobId, "373", "done", accessToken);
+                    UpdateJobApiManager.updateJobStatus(jobId, "373", "done", accessToken,progressbar,progress_text);
                     statusImageView.setImageResource(R.drawable.button_green);
                 }
                 break;

@@ -22,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.ClockINApiManager;
+import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.ClockFolder.TicketIDManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.IDSfolder.IDsManager;
@@ -32,6 +33,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
+import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
@@ -368,7 +370,7 @@ public class ClockActivity extends AppCompatActivity {
                                 checkInButton.setAlpha(1.0f);
                                 checkIN(accessToken,userId,  task.getId() ,firstName,lastName,email,avatar,password,token,-1);
                                 Log.e("ClockActivity", "Error: -> " + userId +" <-  "+  error);
-
+                                progressBar.setVisibility(View.GONE);
 
                             }
                         });
@@ -394,24 +396,22 @@ public class ClockActivity extends AppCompatActivity {
 
 
     private void checkIN(String accessToken, int userId, int jobId, String firstName, String lastName, String email, String avatar, String password, String token, Integer subTaskId) {
-        progressBar.setVisibility(View.VISIBLE);
-
+        progressBar.setVisibility(View.GONE);
         if (checkInButton != null) {
-
-
             checkInButton.setOnClickListener(v -> {
                 if (accessToken != null && !accessToken.isEmpty()) {
 
-                    // Apply click animation safely
+                    checkInButton.setEnabled(false);
+                    checkInButton.setAlpha(0.5f);
                     if (v != null) {
                         ClickAnimationManager.applyClickAnimation(v);
                     }
 
-                    ClockINApiManager.clockIN(jobId, subTaskId, accessToken, userId,getApplicationContext(), new ClockINApiManager.ApiCallback() {
+                    ClockINApiManager.clockIN(jobId, subTaskId, accessToken, userId, getApplicationContext(), new ClockINApiManager.ApiCallback() {
                         @Override
                         public void onSuccess() {
                             Log.d("ClockActivity", "Clock IN Successful");
-
+                            progressBar.setVisibility(View.GONE);
                             SharedPreferences sharedPreferences = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
                             if (sharedPreferences != null) {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -419,7 +419,7 @@ public class ClockActivity extends AppCompatActivity {
                                 editor.apply();
                             }
 
-                            Log.w("ClockActivity", "ticketsIDClockINManager   <<<<<<<<< CHECK IN PRESSED >>>>>>>> " );
+                            Log.w("ClockActivity", "ticketsIDClockINManager   <<<<<<<<< CHECK IN PRESSED >>>>>>>> ");
                             Log.w("ClockActivity", "ticketsIDClockINManager   <<<<<<<<< ACCESS TOKEN >>>>>>>> "+ "\n "+" ->  "+ accessToken);
                             Log.w("ClockActivity", "ticketsIDClockINManager   <<<<<<<< NOTIFICATION TOKEN >>>>>>>>> "+ "\n "+" ->  "+ token);
                             Log.w("ClockActivity", "ticketsIDClockINManager   <<<<<<<<< USER ID >>>>>>>> "+ "\n "+" ->  "+ userId);
@@ -449,7 +449,7 @@ public class ClockActivity extends AppCompatActivity {
                             Log.d("ClockActivity", "Clock in Error: " + (error != null ? error : "Unknown error"));
                             alertError(progressBar);
 
-                            // Enable the button again after failure
+                            // Re-enable button after failure
                             checkInButton.setEnabled(true);
                             checkInButton.setAlpha(1.0f);
                         }
@@ -458,11 +458,13 @@ public class ClockActivity extends AppCompatActivity {
                 } else {
                     Log.e("ClockActivity", "Access token is missing.");
                     Toast.makeText(ClockActivity.this, "Access token is required to check in.", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
                 }
             });
 
         } else {
             Log.e("ClockActivity", "Check-In button is null.");
+            progressBar.setVisibility(View.GONE);
         }
     }
 
@@ -501,9 +503,9 @@ public class ClockActivity extends AppCompatActivity {
                     // Hide progress bar first
                     progressBar.setVisibility(View.GONE);
 
-
                     // Logout user
                     LogoutManager.logoutUser(getApplicationContext());
+
 
                     // Delay dismissing the dialog
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {

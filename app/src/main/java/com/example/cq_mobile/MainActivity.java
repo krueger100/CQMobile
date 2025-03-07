@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,9 +23,11 @@ import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
+import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.ClockFolder.TimerUIManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
 
 import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
@@ -34,11 +37,14 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
+import com.example.cq_mobile.ui.chat.ChatFragment;
 import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
 
 import com.example.cq_mobile.ui.chat.ChatNotif.ChatsNotificationsApiManager;
 import com.example.cq_mobile.ui.chat.ChatNotif.NotificationAPIResponse;
 
+import com.example.cq_mobile.ui.chat.ChatPageFragment;
+import com.example.cq_mobile.ui.chat.InnerChatsFolder.InnerChats;
 import com.google.firebase.FirebaseApp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -46,7 +52,7 @@ import com.google.gson.GsonBuilder;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ClockOutVisibilityHandler {
     private ActivityMainBinding binding;
     private DrawerLayout drawerLayout;
     private NavigationManager navigationManager;
@@ -82,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
         if (!networkManager.isConnected()) {
             networkManager.showNoConnectionDialog();
         }
-
-
 
 
 
@@ -186,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     private void initializeApp(String currentUser_notification_token, int userId, String avatarUrl) {
         FirebaseApp.initializeApp(this);
         StatusBarManager.setStatusBarLight(this);
@@ -194,10 +199,15 @@ public class MainActivity extends AppCompatActivity {
         userId = sharedPrefManager.getUserId();
         avatarPath = sharedPrefManager.getAvatarUrl();
         userName = sharedPrefManager.getUserName();
+        firstName = sharedPrefManager.getFirstName();
+        lastName = sharedPrefManager.getLastName();
         notificationToken = sharedPrefManager.getNotiftoken();
         jobId = sharedPrefManager.getJobId();
         taskId = sharedPrefManager.getTaskId();
         String startDate = sharedPrefManager.getKeyStartDate();
+
+        ClockOutManager clockOutManager = new ClockOutManager(this,  binding.progressBar,  jobId,  taskId,  userId,  startDate);
+        clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId);
 
 
 
@@ -216,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+        Log.d("MainActivity", "FirebaseDataManager User ID:  --------->>> " + userId );
 
 
         // Handle null or empty notification token
@@ -229,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Ensure userId is not null before proceeding
-        if (userId == -1) {
+        if (userId != 0) {
             FirebaseDataManager firebaseDataManager = new FirebaseDataManager(userId);
             firebaseDataManager.saveUserData(
                     accessToken != null ? accessToken : "",
@@ -268,6 +278,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         navigationManager.setupNavigation();
+
+
+
 
     }
 
@@ -341,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
                         String date = (notification.getDate() != null) ? notification.getDate() : "Unknown Date";
                         int channelValue = notification.getChannel();
                         String channel = (channelValue > 0) ? String.valueOf(channelValue) : "Unknown Channel";
-                        Log.e("GetChatNotif", "Channel:  " + channel);
+                        Log.w("GetChatNotif", "Channel:  " + channel);
 
                         if (avatarUrl == null || avatarUrl.isEmpty()) {
                             Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.emptyglide);
@@ -360,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             NotificationManagerHelper.getInstance(getApplicationContext()).showNotification(
-                                    sender, message, bitmap, time, date, channel
+                                    sender, message, avatarUrl, time, date, channel
                             );
                         } else {
                             NotificationManagerHelper.getInstance(getApplicationContext()).showNotification(
@@ -369,6 +382,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }, count[0] * delay);
                     count[0]++;
+
+
                 }
             }
 
@@ -390,13 +405,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         timerUIManager.cleanup();
+
     }
 
     public TimerManager getTimerManager() {
         return timerManager;
     }
-}
 
+    @Override
+    public void setClockOutVisibility(boolean isVisible) {
+        if (binding.clockoutBtn != null) {
+            binding.clockoutBtn.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+
+}
 
 
     /*    sharedPreferences = this.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);

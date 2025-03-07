@@ -11,6 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
+
+
+
         <include
             android:id="@+id/include"
             layout="@layout/layout_common_header"
@@ -68,9 +72,40 @@
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
 
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:elevation="25dp"
+            android:text="0%"
+            android:textSize="16sp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="25dp"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/progressbar"
+            app:layout_constraintEnd_toEndOf="@+id/progressbar" />
+
+        <ProgressBar
+            android:id="@+id/progressbar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="25dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:visibility="gone"
+            android:progress="0"
+            android:progressTint="@color/cq_secondary_color"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+            tools:layout_editor_absoluteX="25dp" />
+
+
+
+
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="230dp"
+            android:layout_height="250dp"
             app:cardCornerRadius="8dp"
             android:elevation="10dp"
             android:layout_margin="10dp"
@@ -146,12 +181,15 @@
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_margin="10dp"
+                        android:background="@drawable/background_white"
+                        android:elevation="2dp"
                         android:text="Loading.. ."
                         android:textSize="14sp"
                         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/task_number" />
+
 
 
                     <LinearLayout
@@ -173,6 +211,7 @@
                             android:layout_marginEnd="10dp"
                             android:gravity="center"
                             android:text="Loading.. ."
+                            android:elevation="5dp"
                             android:background="@drawable/button_grey"
                             android:textColor="@color/textBtnBlue"
                             android:textSize="16sp"
@@ -198,11 +237,13 @@
                                 android:id="@+id/statusImageView"
                                 android:layout_width="150dp"
                                 android:layout_height="45dp"
+                                android:elevation="5dp"
                                 android:src="@drawable/button_grey"
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintStart_toStartOf="parent"
                                 app:layout_constraintTop_toTopOf="parent" />
+
 
 
                         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -235,6 +276,8 @@
             android:textColor="@color/white"
             android:textSize="16sp" />
 
+
+
         <TextView
             android:id="@+id/taskmain"
             android:layout_width="match_parent"
@@ -246,10 +289,21 @@
             android:textColor="@color/black"
             android:textSize="16sp" />
 
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <ProgressBar
+                android:id="@+id/progress_circular_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminateTint="@color/cq_secondary_color"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/recycler_view" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_view"
@@ -294,11 +348,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ProgressBar
-            android:id="@+id/progress_circular_2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"/>
+
 
 
 

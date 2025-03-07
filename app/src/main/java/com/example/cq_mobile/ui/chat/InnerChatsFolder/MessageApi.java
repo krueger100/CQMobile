@@ -22,3 +22,4 @@ public interface MessageApi {
             @Header("Authorization") String authToken
     );
 }
+/// /api/m/chats/update_read

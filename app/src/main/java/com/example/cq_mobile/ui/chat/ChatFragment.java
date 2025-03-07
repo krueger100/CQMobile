@@ -1,6 +1,8 @@
 package com.example.cq_mobile.ui.chat;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +10,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.tabs.TabLayout;
 
@@ -17,7 +21,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;public class ChatFragment extends Fragment {
 
     private ViewPager2 viewPager2;
-
+    private ClockOutVisibilityHandler visibilityHandler;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -29,6 +33,7 @@ import androidx.viewpager2.widget.ViewPager2;public class ChatFragment extends F
         // Set the adapter for the ViewPager2
         FragmentStateAdapter adapter = new ChatPagerAdapter(this);
         viewPager2.setAdapter(adapter);
+
 
         // Add tabs to the TabLayout
         TabLayout tabLayout = rootView.findViewById(R.id.tab_layout);
@@ -83,6 +88,23 @@ import androidx.viewpager2.widget.ViewPager2;public class ChatFragment extends F
         @Override
         public int getItemCount() {
             return 2;
+        }
+    }
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof ClockOutVisibilityHandler) {
+            visibilityHandler = (ClockOutVisibilityHandler) context;
+        } else {
+            Log.d("MoreFragment", "Activity does not implement ClockOutVisibilityHandler");
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (visibilityHandler != null) {
+            visibilityHandler.setClockOutVisibility(false);
         }
     }
 }

@@ -93,6 +93,12 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             String categories = done.getCategory() != null ? done.getCategory().trim() : "Empty Category";
             String categoriesColors = String.valueOf(done.getCategory_color()).trim();
+            if (categoriesColors == null || categoriesColors.trim().isEmpty()) {
+                categoriesColors = "#FF0000"; // Default color if null
+            } else {
+                categoriesColors = categoriesColors.trim();
+            }
+
             Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
 
             if (id != null) {

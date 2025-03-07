@@ -57,14 +57,20 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         this.httpsAvatar_url = httpsAvatar_url;
     }
 
-    public void addChats(List<InnerChatAPIItem> newChats) {
+    public void addChats(List<InnerChatAPIItem> newChats, RecyclerView recyclerView) {
         messagesList.addAll(newChats);
         notifyDataSetChanged();
+
+        // Scroll to the bottom after messages are added
+        recyclerView.post(() -> recyclerView.scrollToPosition(messagesList.size() - 1));
     }
 
-    public void addMessage(InnerChatAPIItem newMessage) {
+    public void addMessage(InnerChatAPIItem newMessage, RecyclerView recyclerView) {
         messagesList.add(newMessage);
         notifyItemInserted(messagesList.size() - 1);
+
+        // Ensure scrolling happens after UI update
+        recyclerView.post(() -> recyclerView.smoothScrollToPosition(messagesList.size() - 1));
     }
 
     @Override
@@ -214,6 +220,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             }
         }
     }
+
 }
 /*
 
