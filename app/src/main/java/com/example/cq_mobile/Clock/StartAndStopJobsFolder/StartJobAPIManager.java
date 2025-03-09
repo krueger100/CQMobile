@@ -136,9 +136,10 @@ public class StartJobAPIManager {
                     .build();
 
             RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
+            String url = baseUrl + endpoint + "/" + userId; // Corrected URL format
 
             Request request = new Request.Builder()
-                    .url(baseUrl + endpoint)
+                    .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .addHeader("x-api-key", "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2")
                     .addHeader("Content-Type", "application/json")

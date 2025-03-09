@@ -52,3 +52,18 @@ public class LogoutNotificationManager {
         void onFailure(String errorMessage);
     }
 }
+
+/*
+       LogoutNotificationManager logoutManager = new LogoutNotificationManager();
+                logoutManager.deleteNotificationToken(String.valueOf(userId), new LogoutNotificationManager.LogoutCallback() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Log.e("MoreFragment", "Failed to delete notification token: " + errorMessage);
+                    }
+                });
+ */

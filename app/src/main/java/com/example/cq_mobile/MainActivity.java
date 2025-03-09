@@ -14,14 +14,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.ClockFolder.TimerUIManager;
@@ -29,26 +27,18 @@ import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
-
 import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
 import com.example.cq_mobile.HelperManagers.Notifications.NotificationManagerHelper;
-
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
-import com.example.cq_mobile.ui.chat.ChatFragment;
 import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
-
 import com.example.cq_mobile.ui.chat.ChatNotif.ChatsNotificationsApiManager;
 import com.example.cq_mobile.ui.chat.ChatNotif.NotificationAPIResponse;
-
-import com.example.cq_mobile.ui.chat.ChatPageFragment;
-import com.example.cq_mobile.ui.chat.InnerChatsFolder.InnerChats;
 import com.google.firebase.FirebaseApp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import java.util.List;
 
 
@@ -128,8 +118,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         password = intent.getStringExtra("password");
         avatarUrl = intent.getStringExtra("avatarUrl");
 
-
-
         Log.d("MainActivity", "<<<<----- MainActivity ----->>>> " );
         Log.d("MainActivity", "Access Token: Intent ----->>>> " + accessToken);
         Log.d("MainActivity", "User ID: Intent ----->>>> " + userId);
@@ -142,11 +130,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         Log.d("MainActivity", "Email: Intent ----->>>> " + email);
         Log.d("MainActivity", "Avatar URL: Intent ----->>>> " + avatarUrl);  //
 
-
-
-
         drawerLayout = binding.drawerLayout;
-        navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -165,9 +149,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                 GetNotificationToken.getToken(this);
             }
         }
-
-
-
     //// ------------->>>>>>>>  Access Token Data
         firebaseDatabaseManager = new FirebaseDatabaseManager();
         firebaseDatabaseManager.getUserData(String.valueOf(userId), new FirebaseDatabaseManager.UserDataCallback() {
@@ -182,10 +163,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
            //     AccessTokenData();
             }
         });
-
-
-
-
 
     }
 
@@ -205,6 +182,9 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         jobId = sharedPrefManager.getJobId();
         taskId = sharedPrefManager.getTaskId();
         String startDate = sharedPrefManager.getKeyStartDate();
+
+        navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout,binding.progressBar,accessToken,jobId,taskId,startDate,userId);
+
 
         ClockOutManager clockOutManager = new ClockOutManager(this,  binding.progressBar,  jobId,  taskId,  userId,  startDate);
         clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId);
@@ -283,9 +263,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
 
 
     }
-
-
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

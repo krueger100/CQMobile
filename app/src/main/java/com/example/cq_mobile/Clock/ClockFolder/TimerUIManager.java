@@ -74,7 +74,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
                 }
 
                 ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID, startDate);
-                clockOutManager.AutoClockOutWithoutLogout(accessToken, savedJobId);
+                clockOutManager.AutoClockOutandLogout(accessToken, savedJobId,savedTaskId,startTime);
 
                 Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
             }

@@ -23,7 +23,7 @@ import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
-import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.R;
 
@@ -35,6 +35,7 @@ public class ClockOutManager {
     private int savedTaskId;
     int userID;
     String startDate;
+    private static final String USER_PREFS = "UserPrefs";
 
     public ClockOutManager(Context context, ProgressBar progressBar, int savedJobId, int savedTaskId, int userID, String startDate) {
         this.context = context;
@@ -50,7 +51,7 @@ public class ClockOutManager {
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.outline_timer_24);
         Log.w("ClockOutManager", "<<<< AccessToken >>>> "+"\n" +" -->>  "+ accessToken + "\n" + "savedJobId - " + savedJobId + " jobId - " + savedTaskId );
         Log.w("ClockOutManager", " <<<< USERID >>>> " + userID );
-
+        Log.w("ClockOutManager", " <<<<ClockOut and Logout >>>> " + userID );
 
         if (drawable != null) {
             drawable = DrawableCompat.wrap(drawable);
@@ -68,18 +69,69 @@ public class ClockOutManager {
         clockOutBtn.setGravity(Gravity.CENTER);
         clockOutBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
-        clockOutBtn.setOnClickListener(v -> initiateClockOut(accessToken, jobId, savedTaskId,startDate));
+        clockOutBtn.setOnClickListener(v -> AutoClockOutandLogout(accessToken, jobId, savedTaskId,startDate));
     }
 
-    public void AutoClockOut(String accessToken, int jobId) {
-        initiateClockOutAndLogOut(accessToken, jobId, savedTaskId,startDate);
+
+    ///ClockOut With Logout
+    public void AutoClockOutandLogout(String accessToken, int jobId, int savedTaskId, String startDate) {
+        initiateClockOutAndLogOut(accessToken, jobId, this.savedTaskId, this.startDate);
+    }
+    private void initiateClockOutAndLogOut(String accessToken, int jobId, int taskId, String startDate) {
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+        int ticketMessageId = 0;
+        ClockNLogOUTApiManager.clockOuTwithLogOut(jobId, taskId, ticketMessageId, progressBar, accessToken, userID, new ClockNLogOUTApiManager.ApiCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d("ClockOutManager", "Clock/Log Out Successful");
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    clearClockPrefsWithLogout(ClockOutManager.this.startDate);
+
+                    // ✅ Navigate to Login
+                    Intent intent = new Intent(context, Login.class);
+                    intent.putExtra("key", "value");
+                    context.startActivity(intent);
+
+                    if (context instanceof Activity) {
+                        ((Activity) context).finish();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.e("ClockOutManager", "Clock Out Failed: Clock/Log Out  " + error);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
+                    Toast.makeText(context, "Failed to clock out: Clock/Log Out  " + error, Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+
+    }
+    private void clearClockPrefsWithLogout(String startDate) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
+        sharedPreferences.edit().clear().apply();
+        Log.w("ClockOutManager", "<<<< TimerManager >>>> "+"\n" +" -->>  "+ startDate );
+        TimerManager timerManager = TimerManager.getInstance(context, startDate);
+        timerManager.resetTimer(context);
+
+        SharedPreferences USER_PREFS_Preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = USER_PREFS_Preferences.edit();
+        editor.clear();
+        editor.apply();
+
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        sharedPrefManager.clearEmail();
+        sharedPrefManager.clearPassword();
     }
 
+    ///ClockOut Without Logout
     public void AutoClockOutWithoutLogout(String accessToken, int jobId) {
-        initiateClockOut(accessToken, jobId, savedTaskId,startDate);
+        initiateClockOutWithoutLogout(accessToken, jobId, savedTaskId,startDate);
     }
-
-    private void initiateClockOut(String accessToken, int jobId, int taskId, String startDate) {
+    private void initiateClockOutWithoutLogout(String accessToken, int jobId, int taskId, String startDate) {
 
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         int ticketMessageId = 0;
@@ -115,61 +167,13 @@ public class ClockOutManager {
         });
 
     }
-
-
-    private void initiateClockOutAndLogOut(String accessToken, int jobId, int taskId, String startDate) {
-        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
-        int ticketMessageId = 0;
-        ClockNLogOUTApiManager.clockOuTwithLogOut(jobId, taskId, ticketMessageId, progressBar, accessToken, userID, new ClockNLogOUTApiManager.ApiCallback() {
-            @Override
-            public void onSuccess() {
-                Log.d("ClockOutManager", "Clock/Log Out Successful");
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    clearClockPrefs(ClockOutManager.this.startDate);
-
-                    Intent intent = new Intent(context, Login.class);
-                    intent.putExtra("key", "value");
-                    context.startActivity(intent);
-
-                    if (context instanceof Activity) {
-                        ((Activity) context).finish();
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Log.e("ClockOutManager", "Clock Out Failed: Clock/Log Out  " + error);
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    Toast.makeText(context, "Failed to clock out: Clock/Log Out  " + error, Toast.LENGTH_LONG).show();
-                });
-            }
-        });
-
-    }
-
-
-    // ✅ Extracted method to clear clock-in data
     private void clearClockPrefs(String startDate) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         sharedPreferences.edit().clear().apply();
         Log.w("ClockOutManager", "<<<< TimerManager >>>> "+"\n" +" -->>  "+ startDate );
-
         TimerManager timerManager = TimerManager.getInstance(context, startDate);
         timerManager.resetTimer(context);
 
-        /*
-        SharedPreferences USER_PREFS_Preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = USER_PREFS_Preferences.edit();
-        editor.clear();
-        editor.apply();
 
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        sharedPrefManager.clearEmail();
-        sharedPrefManager.clearPassword();
-
-         */
     }
 }

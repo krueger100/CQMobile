@@ -18,7 +18,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.cq_mobile.R;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import com.bumptech.glide.Glide;
 
 public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHolder> {
@@ -235,10 +239,20 @@ public class FilesAdapter extends RecyclerView.Adapter<FilesAdapter.FilesViewHol
 
 
     public void addData(List<FileItem> newFiles) {
-        int startPosition = filesList.size();
-        filesList.addAll(newFiles);
-        notifyItemRangeInserted(startPosition, newFiles.size());
-        checkEmptyState();
+        Set<FileItem> uniqueFiles = new HashSet<>(filesList); // Convert existing list to a set to remove duplicates
+        uniqueFiles.addAll(newFiles); // Add new files while ensuring uniqueness
+
+        filesList.clear(); // Clear the original list
+        filesList.addAll(uniqueFiles); // Add only unique files back to the list
+
+        notifyDataSetChanged(); // Notify RecyclerView to update UI
+        checkEmptyState(); // Update empty state visibility if needed
+    }
+    public void setData(List<FileItem> newFiles) {
+        filesList.clear(); // Remove all previous items
+        filesList.addAll(newFiles); // Add new list
+        notifyDataSetChanged(); // Notify RecyclerView of changes
+        checkEmptyState(); // Check if the list is empty
     }
 
     public static class FilesViewHolder extends RecyclerView.ViewHolder {

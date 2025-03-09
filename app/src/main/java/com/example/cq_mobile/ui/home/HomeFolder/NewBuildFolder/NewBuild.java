@@ -1,9 +1,7 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -66,7 +64,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
 
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 
@@ -115,6 +112,7 @@ TextView progress_text;
 ProgressBar progressbar;
     Double latOut;
     Double longOut;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -190,6 +188,7 @@ ProgressBar progressbar;
         start_job.setAlpha(0.5f);
 
         fetchData();
+
 
 
     }
@@ -393,7 +392,7 @@ ProgressBar progressbar;
 
                     start_job.setEnabled(true);
                     start_job.setAlpha(1.0f);
-               start_jobBranch(51.225142,-0.364142);
+               start_jobBranch(firstCoordinate.getLatitude(),firstCoordinate.getLongitude());
 
 
                     // Update task marker with custom icon
@@ -492,7 +491,7 @@ ProgressBar progressbar;
                                 Log.d("StartJob", "Job ID: " + jobId);
                                 Log.d("StartJob", "Start Time: " + startTime);
 
-                                showAlertDialog(NewBuild.this, "Job Status", serverMessage, message2, accessToken,  userId,  progress_circular,startJob,jobId,taskId);
+
 
 
                                 // Extract location details
@@ -516,13 +515,17 @@ ProgressBar progressbar;
                                 }
                             }
                         }
+                        runOnUiThread(() -> {
+                            showAlertDialog(NewBuild.this, success, serverMessage, accessToken,  userId, progress_circular, startJob, jobId, taskId);
+
+                        });
+
+
                     }
 
                     @Override
                     public void onFailure(String error) {
                         Log.e("StartJob", "Failed to start job: " + error);
-                        showAlertDialog(NewBuild.this, "Job Status", "Can't Start Job", "Failed to start job", accessToken,  userId,
-                                progress_circular, startJob, Integer.parseInt(jobId), taskId);
 
                     }
                 });
@@ -548,7 +551,7 @@ ProgressBar progressbar;
 
         newBuildButtonManager.setButtonsVisibility(true);
         newBuildButtonManager.setButtonClickListener(view -> {
-            // Handle button clicks here
+            ClickAnimationManager.applyClickAnimation(view);
             if (view == notes) {
                 Intent intent = new Intent(this, NotesActivity.class);
                 intent.putExtra("job_id", jobId);
@@ -596,83 +599,47 @@ ProgressBar progressbar;
         });
     }
 
-    private void showAlertDialog(Context context, String title, String serverMessage, String message2, String accessToken, int userId, ProgressBar progressBar, String startJob, int jobId, String taskId) {
-        WeakReference<Context> contextRef = new WeakReference<>(context);
-        Context safeContext = contextRef.get();
-        if (safeContext == null) {
+    private void showAlertDialog(NewBuild newBuild, boolean success, String serverMessage, String accessToken, int userId, ProgressBar progress_circular, String startJob, String jobId, String taskId) {
+        if (newBuild == null) {
+            Log.e("AlertDialog", "Context is empty, cannot show dialog");
             return;
         }
-        if (safeContext instanceof Activity) {
-            Activity activity = (Activity) safeContext;
-            if (activity.isFinishing()) {
-                return;
-            }
-        }
 
-        if (safeContext instanceof Activity) {
-            Activity activity = (Activity) safeContext;
-            activity.runOnUiThread(() -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(safeContext);
-                builder.setTitle(title);
-                builder.setMessage(serverMessage + "\n\n" + (message2 != null ? message2 : ""));
-                builder.setPositiveButton("Stop job", (dialog, which) -> {
-                    StopJobApiManager.stopJob(accessToken, userId, progressBar, new StopJobApiManager.ApiCallback() {
+        new AlertDialog.Builder(newBuild)
+                .setTitle(serverMessage)
+                .setMessage("Choose from the options")
+                .setPositiveButton("Clock out", (dialog, which) -> {
+                    // Auto Clock Out on OK
+                    ClockOutManager clockOutManager = new ClockOutManager(newBuild, progress_circular, Integer.parseInt(jobId), Integer.parseInt(taskId), userId, startJob);
+                    clockOutManager.AutoClockOutandLogout(accessToken, Integer.parseInt(jobId),Integer.parseInt(taskId),startJob);
+                })
+                .setNegativeButton("Stop job", (dialog, which) -> {
+                    StopJobApiManager.stopJob(accessToken, userId, progress_circular, new StopJobApiManager.ApiCallback() {
                         @Override
                         public void onSuccess(String message) {
-                            // Post the AlertDialog on the main thread
                             new Handler(Looper.getMainLooper()).post(() -> {
-                                // Create an AlertDialog to show success message
-                                showStopJobAlertDialog(NewBuild.this, "Job Status", message,message2, accessToken,  userId,  progress_circular,startJob,jobId, Integer.parseInt(taskId));
-
+                                new AlertDialog.Builder(newBuild)
+                                        .setTitle(serverMessage)
+                                        .setMessage("Job stopped successfully.")
+                                        .setPositiveButton("OK", (dialog2, which2) -> dialog2.dismiss())
+                                        .show();
+                                dialog.dismiss();
                             });
                         }
-
 
                         @Override
                         public void onFailure(String error) {
-                            // Post the AlertDialog on the main thread
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                showStopJobAlertDialog(NewBuild.this, "Job Status", serverMessage, message2, accessToken,  userId,
-                                        progress_circular,startJob, jobId, Integer.parseInt(taskId));
-
-                            });
+                            Log.e("StartJob", "Failed to stop job: " + error);
+                            new Handler(Looper.getMainLooper()).post(() ->
+                                    Toast.makeText(newBuild, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
+                            );
                         }
                     });
+                })
+                .setNeutralButton("Back", (dialog, which) -> dialog.dismiss()) // Neutral button to dismiss the dialog
+                .show();
 
-                    dialog.dismiss();
-                });
-
-                builder.setNegativeButton("Cancel",(dialog, which) -> dialog.dismiss());
-
-                AlertDialog dialog = builder.create();
-                dialog.setOnDismissListener(d -> dialog.dismiss());
-                dialog.show();
-            });
-        }
-    }
-    private void showStopJobAlertDialog(NewBuild newBuild, String jobStatus, String message, String message2, String accessToken, int userId, ProgressBar progress_circular, String startJob, int jobId, int taskId) {
-        WeakReference<Context> contextRef = new WeakReference<>(newBuild);
-        Context safeContext = contextRef.get();
-        if (safeContext != null && safeContext instanceof Activity) {
-            Activity activity = (Activity) safeContext;
-            if (!activity.isFinishing()) {
-                activity.runOnUiThread(() -> {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(safeContext);
-                    builder.setTitle(jobStatus);
-                    builder.setMessage(message + (message2 != null ? "\n\n" + message2 : ""));
-                    builder.setPositiveButton("OK", (dialog, which) -> {
-                        ClockOutManager clockOutManager = new ClockOutManager(this, progress_circular, jobId,taskId,userId,  startJob);
-                        clockOutManager.AutoClockOutWithoutLogout(accessToken, Integer.parseInt(String.valueOf(jobId)));
-                    });
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                });
-            }
-        }
-    }
-
-
-    public void switchFragment(Fragment fragment) {
+    }    public void switchFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);

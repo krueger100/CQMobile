@@ -17,10 +17,10 @@
 
         <ImageView
             android:id="@+id/header_Notification"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="18dp"
             android:src="@drawable/bell"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -29,8 +29,8 @@
 
         <ImageView
             android:id="@+id/Notification_indication_on"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
             android:src="@drawable/indicator_on"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@+id/header_Notification"

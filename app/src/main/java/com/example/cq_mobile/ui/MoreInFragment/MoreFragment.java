@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,8 +59,9 @@ public class MoreFragment extends Fragment {
         String password = sharedPrefManager.getPassword();
         String avatar = sharedPrefManager.getAvatarUrl();
         String notificationToken = sharedPrefManager.getNotiftoken();
-
-
+        int jobId=  sharedPrefManager.getJobId();
+        int taskId=  sharedPrefManager.getTaskId();
+        String startDate = sharedPrefManager.getKeyStartDate();
 
         Log.d("MoreFragment", "Retrieved User Data: ");
         Log.d("MoreFragment", "Access Token: " + accessToken);
@@ -68,7 +71,9 @@ public class MoreFragment extends Fragment {
         Log.d("MoreFragment", "Password: " + password);
         Log.d("MoreFragment", "Avatar: " + avatar);
         Log.d("MoreFragment", "notificationToken: " + notificationToken);
-
+        Log.d("MoreFragment", "jobId: " + jobId);
+        Log.d("MoreFragment", "taskId: " + taskId);
+        Log.d("MoreFragment", "startDate: " + startDate);
         binding.name.setText(userName);
         context = getContext();
 
@@ -108,22 +113,12 @@ public class MoreFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 ClickAnimationManager.applyClickAnimation(v);
-                LogoutNotificationManager logoutManager = new LogoutNotificationManager();
-                logoutManager.deleteNotificationToken(String.valueOf(userId), new LogoutNotificationManager.LogoutCallback() {
-                    @Override
-                    public void onSuccess() {
-                        Log.d("MoreFragment", "Notification token deleted successfully.");
-                        binding.progressBar.setVisibility(View.VISIBLE);
+                Log.d("MoreFragment", "Notification token deleted successfully.");
+                binding.progressBar.setVisibility(View.VISIBLE);
 
-                 LogoutManager.logoutUser(requireContext());
-                    }
-
-                    @Override
-                    public void onFailure(String errorMessage) {
-                        Log.e("MoreFragment", "Failed to delete notification token: " + errorMessage);
-                    }
-                });
-
+                ClockOutManager clockOutManager = new ClockOutManager(context, binding.progressBar, jobId, taskId, userId, startDate);
+                clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
+                LogoutManager.logoutUser(requireContext());
             }
         });
 

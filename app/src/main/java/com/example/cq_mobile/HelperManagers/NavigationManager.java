@@ -2,8 +2,9 @@ package com.example.cq_mobile.HelperManagers;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.view.View;
-import android.widget.ImageView;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,7 +15,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
@@ -26,13 +27,24 @@ public class NavigationManager {
     private NavigationView navViewDrawer;
     private DrawerLayout drawerLayout;
     private BackPressManager backPressManager;
-
-    public NavigationManager(AppCompatActivity activity, BottomNavigationView navView, NavigationView navViewDrawer, DrawerLayout drawerLayout) {
+    String accessToken;
+    int jobId;
+    int taskId;
+    int userId;
+    String startDate;
+    ProgressBar progressBar;
+    public NavigationManager(AppCompatActivity activity, BottomNavigationView navView, NavigationView navViewDrawer, DrawerLayout drawerLayout, ProgressBar progressBar, String accessToken, int jobId, int taskId, String startDate, int userId) {
         this.activity = activity;
         this.navView = navView;
         this.navViewDrawer = navViewDrawer;
         this.drawerLayout = drawerLayout;
         this.backPressManager = new BackPressManager(activity);
+        this.progressBar = progressBar;
+        this.accessToken = accessToken;
+        this.jobId = jobId;
+        this.taskId = taskId;
+        this.startDate = startDate;
+        this.userId = userId;
     }
 
     public void setupNavigation() {
@@ -83,16 +95,21 @@ public class NavigationManager {
             return false;
         });
 
-        // Handle Drawer Navigation clicks
         navViewDrawer.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_item_one) {
                 Toast.makeText(activity, "Account clicked", Toast.LENGTH_SHORT).show();
+                navController.navigate(R.id.navigation_more);
             } else if (id == R.id.nav_item_two) {
                 Toast.makeText(activity, "About clicked", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_item_three) {
                 // Handle logout using LogoutManager
-                LogoutManager.logoutUser(activity);
+                ClockOutManager clockOutManager = new ClockOutManager(activity, progressBar, jobId, taskId, userId, startDate);
+                clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    LogoutManager.logoutUser(activity);
+                }, 3000);
+
             } else {
                 return false;
             }

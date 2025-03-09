@@ -12,8 +12,10 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
@@ -37,7 +39,6 @@ public class MoreActivity extends AppCompatActivity {
         circleImageView2 = findViewById(R.id.circleImageView2);
         account_setting = findViewById(R.id.account_setting);
 
-
         SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
         String accessToken = sharedPrefManager.getAccessToken();
         int userId = sharedPrefManager.getUserId();
@@ -46,6 +47,11 @@ public class MoreActivity extends AppCompatActivity {
         String email = sharedPrefManager.getEmail();
         String avatar = sharedPrefManager.getAvatarUrl();
 
+        int jobId = sharedPrefManager.getJobId();
+        int taskId = sharedPrefManager.getTaskId();
+        String startDate = sharedPrefManager.getKeyStartDate();
+
+
         Log.d("MoreActivity", "Retrieved User Data: ");
         Log.d("MoreActivity", "Access Token: " + accessToken);
         Log.d("MoreActivity", "User ID: " + userId);
@@ -53,6 +59,10 @@ public class MoreActivity extends AppCompatActivity {
         Log.d("MoreActivity", "Last Name: " + lastName);
         Log.d("MoreActivity", "Email: " + email);
         Log.d("MoreActivity", "avatar: " + avatar);
+        Log.d("MoreActivity", "jobId: " + jobId);
+        Log.d("MoreActivity", "taskId: " + taskId);
+        Log.d("MoreActivity", "startDate: " + startDate);
+
 
         name.setText(firstName +" "+lastName);
 
@@ -75,6 +85,7 @@ public class MoreActivity extends AppCompatActivity {
 
         account_setting.setOnClickListener(v -> {
             ClickAnimationManager.applyClickAnimation(v);
+            accountSettingManager.showAccountSettingBottomSheetFragment();
         });
 
 
@@ -96,7 +107,9 @@ public class MoreActivity extends AppCompatActivity {
                 ClickAnimationManager.applyClickAnimation(v);
                 SharedPreferences sharedPreferencesClockout = getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
                 sharedPreferencesClockout.edit().clear().apply();
-
+                ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, startDate);
+                clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
+                LogoutManager.logoutUser(MoreActivity.this);
 
 
 
@@ -110,3 +123,4 @@ public class MoreActivity extends AppCompatActivity {
 
 
 }
+
