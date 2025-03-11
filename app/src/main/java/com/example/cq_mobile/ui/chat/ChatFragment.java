@@ -105,6 +105,7 @@ import androidx.viewpager2.widget.ViewPager2;public class ChatFragment extends F
         super.onResume();
         if (visibilityHandler != null) {
             visibilityHandler.setClockOutVisibility(false);
+
         }
     }
 }

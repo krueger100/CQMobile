@@ -23,6 +23,7 @@ import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
+import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.R;
@@ -62,6 +63,7 @@ public class ClockOutManager {
 
             ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
             spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+
         }
 
         spannable.setSpan(new android.text.style.RelativeSizeSpan(1.2f), 2, spannable.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
@@ -69,7 +71,35 @@ public class ClockOutManager {
         clockOutBtn.setGravity(Gravity.CENTER);
         clockOutBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
-        clockOutBtn.setOnClickListener(v -> AutoClockOutandLogout(accessToken, jobId, savedTaskId,startDate));
+     //   clockOutBtn.setOnClickListener(v -> AutoClockOutandLogout(accessToken, jobId, savedTaskId,startDate));
+
+        clockOutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                StopJobApiManager.stopJob(accessToken, userID, progressBar, new StopJobApiManager.ApiCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        new Handler(Looper.getMainLooper()).post(() -> {
+
+                            SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+                            sharedPrefManager.clearStartJob();
+                            AutoClockOutandLogout(accessToken, jobId, savedTaskId,startDate);
+                            Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
+
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("StartJob", "Failed to stop job: " + error);
+                        new Handler(Looper.getMainLooper()).post(() ->
+                                Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
+                        );
+                    }
+                });
+
+            }
+        });
     }
 
 

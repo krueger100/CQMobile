@@ -1,5 +1,6 @@
 package com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -59,9 +60,13 @@ public class ChatActivity extends AppCompatActivity {
 
         chatManager = new ChatManager(this);
 
+        Intent intent = getIntent();
+        String channelUrl = intent.getStringExtra("channel_url");
 
-        String channelUrl = getIntent().getStringExtra("channel_url");
-        Log.d("ChatActivity", "Received channelUrl: " + channelUrl);
+        if (channelUrl != null) {
+            Log.d("ChatActivity", "Navigated to ChatActivity with Channel URL: " + channelUrl);
+            // Load chat based on `channelUrl`
+        }
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         accessToken = sharedPrefManager.getAccessToken();

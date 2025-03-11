@@ -21,26 +21,17 @@ public class ShowNotificationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_notification);
 
-
-
-
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         if (recyclerView == null) {
             Log.e(TAG, "RecyclerView is not initialized");
             return; // Prevent crash
         }
-
-
-
-
         // Retrieve data from the Intent
         Intent intent = getIntent();
         List<String> teamNames = intent.getStringArrayListExtra("teamNames");
         List<String> teamAvatars = intent.getStringArrayListExtra("teamAvatars");
 
-
         SharedPreferences sharedPreferences = getSharedPreferences("NotificationPreferences", MODE_PRIVATE);
-
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("notification_displayed", false);
         editor.apply();

@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
@@ -101,18 +102,18 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     TextView task_location;
     TextView task_number ;
     TextView task_description;
-    Spinner spinner_task ;
-    String firstName ;
+    Spinner spinner_task;
+    String firstName;
     String lastName;
     String startJob;
     private boolean isChecked;
     private static final String TAG = "NewBuild";
-LinearLayout emptyTask;
-TextView progress_text;
-ProgressBar progressbar;
+    LinearLayout emptyTask;
+    TextView progress_text;
+    ProgressBar progressbar;
     Double latOut;
     Double longOut;
-
+String jobTitle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -215,6 +216,7 @@ ProgressBar progressbar;
                     task_number.setText(task.getId() == -1 ? String.valueOf(task.getId()) : "N/A");
                     task_description.setText(task.getDescription() != null ? task.getDescription() : "No Description Available");
                     category_todo.setText(task.getCategory() != null ? task.getCategory() : "No Category");
+                    jobTitle= task.getName() != null ? task.getName() : "No Title Available";
 
                     // Handle location safely
                     String city = (task.getAddress() != null && task.getAddress().getCity() != null) ? task.getAddress().getCity() : "";
@@ -605,6 +607,9 @@ ProgressBar progressbar;
             return;
         }
 
+        TimerManager timerManager = TimerManager.getInstance(NewBuild.this, startJob);
+        timerManager.resetTimer(NewBuild.this);
+        sharedPrefManager.saveStartedJob(jobTitle);
         new AlertDialog.Builder(newBuild)
                 .setTitle(serverMessage)
                 .setMessage("Choose from the options")
@@ -621,7 +626,11 @@ ProgressBar progressbar;
                                 new AlertDialog.Builder(newBuild)
                                         .setTitle(serverMessage)
                                         .setMessage("Job stopped successfully.")
-                                        .setPositiveButton("OK", (dialog2, which2) -> dialog2.dismiss())
+                                        .setPositiveButton("OK", (dialog2, which2) -> {
+                                            SharedPrefManager sharedPrefManager = new SharedPrefManager(newBuild);
+                                            sharedPrefManager.clearStartJob();
+                                            dialog2.dismiss();
+                                        })
                                         .show();
                                 dialog.dismiss();
                             });
@@ -636,7 +645,7 @@ ProgressBar progressbar;
                         }
                     });
                 })
-                .setNeutralButton("Back", (dialog, which) -> dialog.dismiss()) // Neutral button to dismiss the dialog
+                .setNeutralButton("Continue", (dialog, which) -> dialog.dismiss()) //
                 .show();
 
     }    public void switchFragment(Fragment fragment) {

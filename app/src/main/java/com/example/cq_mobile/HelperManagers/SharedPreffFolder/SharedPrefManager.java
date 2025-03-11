@@ -29,10 +29,14 @@ public class SharedPrefManager {
     private static final String KEY_LATITUDE = "latitude";
     private static final String KEY_LONGITUDE = "longitude";
 
+    private static final String KEY_CHAT_CURRENTUSER_SEEN = "iscurrentuser_seen";
+
     private static final String KEY_COORDINATES_LIST = "coordinates_list";
 
     private static final String KEY_START_DATE = "start_date";
     private static final String KEY_STOP_DATE = "sop_date";
+
+    private static final String KEY_JOBSTARTED = "job_started";
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -42,6 +46,12 @@ public class SharedPrefManager {
         editor = sharedPreferences.edit();
 
 
+    }
+
+
+    public void saveStartedJob(String jobstarted) {
+        editor.putString(KEY_JOBSTARTED, jobstarted).apply();
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED   -->> Updated");
     }
 
     // Save methods
@@ -135,6 +145,10 @@ public class SharedPrefManager {
     }
 
 
+    public void saveCurrentUserIsChatSeen(String iscurrentuser_seen) {
+        editor.putString(KEY_CHAT_CURRENTUSER_SEEN, iscurrentuser_seen).apply();
+        Log.w("SharedPrefManager", "KEY_CHAT_CURRENTUSER_SEEN   -->> Updated");
+    }
 
     // Retrieve methods (Getters)
     public String getAccessToken() {
@@ -213,6 +227,13 @@ public class SharedPrefManager {
         return sharedPreferences.getString(KEY_STOP_DATE, null);
     }
 
+    public String getKeyisCurrentUserSeen() {
+        return sharedPreferences.getString(KEY_CHAT_CURRENTUSER_SEEN, null);
+    }
+
+    public String getStartJob() {
+        return sharedPreferences.getString(KEY_JOBSTARTED, null);
+    }
 
     public SharedPreferences getSharedPreferences() {
         return sharedPreferences;
@@ -222,6 +243,18 @@ public class SharedPrefManager {
         return editor;
     }
 
+
+
+
+    public void clearStartJob() {
+        editor.remove(KEY_JOBSTARTED).apply();
+        Log.w("SharedPrefManager", "All KEY_JOBSTARTED data cleared!");
+    }
+    // Clear all Chat notif
+    public void clearCurrentUserChat() {
+        editor.remove(KEY_CHAT_CURRENTUSER_SEEN).apply();
+        Log.w("SharedPrefManager", "All Chat notification data cleared!");
+    }
 
     // Clear all stored user data
     public void clearUserData() {

@@ -17,10 +17,12 @@ public class InnerChatAPIItem {
     private String chat_name;
     private String avatar_path;
     private List<InnerChatMember> members;
-
+    private String time;
+    private String date;
     List<InnerChatMessage> messages;
     private String message_read;
     private String name;  //
+    List<InnerMessageDetails> messageDetails;
 
 
 
@@ -44,6 +46,11 @@ public class InnerChatAPIItem {
     public List<InnerChatMessage> getMessages() {
         return messages;
     }
+
+    public List<InnerMessageDetails> getMessageDetails() {
+        return messageDetails;
+    }
+
 
     public void setMessages(List<InnerChatMessage> messages) {
         this.messages = messages;
@@ -125,7 +132,21 @@ public class InnerChatAPIItem {
     public void setMessage(String message) {
         this.message = message;
     }
+    public String getTime() {
+        return time;
+    }
 
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
 }
 
 

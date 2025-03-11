@@ -152,10 +152,9 @@
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".HelperManagers.Notifications.ChatNotif_folder.ChatActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme"/>
+            android:launchMode="singleTop"
+            android:exported="true">
+        </activity>
 
         <activity android:name=".ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.CameraXActivity"
             android:exported="true"
@@ -192,6 +191,8 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+
 
 
     </application>

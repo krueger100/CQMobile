@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -42,10 +43,14 @@ public class ChatPageFragment extends Fragment {
     String password;
     String chatCount;
     int message_read;
+    ProgressBar progressBar;
+    List<ChatDetails> chatDetailsList;
+    View view;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_chat_page, container, false);
+         view = inflater.inflate(R.layout.fragment_chat_page, container, false);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
          email = sharedPrefManager.getEmail();
@@ -54,7 +59,7 @@ public class ChatPageFragment extends Fragment {
         Log.d("ChatPageFragment", "Email: " + email);
         Log.d("ChatPageFragment", "Password: " + password);
 
-        ProgressBar progressBar = view.findViewById(R.id.progressBar);
+        progressBar = view.findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
 
         chatRecyclerView = view.findViewById(R.id.chatRecyclerView);
@@ -62,9 +67,8 @@ public class ChatPageFragment extends Fragment {
 
         chatManager = new ChatManager(getContext());
 
-
         AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
-        getAccessTokenAndLoadChats(tokenRequest, progressBar,currentPage,pageSize);
+        getAccessTokenAndLoadChats(tokenRequest, progressBar, currentPage, pageSize);
 
         return view;
     }
@@ -98,7 +102,7 @@ public class ChatPageFragment extends Fragment {
                 isLoading = false;
 
                 if (chats != null && !chats.isEmpty()) {
-                    List<ChatDetails> chatDetailsList = extractChatDetails(rawJson);
+                    chatDetailsList = extractChatDetails(rawJson);
                     Log.d("ChatPageFragment", "Extracted chat details: " + chatDetailsList);
 
 
@@ -237,12 +241,12 @@ public class ChatPageFragment extends Fragment {
         }
     }
 
-
     private void setProgressBarVisibility(boolean visible, ProgressBar progressBar) {
         if (progressBar != null) {
             progressBar.setVisibility(visible ? View.VISIBLE : View.GONE);
         }
     }
+
 
     @Override
     public void onDestroyView() {
@@ -252,6 +256,8 @@ public class ChatPageFragment extends Fragment {
         }
     }
 }
+
+
 /*
 curl -X GET "https://aws.customquoter.co.uk/api/m/chats?page=1&per_page=10" \
 -H "Authorization: Bearer 7898|QVu8LPIEoPkdOLqJToYdAYEoE3ydz1Qu95vx4npS" \

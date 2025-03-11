@@ -109,7 +109,7 @@ public class MessageManager {
                             chatItem.setMessage_read(innerChatMessage.getMessage().getTime()); // Extract time
                             chatItem.setMessage_read(innerChatMessage.getMessage().getAvatar()); // Extract Avatar
                             chatItem.setMessage_read(innerChatMessage.getMessage().getName()); // Extract Avatar
-
+                            chatItem.setMessage_read(innerChatMessage.getMessage().getDate());
 
 
                             chatItems.add(chatItem);

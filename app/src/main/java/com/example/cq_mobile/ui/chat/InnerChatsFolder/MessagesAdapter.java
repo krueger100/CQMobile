@@ -21,6 +21,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
 import com.example.cq_mobile.ui.chat.sendMessageFolder.DeleteMessageApiManager;
 
 import java.util.ArrayList;
@@ -42,8 +43,9 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     String username;
     String currentUserID;
     String httpsAvatar_url;
-    public MessagesAdapter(Context context, List<InnerChatAPIItem> messagesList, int id, int channel, List<ChatMember> memberslist, String currentUser, String accessToken,
-                           ProgressBar progressBar, String username, String currentUserID, String httpsAvatar_url) {
+
+    public MessagesAdapter(Context context, List<InnerChatAPIItem> messagesList, int id, int channel, List<ChatMember> memberslist,
+                           String currentUser, String accessToken, ProgressBar progressBar, String username, String currentUserID, String httpsAvatar_url) {
         this.context = context;
         this.id = id;
         this.channel = channel;
@@ -120,7 +122,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         String senderMessages = null;
         String receiverMessages = null;
         String AvatarHttp = httpsAvatar_url.trim();
-
         for (ChatMember member : memberslist) {
             if (member.getId() == senderInt) {
                 currentUserMember = member;
@@ -129,6 +130,14 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 receiverMember = member;
                 receiverMessages = chatAPIItem.getMessage();
             }
+        }
+
+        if (chatAPIItem.getMessage_read() != null) {
+            holder.date.setVisibility(View.VISIBLE);
+            holder.date.setText(chatAPIItem.getMessage_read());
+        } else {
+            holder.date.setText("Unknown");
+            holder.date.setVisibility(View.GONE);
         }
 
         if (receiverMember != null && receiverMember.getAvatarPath() != null && !receiverMember.getAvatarPath().isEmpty()) {
@@ -201,7 +210,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     }
 
     static class MessageViewHolder extends RecyclerView.ViewHolder {
-        TextView senderName, messageText, receiverName;
+        TextView senderName, messageText, receiverName,date;
         CircleImageView senderAvatar;
         int viewType;
 
@@ -212,6 +221,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             senderName = itemView.findViewById(R.id.name);
             messageText = itemView.findViewById(R.id.messageText);
             senderAvatar = itemView.findViewById(R.id.senderAvatar);
+            date = itemView.findViewById(R.id.date);
 
             if (viewType == 1) { // Only for received messages
                 receiverName = itemView.findViewById(R.id.name);

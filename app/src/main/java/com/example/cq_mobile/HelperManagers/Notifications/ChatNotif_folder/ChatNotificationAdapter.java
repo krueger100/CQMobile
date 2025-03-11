@@ -19,7 +19,6 @@ import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
-import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
 import com.example.cq_mobile.ui.chat.InnerChatsFolder.InnerChats;
 import com.example.cq_mobile.ui.chat.sendMessageFolder.UpdateReadAPIManager;
 import com.google.gson.Gson;
