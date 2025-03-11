@@ -17,16 +17,13 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
-import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
-import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
-import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.RouteApiManager;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteAPIFolder.Routemain;
 import com.example.cq_mobile.ui.map.RouteFolder.RouteManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -34,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -55,7 +53,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     int jobId;
     String accessToken;
     private ClockOutVisibilityHandler visibilityHandler;
-
+    List<Taskmain.Coordinates> coordinatesList;
 
     private final ActivityResultLauncher<String> locationPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
@@ -76,22 +74,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             mapFragment.getMapAsync(this);
         }
 
-
-
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
-
-        // Initialize RouteManager
         routeManager = new RouteManager(googleMap, requireContext());
 
         // Set up the button click listener
-        binding.setRouteButton.setOnClickListener(v -> {
-            if (userLocationLatLng != null && destinationLatLng != null) {
-                // Use RouteManager to draw the route when button is clicked
-                routeManager.drawRoute(userLocationLatLng, destinationLatLng);
-            } else {
-                Toast.makeText(getContext(), "Please select a destination by clicking on the map or marker", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        binding.setRouteButton.setOnClickListener(v -> {
+//            if (userLocationLatLng != null && destinationLatLng != null) {
+//                // Use RouteManager to draw the route when button is clicked
+//                routeManager.drawRoute(userLocationLatLng, destinationLatLng);
+//            } else {
+//                Toast.makeText(getContext(), "Please select a destination by clicking on the map or marker", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
          accessToken = sharedPrefManager.getAccessToken();
@@ -100,7 +96,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
         String email = sharedPrefManager.getEmail();
+        coordinatesList = sharedPrefManager.getCoordinatesList();
 
+        Log.d("MapFragmentSharedPreff", "Retrieved coordinates list: " + coordinatesList.size() + " entries found.");
         Log.d("MapFragmentSharedPreff", "Retrieved User Data: ");
         Log.d("MapFragmentSharedPreff", "Access Token: " + accessToken);
         Log.d("MapFragmentSharedPreff", "User ID: " + userId);
@@ -111,11 +109,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         // Retrieve the job_id from arguments
         Log.w("MapFragment", "Received Job ID in MapFragment: -> " + jobId);
 
-
+        // Set up the button click listener
+        binding.setRouteButton.setOnClickListener(v -> {
+            if (userLocationLatLng != null && destinationLatLng != null) {
+                routeManager.drawRoute(userLocationLatLng, destinationLatLng);
+            } else {
+                Toast.makeText(getContext(), "Please select a destination by clicking on the map or marker", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return root;
     }
 
+    /*
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -123,17 +129,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         getUserLocation();
 
         routeManager.setGoogleMap(googleMap);
+        addRouteDataMarker(googleMap);
 
-        googleMap.setOnMapLoadedCallback(() -> {
-            Log.d("MapFragment", "Google Map has fully loaded");
 
-            if (jobId == -1) {
-                fetchRouteData(jobId,accessToken);
-            } else {
-                Log.e("MapFragment", "job_id is null in MapFragment!");
-                fetchRouteData(-1, accessToken);
-            }
-        });
 
         googleMap.setOnMapClickListener(latLng -> {
             if (userLocationLatLng != null) {
@@ -164,56 +162,61 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+     */
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        getUserLocation();
 
-    private void addRouteDataMarker() {
-        if (routeData != null && routeData.getCoordinates() != null) {
-            String latitude = routeData.getCoordinates().getLatitude();
-            String longitude = routeData.getCoordinates().getLongitude();
-            customMarkerIcon = markerManager.getCustomCircleMarkerIcon(getContext());
+        routeManager.setGoogleMap(googleMap);
+        addRouteDataMarker(googleMap);
 
-            // Convert the string latitude and longitude to doubles
-            try {
-                double lat = Double.parseDouble(latitude);
-                double lng = Double.parseDouble(longitude);
-
-                // Create a LatLng object using the coordinates
-                LatLng routeLocation = new LatLng(lat, lng);
-                // Add a marker on the map at the coordinates
-                Marker routeMarker = googleMap.addMarker(new MarkerOptions()
-                        .position(routeLocation)
-                        .icon(customMarkerIcon)
-                        .title(routeData.getName()));
-
-                routeMarker.setTag(routeData);
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(routeLocation, 15));
-
-                Log.d("MapFragment", "Route location marker added: Lat: " + lat + ", Lng: " + lng);
-            } catch (NumberFormatException e) {
-                Log.e("MapFragment", "Invalid coordinates: " + latitude + ", " + longitude);
-            }
-        }
-    }
-
-    private void fetchRouteData(int jobId, String accessToken) {
-        RouteApiManager.fetchRouteApiData(String.valueOf(jobId),accessToken, new RouteApiManager.ApiResponseCallback<Routemain>() {
-            @Override
-            public void onDataFetched(List<Routemain> data) {
-                if (!data.isEmpty()) {
-                    routeData = data.get(0);
-                    if (googleMap != null) {
-                        Log.d("MapFragment", "Fetching route data for Job ID: " + jobId);
-
-                        addRouteDataMarker();
-                    }
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e("MapFragment", "API Error: " + error);
+        googleMap.setOnMapClickListener(latLng -> {
+            if (userLocationLatLng != null) {
+                destinationLatLng = latLng;
+                googleMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
+                Log.d("MapFragment", "Destination set: " + destinationLatLng.latitude + ", " + destinationLatLng.longitude);
             }
         });
+
+        googleMap.setOnMarkerClickListener(marker -> {
+            Object tag = marker.getTag();
+            if (tag instanceof LatLng) {
+                destinationLatLng = (LatLng) tag;
+                Log.d("MapFragment", "Marker clicked at: " + destinationLatLng.latitude + ", " + destinationLatLng.longitude);
+                Toast.makeText(getContext(), "Press to Set Route", Toast.LENGTH_SHORT).show();
+            }
+            return false;
+        });
     }
+
+private void addRouteDataMarker(GoogleMap googleMap) {
+    if (coordinatesList != null && !coordinatesList.isEmpty()) {
+        customMarkerIcon = markerManager.getCustomCircleMarkerIcon(getContext());
+
+        for (Taskmain.Coordinates coord : coordinatesList) {
+            try {
+                LatLng routeLocation = new LatLng(coord.getLatitude(), coord.getLongitude());
+                Marker marker = googleMap.addMarker(new MarkerOptions()
+                        .position(routeLocation)
+                        .title("Job Location")
+                        .anchor(0.5f, 0.8f)
+                        .zIndex(8.0f)
+                        .icon(customMarkerIcon));
+
+                if (marker != null) {
+                    marker.setTag(routeLocation); // Store location in marker tag
+                }
+            } catch (Exception e) {
+                Log.e("MapFragment", "Error adding marker: " + e.getMessage());
+            }
+        }
+    } else {
+        Log.e("MapFragment", "coordinatesList is empty or null.");
+    }
+}
+
 
     private void getUserLocation() {
         if (ActivityCompat.checkSelfPermission(requireContext(),
@@ -280,3 +283,87 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 }
+
+
+
+
+/*
+
+
+        googleMap.setOnMapLoadedCallback(() -> {
+            Log.d("MapFragment", "Google Map has fully loaded");
+
+            if (jobId == -1) {
+                fetchRouteData(jobId,accessToken);
+            } else {
+                Log.e("MapFragment", "job_id is null in MapFragment!");
+                fetchRouteData(-1, accessToken);
+            }
+        });
+
+    private void fetchRouteData(int jobId, String accessToken) {
+        RouteApiManager.fetchRouteApiData(String.valueOf(jobId),accessToken, new RouteApiManager.ApiResponseCallback<Routemain>() {
+            @Override
+            public void onDataFetched(List<Routemain> data) {
+                if (!data.isEmpty()) {
+                    routeData = data.get(0);
+                    if (googleMap != null) {
+                        Log.d("MapFragment", "Fetching route data for Job ID: " + jobId);
+
+                        addRouteDataMarker();
+                    }
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MapFragment", "API Error: " + error);
+            }
+        });
+    }
+
+ */
+
+/*
+    private void addRouteDataMarker(GoogleMap googleMap) {
+        if (coordinatesList != null && !coordinatesList.isEmpty()) {
+            // Ensure MarkerManager instance is used correctly
+            customMarkerIcon = markerManager.getCustomCircleMarkerIcon(getContext());
+
+            for (Taskmain.Coordinates coord : coordinatesList) {
+                try {
+                    double lat = coord.getLatitude();
+                    double lng = coord.getLongitude();
+
+                    // Debug Log
+                    Log.d("MapFragment", "Attempting to add marker at: Lat: " + lat + ", Lng: " + lng);
+
+                    LatLng routeLocation = new LatLng(lat, lng);
+
+                    // Create the marker with the correct custom icon
+                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                            .position(routeLocation)
+                            .title("Job Location")
+                            .anchor(0.5f, 0.8f)
+                            .zIndex(8.0f)
+                            .icon(customMarkerIcon));  // Use the already created custom icon
+
+                    if (marker == null) {
+                        Log.e("MapFragment", "Failed to add marker for Lat: " + lat + ", Lng: " + lng);
+                    } else {
+                        Log.d("MapFragment", "Route marker added successfully!");
+                    }
+
+                    // Optional: Move the camera to focus on the marker
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(routeLocation, 15));
+
+                } catch (Exception e) {
+                    Log.e("MapFragment", "Error adding marker: " + e.getMessage());
+                }
+            }
+        } else {
+            Log.e("MapFragment", "coordinatesList is empty or null.");
+        }
+    }
+
+ */

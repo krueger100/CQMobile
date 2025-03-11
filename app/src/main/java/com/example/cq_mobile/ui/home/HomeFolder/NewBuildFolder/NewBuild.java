@@ -574,7 +574,7 @@ String jobTitle;
         View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
         BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
-        bottomSheetBehavior.setHideable(false);
+        bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
 
@@ -648,7 +648,10 @@ String jobTitle;
                 .setNeutralButton("Continue", (dialog, which) -> dialog.dismiss()) //
                 .show();
 
-    }    public void switchFragment(Fragment fragment) {
+    }
+
+
+    public void switchFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
