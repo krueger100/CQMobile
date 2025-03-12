@@ -30,7 +30,7 @@ public class NewBuildApiManager {
     }
 
     public static void fetchNewBuiltApiData(String jobId, String accessToken, ApiResponseCallback<Taskmain> callback) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";   //"https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s", jobId);
         String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
@@ -73,7 +73,7 @@ public class NewBuildApiManager {
 
 
     public static void fetchSecondaryApiData(String jobId, int page, int pageSize, String accessToken, ApiResponseCallback<SubTask> callback) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
         String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";

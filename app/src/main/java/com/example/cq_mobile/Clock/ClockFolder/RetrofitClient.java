@@ -5,7 +5,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    private static final String BASE_URL = "https://aws.customquoter.co.uk/api/m/";
+    private static final String BASE_URL = "https://cqbms.app/api/m/" ; // "https://aws.customquoter.co.uk/api/m/";
     private static Retrofit retrofit = null;
 
     public static Retrofit getInstance() {

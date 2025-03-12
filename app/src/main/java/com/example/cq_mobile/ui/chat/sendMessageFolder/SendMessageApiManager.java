@@ -15,7 +15,7 @@ import okhttp3.RequestBody;
 
 public class SendMessageApiManager {
     private static final String TAG = "SendMessageApiManager";
-    private static final String BASE_URL = "https://aws.customquoter.co.uk";
+    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk";
     private static final String ENDPOINT = "/api/m/chats/send";
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 

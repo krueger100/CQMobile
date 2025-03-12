@@ -77,16 +77,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireContext());
         routeManager = new RouteManager(googleMap, requireContext());
 
-        // Set up the button click listener
-//        binding.setRouteButton.setOnClickListener(v -> {
-//            if (userLocationLatLng != null && destinationLatLng != null) {
-//                // Use RouteManager to draw the route when button is clicked
-//                routeManager.drawRoute(userLocationLatLng, destinationLatLng);
-//            } else {
-//                Toast.makeText(getContext(), "Please select a destination by clicking on the map or marker", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
+
 
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());

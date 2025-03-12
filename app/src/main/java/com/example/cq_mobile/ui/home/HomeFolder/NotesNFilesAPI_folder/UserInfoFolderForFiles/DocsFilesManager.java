@@ -12,7 +12,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DocsFilesManager {
-    private final String baseUrl = "https://aws.customquoter.co.uk/";  // Base URL
+    private final String baseUrl ="https://cqbms.app";// "https://aws.customquoter.co.uk/";  // Base URL
     private final String accessToken;  // Store the access token
     private final Context context;
 

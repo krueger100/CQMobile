@@ -1,6 +1,5 @@
 package com.example.cq_mobile.ui.chat;
 
-
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -29,6 +28,7 @@ import com.example.cq_mobile.ui.chat.sendMessageFolder.UpdateReadAPIManager;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -204,19 +204,41 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         return chatList.size();
     }
 
-    public void addChats(List<ChatDetails> newChats ) {
+
+
+
+    public void addChats(List<ChatDetails> newChats) {
         if (newChats != null) {
             chatList.clear();
             chatList.addAll(newChats);
-            Log.d(TAG, "Total number of chats after adding new ones: " + chatList.size());
+
+            // Sort the list based on unread message count (chatCount visibility)
+            Collections.sort(chatList, (chat1, chat2) -> {
+                int unreadCount1 = getTotalUnreadMessages(chat1);
+                int unreadCount2 = getTotalUnreadMessages(chat2);
+
+                // If unread messages exist, place at top
+                return Integer.compare(unreadCount2, unreadCount1);
+            });
+
+            Log.d(TAG, "Total number of chats after sorting: " + chatList.size());
             notifyDataSetChanged();
         }
     }
 
-
+    private int getTotalUnreadMessages(ChatDetails chatItem) {
+        if (chatItem.getMessages() != null) {
+            int totalUnread = 0;
+            for (ChatMessage message : chatItem.getMessages()) {
+                totalUnread += message.getUnread();
+            }
+            return totalUnread;
+        }
+        return 0;
+    }
 
     static class ChatViewHolder extends RecyclerView.ViewHolder {
-        TextView chatName,chatCount;
+        TextView chatName, chatCount;
         CircleImageView chatAvatar;
 
         public ChatViewHolder(@NonNull View itemView) {
@@ -228,6 +250,20 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         }
     }
 
+}
+/*
+    public void addChats(List<ChatDetails> newChats ) {
+        if (newChats != null) {
+            chatList.clear();
+            chatList.addAll(newChats);
+            Log.d(TAG, "Total number of chats after adding new ones: " + chatList.size());
+            notifyDataSetChanged();
+        }
+    }
+
+ */
+
+/*
     public void reloadFragment(String chatCount) {
         if (context instanceof AppCompatActivity) {
             int count = Integer.parseInt(chatCount); // Convert String to int
@@ -248,5 +284,5 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             }
         }
     }
-}
 
+ */

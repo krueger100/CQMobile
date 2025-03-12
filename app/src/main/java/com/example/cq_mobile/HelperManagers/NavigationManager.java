@@ -1,11 +1,11 @@
 package com.example.cq_mobile.HelperManagers;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -19,8 +19,10 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.MoreInFragment.AboutActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+
 public class NavigationManager {
     private AppCompatActivity activity;
     private BottomNavigationView navView;
@@ -98,10 +100,13 @@ public class NavigationManager {
         navViewDrawer.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_item_one) {
-                Toast.makeText(activity, "Account clicked", Toast.LENGTH_SHORT).show();
                 navController.navigate(R.id.navigation_more);
             } else if (id == R.id.nav_item_two) {
-                Toast.makeText(activity, "About clicked", Toast.LENGTH_SHORT).show();
+                Intent intent2 = new Intent(activity, AboutActivity.class);
+                intent2.putExtra("job_id", jobId);
+                activity.startActivity(intent2);
+           //     activity.finish();
+
             } else if (id == R.id.nav_item_three) {
                 // Handle logout using LogoutManager
                 ClockOutManager clockOutManager = new ClockOutManager(activity, progressBar, jobId, taskId, userId, startDate);

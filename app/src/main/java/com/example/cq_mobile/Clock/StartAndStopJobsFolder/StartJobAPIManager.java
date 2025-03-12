@@ -106,7 +106,7 @@ public class StartJobAPIManager {
 
         @Override
         public void run() {
-            String baseUrl = "https://aws.customquoter.co.uk";
+            String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
             String endpoint = "/api/m/start-working/timed_in";
             // Create JSON body properly
             String jsonBody = createJsonBody(userId, jobId, latitude, longitude);

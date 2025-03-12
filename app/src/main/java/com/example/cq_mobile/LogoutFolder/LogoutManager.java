@@ -34,13 +34,15 @@ public class LogoutManager {
         sharedPrefManager.clearAvatarUrl();
         sharedPrefManager.clearEmail();
         sharedPrefManager.clearPassword();
+        sharedPrefManager.clearCoordinates();
+
 
         SharedPreferences clockPrefs= context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         clockPrefs.edit().clear().apply();
 
         Log.d("SharedPrefManager", "All user data has been cleared.");
 
-        String url = "https://aws.customquoter.co.uk/api/m/logout";
+        String url = "https://cqbms.app/logout"; ///"https://aws.customquoter.co.uk/api/m/logout";
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = RequestBody.create("", MediaType.get("text/plain"));
         Request request = new Request.Builder()

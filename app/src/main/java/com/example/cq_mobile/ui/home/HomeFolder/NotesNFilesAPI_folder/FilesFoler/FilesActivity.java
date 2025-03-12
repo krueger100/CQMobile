@@ -59,7 +59,7 @@ public class FilesActivity extends AppCompatActivity {
     private int currentPage = 1;
     private final int pageSize = 10;
     private String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-    private String baseUrl = "https://aws.customquoter.co.uk";
+    private String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
     private int jobScheduleId, taskId;
     private String accessToken, jobId;
     private NavigationManagerForTask navigationManager;
@@ -121,9 +121,14 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
+
         Intent intent = getIntent();
-        jobScheduleId = Integer.parseInt(intent.getStringExtra("job_id"));
-        taskId = Integer.parseInt(intent.getStringExtra("task_id"));
+        String jobScheduleIdStr = intent.getStringExtra("job_id");
+        String taskIdStr = intent.getStringExtra("task_id");
+
+        jobScheduleId = (jobScheduleIdStr != null && !jobScheduleIdStr.isEmpty()) ? Integer.parseInt(jobScheduleIdStr) : sharedPrefManager.getJobId();
+        taskId = (taskIdStr != null && !taskIdStr.isEmpty()) ? Integer.parseInt(taskIdStr) : sharedPrefManager.getTaskId();
         jobId = String.valueOf(jobScheduleId);
 
         files_back = findViewById(R.id.files_back);
@@ -132,16 +137,17 @@ public class FilesActivity extends AppCompatActivity {
         emptyTask = findViewById(R.id.emptyTask);
         add_photo = findViewById(R.id.add_photo);
 
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         accessToken = sharedPrefManager.getAccessToken();
         Log.d("FilesActivity", "Access Token: " + accessToken);
-
+        Log.d("FilesActivity", "taskId: " + taskId);
         // Bottom navigation setup
         Notes_Files_Docs_Sheets_nav bottomNavView = findViewById(R.id.nfds_bottom);
         navigationManager = new NavigationManagerForTask(this);
         navigationManager.setUpNavigation(bottomNavView, files_back2);
 
         jobId = String.valueOf(jobScheduleId);
+
+
 
         // Back button setup
         files_back.setOnClickListener(v -> {

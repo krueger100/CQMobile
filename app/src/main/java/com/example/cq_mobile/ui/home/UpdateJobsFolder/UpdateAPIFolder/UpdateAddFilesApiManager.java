@@ -17,7 +17,7 @@ public class UpdateAddFilesApiManager {
     private static final String TAG = "UpdateAddFilesApi";
 
     public static boolean uploadTaskFiles(String accessToken, String jobScheduleId, String taskId, File[] files, String apiKey) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskId + "/files";
         String url = baseUrl + endpoint;
 

@@ -114,6 +114,10 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     Double latOut;
     Double longOut;
 String jobTitle;
+
+    private Double lat = null;
+    private Double lon = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -218,12 +222,37 @@ String jobTitle;
                     category_todo.setText(task.getCategory() != null ? task.getCategory() : "No Category");
                     jobTitle= task.getName() != null ? task.getName() : "No Title Available";
 
-                    // Handle location safely
                     String city = (task.getAddress() != null && task.getAddress().getCity() != null) ? task.getAddress().getCity() : "";
                     String country = (task.getAddress() != null && task.getAddress().getCountry() != null) ? task.getAddress().getCountry() : "";
-                    task_location.setText(!city.isEmpty() || !country.isEmpty() ? city + (city.isEmpty() ? "" : ", ") + country : "No Location is set");
+                    String postal = (task.getAddress() != null && task.getAddress().getPostal_code() != null) ? task.getAddress().getPostal_code() : "";
+                    String address = (task.getAddress() != null && task.getAddress().getAddress() != null) ? task.getAddress().getAddress() : "";
+                    String address1 = (task.getAddress() != null && task.getAddress().getAddress1() != null) ? task.getAddress().getAddress1() : "";
 
-                    // Handle status safely
+                    String location = city + (city.isEmpty() || country.isEmpty() ? "" : ", ") + country;
+                    location += (!location.isEmpty() && !postal.isEmpty()) ? ", " + postal : postal;
+
+                   String  fullAddress = address;
+                    if (!address1.isEmpty()) {
+                        fullAddress += (fullAddress.isEmpty() ? "" : ", ") + address1;
+                    }
+                    if (!location.isEmpty()) {
+                        fullAddress += (fullAddress.isEmpty() ? "" : ", ") + location;
+                    }
+
+                    task_location.setText(!fullAddress.isEmpty() ? fullAddress : "No Address is set");
+
+                    lat = (task.getCoordinates() != null) ? task.getCoordinates().getLatitude() : null;
+                    lon = (task.getCoordinates() != null) ? task.getCoordinates().getLongitude() : null;
+
+                    Log.d("CoordinatesNewBuild", "LAT: -> " + lat + " LON: -> " + lon);
+                    if (lat != null && lon != null) {
+                        enableUserLocation();
+                    } else {
+                        Log.e("CoordinatesNewBuild", "lat or lon is null, cannot enable location.");
+                        noCoordinatesFound();
+
+                    }
+
                     String status_main = (task.getStatus() != null) ? task.getStatus() : "Todo"; // Default to "Todo" if null
 
                     // Define a list of statuses
@@ -283,6 +312,7 @@ String jobTitle;
             }
         });
     }
+
     private void fetchSubTasks() {
         NewBuildApiManager.fetchSecondaryApiData(jobId, page, pageSize, accessToken, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
             @Override
@@ -386,15 +416,19 @@ String jobTitle;
                 Log.d("enableUserLocation", "Custom marker icon created.");
 
 
-                if (!coordinatesList.isEmpty()) {
+            //    if (!coordinatesList.isEmpty()) {
+                if (lat != null && lon != null) {
                     Taskmain.Coordinates firstCoordinate = coordinatesList.get(0);
-                    taskLatLng = new LatLng(firstCoordinate.getLatitude(), firstCoordinate.getLongitude());
+           //         taskLatLng = new LatLng(firstCoordinate.getLatitude(), firstCoordinate.getLongitude());
+                    taskLatLng = new LatLng(lat, lon);
+
                     Log.d("enableUserLocation", "First saved coordinate: Lat=" + firstCoordinate.getLatitude() + ", Lon=" + firstCoordinate.getLongitude());
 
 
                     start_job.setEnabled(true);
                     start_job.setAlpha(1.0f);
-               start_jobBranch(firstCoordinate.getLatitude(),firstCoordinate.getLongitude());
+         //      start_jobBranch(firstCoordinate.getLatitude(),firstCoordinate.getLongitude());
+                    start_jobBranch(lat,lon);
 
 
                     // Update task marker with custom icon
@@ -534,6 +568,14 @@ String jobTitle;
             }
         });
 
+    }
+
+    private void noCoordinatesFound() {
+        new AlertDialog.Builder(this)
+                .setTitle("Location Not Found")
+                .setMessage("No valid coordinates were found. Client/Site details is Empty Check Jobs in CQBMS APP.")
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
 

@@ -34,7 +34,7 @@ public class Login extends AppCompatActivity {
     private ProgressBar progressBar;
     String email;
     String password;
-    private static final String BASE_URL = "https://aws.customquoter.co.uk/";
+    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk/";
     private NetworkManager networkManager;
 
     @Override

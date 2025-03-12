@@ -22,7 +22,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MessageManager {
-    private final String baseUrl = "https://aws.customquoter.co.uk/";
+    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";
     private String accessToken;
     private final Context context;
     Call<AccessTokenResponse> call;

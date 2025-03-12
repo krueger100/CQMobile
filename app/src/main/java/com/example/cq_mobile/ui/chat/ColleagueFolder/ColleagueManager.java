@@ -23,7 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class ColleagueManager {
-    private final String baseUrl = "https://aws.customquoter.co.uk/";
+    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";
     private String accessToken;
     private final Context context;
     private Call<AccessTokenResponse> call;

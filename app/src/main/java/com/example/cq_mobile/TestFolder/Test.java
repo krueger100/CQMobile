@@ -32,7 +32,7 @@ public class Test extends AppCompatActivity {
     private TextView loginButton;
     private ProgressBar progressBar;
 
-    private static final String BASE_URL = "https://aws.customquoter.co.uk/";
+    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

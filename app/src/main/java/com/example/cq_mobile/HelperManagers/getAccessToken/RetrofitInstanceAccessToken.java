@@ -10,7 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RetrofitInstanceAccessToken {
 
     private static Retrofit retrofit;
-    private static final String BASE_URL = "https://aws.customquoter.co.uk/api/m/"; // Replace with your base URL
+    private static final String BASE_URL = "https://cqbms.app/api/m/"; //"https://aws.customquoter.co.uk/api/m/";
 
     // Singleton pattern to ensure only one instance of Retrofit is created
     public static Retrofit getInstance() {

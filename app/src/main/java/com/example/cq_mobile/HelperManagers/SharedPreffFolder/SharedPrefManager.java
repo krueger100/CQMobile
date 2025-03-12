@@ -129,6 +129,7 @@ public class SharedPrefManager {
         return gson.fromJson(json, type);
     }
 
+
     public void saveClockinStartDate(String startDate) {
         if (startDate == null || startDate.isEmpty()) {
             Log.e("SharedPrefManager", "Attempted to save empty startDate!");
@@ -326,6 +327,7 @@ public class SharedPrefManager {
     public void clearCoordinates() {
         editor.remove(KEY_LATITUDE);
         editor.remove(KEY_LONGITUDE);
+        editor.remove(KEY_COORDINATES_LIST);
         editor.apply();
         Log.w("SharedPrefManager", "Coordinates Cleared");
     }

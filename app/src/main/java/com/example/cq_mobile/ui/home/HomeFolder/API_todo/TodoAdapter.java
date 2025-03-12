@@ -77,7 +77,8 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
 
                 todoHolder.category.setText(categories);
-                if (categoriesColors != null && !categoriesColors.isEmpty()) {
+
+                if (categoriesColors != null && !categoriesColors.trim().isEmpty() && !categoriesColors.equalsIgnoreCase("null")) {
                     try {
                         int categoryColor = Color.parseColor(categoriesColors);
                         todoHolder.category.setTextColor(categoryColor);
@@ -87,9 +88,11 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
                     }
                 } else {
+                    Log.w("Todo", "Category color is null, empty, or invalid. Setting default color.");
                     todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
                 }
             }
+
 
             todoHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

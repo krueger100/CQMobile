@@ -11,7 +11,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class ApiManager {
-
     private static final String TAG = "ApiManager";
 
     public static void fetch_ApiData() {
@@ -25,8 +24,8 @@ public class ApiManager {
         @Override
         public void run() {
 
-            String baseUrl = "https://aws.customquoter.co.uk";
-            String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
+            String baseUrl = "https://cqbms.app";///"https://aws.customquoter.co.uk";
+            String endpoint ="/jobs/schedules/today?page=1&per_page=100&status=todo"; //   "/api/m/jobs/schedules/today?page=1&per_page=100&status=todo";
             String token = "3805|2NzKCMW8T6zH7sA25uEhxX2BOi1nzsqvvI2CRao4";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             int page = 1;
