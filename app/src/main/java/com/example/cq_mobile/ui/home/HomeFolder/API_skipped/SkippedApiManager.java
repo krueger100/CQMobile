@@ -21,7 +21,7 @@ public class SkippedApiManager {
     }
 
     public static void fetchApiDataPaginated(String accessToken, int page, int pageSize, ApiResponseCallback callback) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/today?page=1&per_page=100&status=skipped";
         String token = accessToken; // Access token
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2"; // API Key

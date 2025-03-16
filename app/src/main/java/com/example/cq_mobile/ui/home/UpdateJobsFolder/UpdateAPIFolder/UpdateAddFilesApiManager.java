@@ -17,10 +17,9 @@ public class UpdateAddFilesApiManager {
     private static final String TAG = "UpdateAddFilesApi";
 
     public static boolean uploadTaskFiles(String accessToken, String jobScheduleId, String taskId, File[] files, String apiKey) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";
         String endpoint = "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskId + "/files";
         String url = baseUrl + endpoint;
-
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)

@@ -66,7 +66,7 @@ public class TaskActivity extends AppCompatActivity {
 
 
         // Initialize FilesManager
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         filesManager = new FilesManager(this, baseUrl, apiKey);
 

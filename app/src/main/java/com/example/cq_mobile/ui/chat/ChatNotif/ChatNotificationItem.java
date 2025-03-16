@@ -1,4 +1,5 @@
 package com.example.cq_mobile.ui.chat.ChatNotif;
+import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -48,6 +49,13 @@ public class ChatNotificationItem {
     public String getTime() { return time; }
     public String getFiles() { return files; }
 
+    public static List<Integer> getChannels(List<ChatDetails> chatDetailsList) {
+        List<Integer> channels = new ArrayList<>();
+        for (ChatDetails chatDetails : chatDetailsList) {
+            channels.add(chatDetails.getChannel());
+        }
+        return channels;
+    }
 
     public static class ChatNotificationItemDeserializer implements JsonDeserializer<ChatNotificationItem> {
         @Override
@@ -77,7 +85,7 @@ public class ChatNotificationItem {
                 } else if (filesElement.isJsonPrimitive()) {
                     files = filesElement.getAsString();
                 } else if (filesElement.isJsonObject()) {
-                    files = filesElement.toString(); // Convert JsonObject to String
+                    files = filesElement.toString();
                 }
             }
 

@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class TicketsNotificationsApiManager {
 
     private static final String TAG = "TicketsNotificationsApiManager";
-    private static final String BASE_URL = "https://aws.customquoter.co.uk";
+    private static final String BASE_URL ="https://cqbms.app"; //"https://aws.customquoter.co.uk";
     private static Retrofit retrofit = null;
 
     public interface ApiCallback {

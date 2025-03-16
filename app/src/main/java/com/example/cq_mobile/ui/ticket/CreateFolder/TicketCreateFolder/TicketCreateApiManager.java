@@ -50,7 +50,7 @@ public class TicketCreateApiManager {
 
         @Override
         public void run() {
-            String baseUrl = "https://aws.customquoter.co.uk";
+            String baseUrl =  "https://cqbms.app";//"https://aws.customquoter.co.uk";
             String endpoint = "/api/m/tickets";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 

@@ -50,7 +50,7 @@ public class ReplyTicketApiManager {
 
         @Override
         public void run() {
-            String baseUrl = "https://aws.customquoter.co.uk";
+            String baseUrl =  "https://cqbms.app";//"https://aws.customquoter.co.uk";
             String endpoint = String.format("/api/m/tickets/%s/reply", ticketId);
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";  // Make sure this is correct
 

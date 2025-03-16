@@ -35,7 +35,7 @@ public class IDsManager {
             return;
         }
 
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl =  "https://cqbms.app";//"https://aws.customquoter.co.uk";
         String endpoint = "/api/m/jobs/schedules/today";
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
@@ -108,7 +108,7 @@ public class IDsManager {
             return;
         }
 
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl ="https://cqbms.app";// "https://aws.customquoter.co.uk";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         String url = baseUrl + endpoint + "?page=" + page + "&per_page=" + pageSize;

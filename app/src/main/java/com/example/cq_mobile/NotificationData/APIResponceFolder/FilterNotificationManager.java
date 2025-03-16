@@ -26,7 +26,7 @@ import okhttp3.Response;
 public class FilterNotificationManager {
 
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-    private static final String BASE_URL = "https://aws.customquoter.co.uk";
+    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk";
     private static final String TAG = "FilterNotificationManager";
 
     public interface ApiResponseCallback {

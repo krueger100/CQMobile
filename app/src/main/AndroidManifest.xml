@@ -9,8 +9,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
@@ -152,10 +150,17 @@
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".HelperManagers.Notifications.ChatNotif_folder.ChatActivity"
+            android:launchMode="singleTop"
+            android:exported="true">
+        </activity>
+
+        <activity android:name=".ui.MoreInFragment.AboutActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
+
+
 
         <activity android:name=".ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.CameraXActivity"
             android:exported="true"
@@ -185,13 +190,15 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.cq_mobile.fileprovider"
+            android:authorities="com.co.cq_mobile.fileprovider"
             android:grantUriPermissions="true"
             android:exported="false">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+
 
 
     </application>

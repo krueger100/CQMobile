@@ -42,7 +42,7 @@ public class UpdateJobApiManager {
             updateProgress(0);
             setVisibility(View.VISIBLE);
 
-            String baseUrl = "https://aws.customquoter.co.uk";
+            String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
             String endpoint = "/api/m/jobs/schedules/" + jobScheduleId;
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             String url = baseUrl + endpoint;

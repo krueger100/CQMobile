@@ -34,41 +34,47 @@
                 android:id="@+id/avatar"
                 android:layout_width="55dp"
                 android:layout_height="55dp"
-                android:elevation="5dp"
                 android:layout_margin="5dp"
-                android:background="@drawable/circular_background"
                 android:layout_marginEnd="10dp"
+                android:background="@drawable/circular_background"
+                android:elevation="5dp"
                 android:src="@drawable/emptyglide" />
 
-            <TextView
-                android:id="@+id/chatName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_gravity="center"
-                android:text=""
-                android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/chatName"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text=""
+                    android:textSize="14sp"
+                    android:textColor="@color/black" />
 
 
         </LinearLayout>
+
+
+
 
         <TextView
             android:id="@+id/chatCount"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:ellipsize="end"
-            android:padding="5dp"
-            android:textSize="14sp"
-            android:maxLines="1"
-            android:gravity="center"
             android:layout_gravity="center|end"
-            android:text="0"
             android:layout_marginEnd="10dp"
-            android:textColor="@color/white" />
-
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="5dp"
+            android:text="0"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
 
     </androidx.cardview.widget.CardView>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

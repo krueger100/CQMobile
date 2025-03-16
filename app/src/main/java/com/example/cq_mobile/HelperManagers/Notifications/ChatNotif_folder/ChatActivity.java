@@ -1,5 +1,6 @@
 package com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -42,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private List<ChatDetails> notificationsItems = new ArrayList<>();
     private static final String TAG = "ChatActivity";
-    private int currentPage = 1;  // Track pagination
+    private int currentPage = 1;
     private final int pageSize = 20;
     String accessToken;
     private ChatManager chatManager;
@@ -59,9 +60,12 @@ public class ChatActivity extends AppCompatActivity {
 
         chatManager = new ChatManager(this);
 
+        Intent intent = getIntent();
+        String channelUrl = intent.getStringExtra("channel_url");
 
-        String channelUrl = getIntent().getStringExtra("channel_url");
-        Log.d("ChatActivity", "Received channelUrl: " + channelUrl);
+        if (channelUrl != null) {
+            Log.d("ChatActivity", "Navigated to ChatActivity with Channel URL: " + channelUrl);
+        }
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         accessToken = sharedPrefManager.getAccessToken();
@@ -281,7 +285,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
-
     private void fetchChatNotifications(String accessToken) {
         ChatsNotificationsApiManager.fetchChatNotifications(accessToken, new ChatsNotificationsApiManager.ApiCallback() {
             @Override
@@ -310,6 +313,10 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
+}
+
+
 
     /*
 
@@ -352,4 +359,3 @@ public class ChatActivity extends AppCompatActivity {
     }
 
      */
-}

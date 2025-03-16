@@ -31,27 +31,18 @@ public class SharedPrefTaskADandJobID {
 
 
 /*
-        SharedPrefTaskADandJobID sharedPrefManagerSave = new SharedPrefTaskADandJobID(TaskActivity.this);
-        sharedPrefManagerSave.saveUserjobANDtaskID(jobId, String.valueOf(taskId));
 
-       SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(context);
-            sharedPrefTaskADandJobID.saveUserjobANDtaskID(String.valueOf(taskId));
- */
+       SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(this);
+        taskId = sharedPrefTaskADandJobID.getTaskId();
+        if (taskId != null) {
+            Log.d(TAG, "Task ID: " + taskId);
+            Log.d(TAG, "Job ID: " + jobId);
 
-/*
-// Initialize SharedPrefTaskADandJobID
-SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(context);
-
-// Retrieve saved job and task IDs
-String jobId = sharedPrefTaskADandJobID.getJobId();
-String taskId = sharedPrefTaskADandJobID.getTaskId();
-
-// Use the retrieved values
-if (jobId != null && taskId != null) {
-    Log.d("SharedPref", "Job ID: " + jobId);
-    Log.d("SharedPref", "Task ID: " + taskId);
-} else {
-    Log.d("SharedPref", "No job or task ID found");
-}
+        } else {
+            taskId = String.valueOf(sharedPrefManager.getTaskId());
+            jobId = String.valueOf(sharedPrefManager.getJobId());
+            Log.d(TAG, "Job ID -> SharedPrefManager  " + taskId);
+            Log.d(TAG, "Task ID -> SharedPrefManager  " + jobId);
+        }
 
  */

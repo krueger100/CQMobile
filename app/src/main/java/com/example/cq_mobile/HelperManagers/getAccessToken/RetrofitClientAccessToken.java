@@ -13,7 +13,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClientAccessToken {
-    private static final String BASE_URL = "https://aws.customquoter.co.uk/api/m/";
+    private static final String BASE_URL = "https://cqbms.app/api/m/";//"https://aws.customquoter.co.uk/api/m/";
     private static Retrofit retrofit;
 
     // Singleton pattern with thread safety

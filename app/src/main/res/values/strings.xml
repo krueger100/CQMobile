@@ -14,7 +14,35 @@
 
     <string name="tab_icon_desc">Tab Icon</string>
     <string name="api_key">BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2</string>
+    <string name="about">
+        Your All-in-One, End-to-End Business Management Software for Landscapers
+        \n
+        Empowering Landscapers with Comprehensive Tools for Success
+        \n
+        \n
 
+        CQ Business Management Software is a platform that helps businesses streamline
+        operations, improve communication,and track performance.
+        It\'s designed for medium to enterprise-sized businesses.
+        \n
+        \nFeatures:\n
+        Project management: Includes tools for estimating, tracking, and managing projects
+        \nAnalytics: Provides real-time profit and loss tracking, and helps businesses understand how each job performs
+        \nCommunication: Includes tools for connecting with team members, and sending branded emails
+        \nFinance: Includes tools for tracking expenses, and managing invoices
+        \nLogistics: Includes tools for managing shipments, and route mapping
+        \nLead management: Includes tools for managing leads and conversions
+        \n
+        \nBenefits Helps businesses operate more efficiently,
+        Helps businesses reduce costs, Helps businesses drive sustainable growth, and Helps businesses make data-driven decisions
+    </string>
+    <string name="cqbms_textBody">Contact Developer</string>
+    <string name="textCO">
+        Contact no. +639959383093
+        \nEmail: carloliverkreuger111@gmail.com
+        \nWebsite: https://carloliverkrueger1.wixsite.com/website-1
+        \nLinkIn : linkedin.com/in/carl-oliver-krueger-106a94208
+    </string>
 
 
 </resources>

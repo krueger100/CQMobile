@@ -66,6 +66,7 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             todoHolder.nameTextView.setText(todo.getName());
             todoHolder.stateDescription.setText(todo.getDescription());
             String id = String.valueOf(todo.getId());
+            String jobid = String.valueOf(todo.getJob_id());
             String categories = todo.getCategory() != null ? todo.getCategory().trim() : "No Category";
             String categoriesColors = String.valueOf(todo.getCategory_color()).trim();
 
@@ -74,10 +75,12 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             if (id != null) {
                 Log.d("User ID ->", "Received Todo ID's: " + id);
+                Log.d("User ID ->", "Received Todo jobID's: " +jobid );
                 Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
 
                 todoHolder.category.setText(categories);
-                if (categoriesColors != null && !categoriesColors.isEmpty()) {
+
+                if (categoriesColors != null && !categoriesColors.trim().isEmpty() && !categoriesColors.equalsIgnoreCase("null")) {
                     try {
                         int categoryColor = Color.parseColor(categoriesColors);
                         todoHolder.category.setTextColor(categoryColor);
@@ -87,9 +90,11 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
                     }
                 } else {
+                    Log.w("Todo", "Category color is null, empty, or invalid. Setting default color.");
                     todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
                 }
             }
+
 
             todoHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -101,7 +106,7 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         todoHolder.progressBar.setVisibility(View.VISIBLE);
                         Intent intent = new Intent(context, NewBuild.class);
                         intent.putExtra("job_id", id);
-                            intent.putExtra("task_id", id);
+                            intent.putExtra("task_id", jobid);
                         try {
                             context.startActivity(intent);
                         } catch (Exception e) {

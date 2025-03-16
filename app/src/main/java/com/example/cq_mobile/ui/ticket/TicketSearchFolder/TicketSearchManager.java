@@ -20,7 +20,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TicketSearchManager {
-    private final String baseUrl = "https://aws.customquoter.co.uk/";  // Base URL
+    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";  // Base URL
     private String accessToken;
     private final Context context;
     private Call<AccessTokenResponse> accessTokenCall;

@@ -56,7 +56,14 @@ public class NotificationManagerHelper {
 
         Intent intent = new Intent(context, ChatReceiver.class);
         intent.putExtra("channel_url", channelUrl);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         int notificationId = (title + time + date).hashCode();
 
@@ -98,7 +105,7 @@ public class NotificationManagerHelper {
                 });
     }
 
-    public void showNotification(String title, String content, Bitmap avatarBitmap, String time, String date, String channelUrl) {
+    public void showNotification2nd(String title, String content, Bitmap avatarBitmap, String time, String date, String channelUrl) {
         String fullContent = content + "\n📅 " + date + " 🕒 " + time;
 
         Intent intent = new Intent(context, ChatReceiver.class);

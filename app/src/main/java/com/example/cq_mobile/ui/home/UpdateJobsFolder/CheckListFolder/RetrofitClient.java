@@ -23,7 +23,8 @@ public class RetrofitClient {
 
             // Initialize Retrofit instance
             retrofit = new Retrofit.Builder()
-                    .baseUrl("https://aws.customquoter.co.uk/") // Replace with the correct domain if needed
+                  //  .baseUrl("https://aws.customquoter.co.uk/") // "https://cqbms.app";
+                    .baseUrl("https://cqbms.app/")
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(client)
                     .build();

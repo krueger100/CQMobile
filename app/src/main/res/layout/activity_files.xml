@@ -143,6 +143,20 @@
 
     </FrameLayout>
 
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="15dp"
+        android:indeterminateTint="@color/cq_secondary_color"
+        android:outlineSpotShadowColor="@color/darkBlue"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/recyclerview_files"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/recyclerview_files" />
+
     <com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav
         android:id="@+id/nfds_bottom"
         android:layout_width="match_parent"

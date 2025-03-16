@@ -72,6 +72,10 @@ public class SubTask {
         return is_checked;
     }
 
+    @Override
+    public String toString() {
+        return "SubTask{id=" + id + ", title='" + title + "', status='" + status + "'}";
+    }
 
 }
 /*

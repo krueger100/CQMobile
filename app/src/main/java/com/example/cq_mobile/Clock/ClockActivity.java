@@ -269,7 +269,8 @@ public class ClockActivity extends AppCompatActivity {
 
                     for (Taskmain task : data) {
                         Log.w("ClockActivity", ">>>>>> UseDetails_JobID <<<<<<< " );
-                        Log.w("ClockActivity", ">>>>>> JobID <<<<<<< " + task.getId());
+                        Log.w("ClockActivity", ">>>>>> ID_Job <<<<<<< " + task.getId());
+                        Log.w("ClockActivity", ">>>>>> jobID <<<<<<< " + task.getJobID());
                         Log.w("ClockActivity", ">>>>>> Name <<<<<<< " + task.getName());
                         Log.w("ClockActivity", ">>>>>> Category <<<<<<< " + task.getCategory());
                         Log.w("ClockActivity", ">>>>>> Status <<<<<<< " + task.getStatus());
@@ -280,8 +281,8 @@ public class ClockActivity extends AppCompatActivity {
 
 
 
-                        sharedPrefManager.saveJobId(task.getId());
-                        // Address details
+                        sharedPrefManager.saveJobId(task.getJobID());
+
                         if (task.getAddress() != null) {
                             Taskmain.Address addr = task.getAddress();
                             Log.w("ClockActivity", "  >>>>>>  Address  <<<<<<< " + addr.getAddress() + ", " + addr.getCity() + ", " + addr.getCountry());
@@ -294,6 +295,7 @@ public class ClockActivity extends AppCompatActivity {
                         // Client details
                         if (task.getClient_details() != null) {
                             Taskmain.ClientDetails client = task.getClient_details();
+
                             Log.w("ClockActivity", "  >>>>>>  User Name  <<<<<<<  " + client.getFirst_name() + " " + client.getLast_name() + " (" + client.getCompany() + ")");
                         }
 
@@ -337,8 +339,6 @@ public class ClockActivity extends AppCompatActivity {
                                     for (SubTask subTask : data) {
 
                                         sharedPrefManager.saveTaskId(subTask.getId());
-
-                                        // Enable the button again after success
                                         checkInButton.setEnabled(true);
                                         checkInButton.setAlpha(1.0f);
                                         checkIN(accessToken,userId, task.getId() ,firstName,lastName,email,avatar,password,token,subTask.getId());
@@ -519,299 +519,3 @@ public class ClockActivity extends AppCompatActivity {
 
 
 
-
-
-/*
-    SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
-        Log.d("SplashActivity", "isLoggedIn: " + isLoggedIn);
-
-        SharedPreferences ClockIN = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
-        boolean isClockedIn = ClockIN.getBoolean("ClockInSuccess", false);
-        if (isClockedIn) {
-            Log.d("SplashActivity", "Navigate to Login");
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                Intent intent;
-                if (isLoggedIn) {
-                    intent = new Intent(ClockActivity.this, MainActivity.class);
-                } else {
-                    intent = new Intent(ClockActivity.this, Login.class);
-                }
-                startActivity(intent);
-                finish();
-            }, 500);
-
-        } else {
-            Log.d("SplashActivity", "User is not clocked in.");
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                Intent intent;
-                if (isLoggedIn) {
-                    intent = new Intent(ClockActivity.this, ClockActivity.class);
-                } else {
-                    intent = new Intent(ClockActivity.this, Login.class);
-                }
-                startActivity(intent);
-                finish();
-            }, 500);
-
-        }
-
- */
-
-
-
-/*
-
-
-
-   private void UseDetails_JobID(String name, int userId, String avatar_path, String accessToken, String avatarUrl, TicketsIDClockINManager ticketsIDClockINManager) {
-        IDsManager.fetchJobIdPaginated(accessToken, new IDsManager.ApiResponseCallback<Taskmain>() {
-            Gson gson = new Gson();
-
-            @Override
-            public void onDataFetched(List<Taskmain> data) {
-                if (data != null && !data.isEmpty()) {
-
-                    // Store globally
-                    UserJobData.getInstance().setJobs(data);
-
-                    for (Taskmain task : data) {
-                        Log.w("ClockActivity", "FetchJobId Task ID: " + task.getId());
-                        Log.w("ClockActivity", "FetchJobId Name: " + task.getName());
-                        Log.w("ClockActivity", "FetchJobId Category: " + task.getCategory());
-                        Log.w("ClockActivity", "FetchJobId Status: " + task.getStatus());
-                        Log.w("ClockActivity", "FetchJobId Start Date: " + task.getStart_date());
-                        Log.w("ClockActivity", "FetchJobId End Date: " + task.getEnd_date());
-
-                        // Address details
-                        if (task.getAddress() != null) {
-                            Taskmain.Address addr = task.getAddress();
-                            Log.d("ClockActivity", "Address: " + addr.getAddress() + ", " + addr.getCity() + ", " + addr.getCountry());
-                        }
-
-                        // Client details
-                        if (task.getClient_details() != null) {
-                            Taskmain.ClientDetails client = task.getClient_details();
-                            Log.d("ClockActivity", "Client: " + client.getFirst_name() + " " + client.getLast_name() + " (" + client.getCompany() + ")");
-                        }
-
-                        // Coordinates
-                        if (task.getCoordinates() != null) {
-                            Taskmain.Coordinates coords = task.getCoordinates();
-                            Log.d("ClockActivity", "Coordinates: Lat=" + coords.getLatitude() + ", Lon=" + coords.getLongitude());
-
-                        }
-
-                        // Continue as normal
-                        UserTaskID(task.getId(), name, userId, avatar_path, accessToken, avatarUrl, ticketsIDClockINManager);
-                        progressBar.setVisibility(View.VISIBLE);
-
-                    }
-
-                } else {
-                    progressBar.setVisibility(View.GONE);
-                    UserTaskID(-1, name, userId, avatar_path, accessToken, avatarUrl, ticketsIDClockINManager);
-
-                    Log.d("ClockActivity", "No tasks fetched.");
-                }
-            }
-
-
-            @Override
-            public void onError(String error) {
-                progressBar.setVisibility(View.GONE);
-                Log.w("ClockActivity", "Error  -->>: " + error);
-                Toast.makeText(ClockActivity.this, error +"\n"+ "Press the Clock in to Continue", Toast.LENGTH_SHORT).show();
-                checkIN(accessToken, -1, -1, userId, -1);
-            }
-        });
-
-
-    }
-
-    private void UserTaskID(int jobId, String name, int userId, String avatar_path, String accessToken, String avatarUrl, TicketsIDClockINManager ticketsIDClockINManager) {
-
-
-
-        IDsManager.fetchTaskIdDataPaginated(String.valueOf(jobId), 1, 10, accessToken, new IDsManager.ApiResponseCallback<SubTask>() {
-            @Override
-            public void onDataFetched(List<SubTask> data) {
-                if (data != null && !data.isEmpty()) {
-
-                    UserTaskIdData.getInstance().setSubTasks(data);
-                    UserTaskIdData.getInstance().setAccessToken(accessToken);
-                    UserTaskIdData.getInstance().setUserId(userId);
-                    UserTaskIdData.getInstance().setUserName(name);
-                    UserTaskIdData.getInstance().setAvatarPath(avatar_path);
-
-                    for (SubTask subTask : data) {
-                        Log.d("ClockActivity", "SubTask ID: " + subTask.getId());
-                        Log.d("ClockActivity", "Title: " + subTask.getTitle());
-
-
-
-                        ticketsIDClockINManager.loadTicketsWithToken(accessToken, 1, 10, new TicketsIDClockINManager.TicketsCallback() {
-                            @Override
-                            public void onTicketsLoaded(List<TicketAPICategoryItems> tickets) {
-                                Log.d("ClockActivity", "Successfully loaded " + tickets.size() + " category tickets.");
-
-                                for (TicketAPICategoryItems ticketAPICategoryItem : tickets) {
-                                    Log.d("ClockActivity", "Ticket ID: " + ticketAPICategoryItem.getId());
-                                    Log.d("ClockActivity", "Ticket Name: " + ticketAPICategoryItem.getName());
-                                }
-                            }
-
-                            @Override
-                            public void onTicketsWithTokenLoaded(List<TicketAPIItem> ticketsID) {
-                                Log.d("ClockActivity", "Successfully loaded " + ticketsID.size() + " tickets with token.");
-
-                                for (TicketAPIItem ticketAPIItem : ticketsID) {
-                                    int ticketMessageID = ticketAPIItem.getId();
-                                    String name = ticketAPIItem.getCategory().getName();
-                                    String subject = ticketAPIItem.getSubject();
-                                    String status = ticketAPIItem.getStatus();
-
-                                    checkIN(accessToken, jobId, subTask.getId(), userId, ticketMessageID);
-                                    progressBar.setVisibility(View.GONE);
-                                    Log.w("ClockActivity", "Ticket Message ID: --->>> " + ticketMessageID);
-                                    Log.w("ClockActivity", "Ticket Name: ---->>> " + name);
-                                    Log.w("ClockActivity", "Ticket Subject: ---->>> " + subject);
-                                    Log.w("ClockActivity", "Ticket Status: ---->>> " + status);
-                                }
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                Log.e("ClockActivity", "Error:  -->> " + errorMessage);
-                                checkIN(accessToken, jobId, subTask.getId(), userId, -1);
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        });
-                    }
-                } else {
-                    Log.d("ClockActivity", "No sub-tasks fetched.");
-                    checkIN(accessToken, jobId, -1, userId, -1);
-                    progressBar.setVisibility(View.GONE);
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e("ClockActivity", "Error: <<--- " + error);
-                progressBar.setVisibility(View.GONE);
-                checkIN(accessToken, jobId, -1, userId, -1);
-            }
-        });
-
-    }
-
-
-
-
-
-
-
------------------------>>>>>>>>>>>>>>
-
-
-
-
-
-
-    private void NotifFilter(String accessToken, int userId) {
-
-        FilterNotificationManager.fetchApiDataFilterUserNotification(this, accessToken, String.valueOf(userId), 1, 10, new FilterNotificationManager.ApiResponseCallback() {
-            @Override
-            public void onDataFetched(List<FilteredNotificationResponse.NotificationData> data) {
-                // Handle the success response
-                Log.d("FilterNotification", "Data fetched successfully: USER " + data);
-                for (FilteredNotificationResponse.NotificationData notification : data) {
-                    Log.d("NotificationUSER", "Title: " + notification.getTitle());
-                    Log.d("NotificationUSER", "Description " + notification.getDescription());
-                    Log.d("NotificationUSER", "Avatar URL: " + notification.getAvatar()); // Log avatar
-
-                    String avatarUrl = notification.getAvatar();
-                    String title = notification.getTitle();
-                    String message = notification.getDescription();
-                    int id =  notification.getId();
-
-                    displayNotification(ClockActivity.this, title, message, avatarUrl);
-
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-                // Handle the error
-                Log.e("FilterNotification", "Error fetching data: " + error);
-            }
-        });
-
-
-    }
-
-    private static void displayNotification(Context context, String title, String message, String avatarUrl) {
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    NOTIFICATION_CHANNEL_ID,
-                    "Default Channel",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            notificationManager.createNotificationChannel(channel);
-        }
-        int notificationId = (int) System.currentTimeMillis();
-
-        Intent intent = new Intent(context, MainActivity.class);
-        SharedPreferences sharedPreferences = context.getSharedPreferences("showNotificationPrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("notification_displayed", true);
-        editor.apply();
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                notificationId,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        // Load the image using Glide
-        Glide.with(context)
-                .asBitmap()
-                .load(avatarUrl)
-                .into(new SimpleTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                        // When the image is ready, create the notification
-                        Notification notification = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
-                                .setContentTitle(title)
-                                .setContentText(message)
-                                .setSmallIcon(R.drawable.android12splash_orange)
-                                .setLargeIcon(resource) // Set the large icon as the avatar
-                                .setContentIntent(pendingIntent) // Set the PendingIntent
-                                .setAutoCancel(true) // Automatically cancel the notification when clicked
-                                .build();
-
-                        // Display the notification with a unique ID
-                        notificationManager.notify(notificationId, notification);
-                    }
-
-                    @Override
-                    public void onLoadFailed(Drawable errorDrawable) {
-                        // Handle failure (fallback to default icon)
-                        Notification notification = new Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
-                                .setContentTitle(title)
-                                .setContentText(message)
-                                .setSmallIcon(R.drawable.android12splash_orange)
-                                .setContentIntent(pendingIntent) // Set the PendingIntent
-                                .setAutoCancel(true)
-                                .build();
-
-                        notificationManager.notify(notificationId, notification);
-                    }
-                });
-    }
-
- */

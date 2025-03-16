@@ -30,11 +30,12 @@ public class NewBuildApiManager {
     }
 
     public static void fetchNewBuiltApiData(String jobId, String accessToken, ApiResponseCallback<Taskmain> callback) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";
         String endpoint = String.format("/api/m/jobs/schedules/%s", jobId);
         String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
+        String TAG = "NewBuildApiManager";
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -49,14 +50,18 @@ public class NewBuildApiManager {
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
             }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String jsonResponse = response.body().string();
-                    Gson gson = new Gson();
-                    TaskmainResponse taskmainResponse = gson.fromJson(jsonResponse, TaskmainResponse.class);
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            String jsonResponse = response.body().string();
+                            Log.d(TAG, String.format("API_RESPONSE: %s", jsonResponse));
 
-                    if (taskmainResponse != null && taskmainResponse.getData() != null) {
+
+                            Gson gson = new Gson();
+                            TaskmainResponse taskmainResponse = gson.fromJson(jsonResponse, TaskmainResponse.class);
+
+
+                            if (taskmainResponse != null && taskmainResponse.getData() != null) {
                         List<Taskmain> taskmainList = new ArrayList<>();
                         taskmainList.add(taskmainResponse.getData());
 
@@ -68,12 +73,14 @@ public class NewBuildApiManager {
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code()));
                 }
             }
+
+
         });
     }
 
 
     public static void fetchSecondaryApiData(String jobId, int page, int pageSize, String accessToken, ApiResponseCallback<SubTask> callback) {
-        String baseUrl = "https://aws.customquoter.co.uk";
+        String baseUrl = "https://cqbms.app";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
         String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";

@@ -1,4 +1,7 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder;
+
+import com.google.gson.annotations.SerializedName;
+
 public class Taskmain {
     private int id;
     private String name;
@@ -13,8 +16,11 @@ public class Taskmain {
     private Address address;
     private String timezone;
     private Coordinates coordinates;
+    private int jobID ;
 
     // Getters and Setters
+
+
     public int getId() {
         return id;
     }
@@ -94,6 +100,21 @@ public class Taskmain {
     public void setClient_details(ClientDetails client_details) {
         this.client_details = client_details;
     }
+
+    public int getJobID() {
+        return jobID;
+    }
+
+    public void setJobID(int jobID) {
+        this.jobID = jobID;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Taskmain{id=" + id + ", name='" + name + "', status='" + status + "'}";
+    }
+
 
     public Address getAddress() {
         return address;
@@ -245,29 +266,37 @@ public class Taskmain {
     }
 
     public static class Coordinates {
-        private double latitude;
-        private double longitude;
+        @SerializedName("latitude")
+        private String latitude;
 
-        public Coordinates(double latitude, double longitude) {
-            this.latitude = latitude;
-            this.longitude = longitude;
+        @SerializedName("longitude")
+        private String longitude;
+
+        public Coordinates(double lat, double lon) {
+            this.latitude = String.valueOf(lat);
+            this.longitude = String.valueOf(lon);
         }
 
-        // Getters and Setters
         public double getLatitude() {
-            return latitude;
-        }
-
-        public void setLatitude(double latitude) {
-            this.latitude = latitude;
+            if (latitude == null || latitude.isEmpty()) {
+                return 0.0;  // Default to avoid errors
+            }
+            try {
+                return Double.parseDouble(latitude);
+            } catch (NumberFormatException e) {
+                return 0.0;  // Fallback value
+            }
         }
 
         public double getLongitude() {
-            return longitude;
-        }
-
-        public void setLongitude(double longitude) {
-            this.longitude = longitude;
+            if (longitude == null || longitude.isEmpty()) {
+                return 0.0;  // Default to avoid errors
+            }
+            try {
+                return Double.parseDouble(longitude);
+            } catch (NumberFormatException e) {
+                return 0.0;  // Fallback value
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
 
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.google.gson.Gson;
 
 import okhttp3.Response;
@@ -27,7 +28,7 @@ import org.json.JSONObject;
 
 public class StopJobApiManager {
     private static final String TAG = "StopJobApiManager";
-    private static final String BASE_URL = "https://aws.customquoter.co.uk";
+    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk";
     private static final String API_ENDPOINT = "/api/m/jobs/work-status/stop/%d";
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 

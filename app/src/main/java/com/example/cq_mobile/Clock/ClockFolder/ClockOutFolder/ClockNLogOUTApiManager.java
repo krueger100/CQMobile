@@ -54,7 +54,7 @@ import okhttp3.RequestBody;public class ClockNLogOUTApiManager {
         public void run() {
 
             Log.w(TAG, "Retrieved user ID: " + userId);
-            String baseUrl = "https://aws.customquoter.co.uk";
+            String baseUrl =  "https://cqbms.app";// "https://aws.customquoter.co.uk";
             String endpoint = String.format("/api/m/start-working/timed_out/%d", userId);
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
             String jsonBody = String.format("{\"user_id\": %d, \"status\": \"stop\"}", userId);

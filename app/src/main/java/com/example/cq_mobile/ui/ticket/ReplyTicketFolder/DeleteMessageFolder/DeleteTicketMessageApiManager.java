@@ -11,8 +11,9 @@ import java.net.URL;
 
 public class DeleteTicketMessageApiManager {
 
-    private static final String TAG = "DeleteTicketMessageApiManager"; // Tag for logging
-    private static final String BASE_URL = "https://aws.customquoter.co.uk/api/m/tickets/";
+    private static final String TAG = "DeleteTicketMessageApiManager";
+   // private static final String BASE_URL = "https://aws.customquoter.co.uk/api/m/tickets/";
+   private static final String BASE_URL = "https://cqbms.app/api/m/tickets/";
     private static final String AUTH_TOKEN = "6331|n98FC0W7s7RlA4o5mnCmfxTDYlzWkWF2qg2B4c0m";
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 

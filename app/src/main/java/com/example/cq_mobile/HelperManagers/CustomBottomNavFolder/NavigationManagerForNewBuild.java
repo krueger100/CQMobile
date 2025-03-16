@@ -71,8 +71,35 @@ public class NavigationManagerForNewBuild {
 
     private void switchFragment(Fragment fragment) {
         activity.switchFragment(fragment);
+
+        if (fragment instanceof HomeFragment || fragment instanceof MapFragment) {
+            showBottomSheet();
+        } else {
+            collapseBottomSheet();
+        }
+    }
+
+    private void showBottomSheet() {
+        bottomSheet.post(() -> {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        });
+    }
+
+
+    private void collapseBottomSheet() {
+        bottomSheet.post(() -> {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        });
+    }
+
+}
+
+    /*
+    private void switchFragment(Fragment fragment) {
+        activity.switchFragment(fragment);
         collapseBottomSheet();
     }
+
 
     private void collapseBottomSheet() {
         bottomSheet.post(() -> {
@@ -82,5 +109,5 @@ public class NavigationManagerForNewBuild {
 
         });
     }
-}
 
+     */

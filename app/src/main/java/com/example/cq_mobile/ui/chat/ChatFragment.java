@@ -6,20 +6,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
-import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.tabs.TabLayout;
-
 import androidx.annotation.Nullable;
-
 import androidx.viewpager2.adapter.FragmentStateAdapter;
-import androidx.viewpager2.widget.ViewPager2;public class ChatFragment extends Fragment {
 
+import androidx.viewpager2.widget.ViewPager2;
+
+public class ChatFragment extends Fragment {
     private ViewPager2 viewPager2;
     private ClockOutVisibilityHandler visibilityHandler;
     @Nullable
@@ -105,6 +102,7 @@ import androidx.viewpager2.widget.ViewPager2;public class ChatFragment extends F
         super.onResume();
         if (visibilityHandler != null) {
             visibilityHandler.setClockOutVisibility(false);
+
         }
     }
 }

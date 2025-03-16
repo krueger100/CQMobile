@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.chat.ChatFolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -73,6 +74,7 @@ public class ChatDetails {
     public void setChannel(int channel) {
         this.channel = channel;
     }
+
 
     @Override
     public String toString() {

@@ -43,7 +43,7 @@ public class NotesActivity extends AppCompatActivity {
     private int currentPage = 1;
     private final int pageSize = 10; // Matches the API's "per_page" parameter
     private String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-    private String baseUrl = "https://aws.customquoter.co.uk";
+    private String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
     private int jobScheduleId;
     private String taskId ;
     TextView notes_back, notes_back2;

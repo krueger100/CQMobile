@@ -22,7 +22,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MessageManager {
-    private final String baseUrl = "https://aws.customquoter.co.uk/";
+    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";
     private String accessToken;
     private final Context context;
     Call<AccessTokenResponse> call;
@@ -109,7 +109,7 @@ public class MessageManager {
                             chatItem.setMessage_read(innerChatMessage.getMessage().getTime()); // Extract time
                             chatItem.setMessage_read(innerChatMessage.getMessage().getAvatar()); // Extract Avatar
                             chatItem.setMessage_read(innerChatMessage.getMessage().getName()); // Extract Avatar
-
+                            chatItem.setMessage_read(innerChatMessage.getMessage().getDate());
 
 
                             chatItems.add(chatItem);

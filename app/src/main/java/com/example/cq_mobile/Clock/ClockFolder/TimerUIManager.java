@@ -1,6 +1,8 @@
 package com.example.cq_mobile.Clock.ClockFolder;
 
+
 import android.app.Activity;
+
 import android.content.Context;
 import android.os.Handler;
 import android.view.View;
@@ -11,7 +13,10 @@ import android.widget.Toast;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
+import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -19,11 +24,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.DrawableRes;
+
 public class TimerUIManager implements TimerManager.TimerListener {
     private static final String TAG = "TimerUIManager";
 
     private final View rootView;
-    private final TextView timerTextView;
+    private final TextView timerTextView,jobTitle;
     private final FloatingActionButton fab;
     private final ImageButton clockOutController;
     private final ProgressBar progressBarTimer;
@@ -40,6 +47,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
         this.clockOutController = rootView.findViewById(R.id.clockOutController);
         this.progressBarTimer = rootView.findViewById(R.id.progress_bar_timer);
         this.startDate = startDate;
+        this.jobTitle = rootView.findViewById(R.id.job_title);
         timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
         timerManager.setListener(this);
 
@@ -49,11 +57,26 @@ public class TimerUIManager implements TimerManager.TimerListener {
 
     private void setupListeners() {
         Log.d(TAG, "Setting up listeners...");
-
         clockOutController.setOnClickListener(v -> {
             Log.d(TAG, "Clock out button clicked.");
             toggleVisibilityWithAnimation();
+
+            @DrawableRes int drawableRes = isHidden
+                    ? R.drawable.baseline_arrow_back_ios_24
+                    : R.drawable.baseline_arrow_forward_ios_24;
+
+            clockOutController.animate().alpha(0f).setDuration(150)
+                    .withEndAction(() -> {
+                        clockOutController.setImageResource(drawableRes);
+                        clockOutController.animate()
+                                .alpha(1f)
+                                .setDuration(150) // Fade in
+                                .start();
+                    })
+                    .start();
+
         });
+
 
         fab.setOnClickListener(v -> {
             Context context = rootView.getContext();
@@ -72,11 +95,27 @@ public class TimerUIManager implements TimerManager.TimerListener {
                     Toast.makeText(context, "Error: Access token missing", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                StopJobApiManager.stopJob(accessToken, userID, progressBarTimer, new StopJobApiManager.ApiCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        new Handler(Looper.getMainLooper()).post(() -> {
 
-                ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID, startDate);
-                clockOutManager.AutoClockOutandLogout(accessToken, savedJobId,savedTaskId,startTime);
+                            ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID, startDate);
+                            clockOutManager.AutoClockOutandLogout(accessToken, savedJobId, savedTaskId, startTime);
+                            Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
 
-                Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("StartJob", "Failed to stop job: " + error);
+                        new Handler(Looper.getMainLooper()).post(() ->
+                                Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
+                        );
+                    }
+                });
+
             }
         });
     }
@@ -85,14 +124,25 @@ public class TimerUIManager implements TimerManager.TimerListener {
         Log.d(TAG, "Toggling UI visibility. isHidden: " + isHidden);
 
         if (!isHidden) {
-            timerTextView.setVisibility(View.GONE);
-            fab.setVisibility(View.GONE);
-            Log.d(TAG, "UI components hidden.");
+            TransitionAnimationManager.slideOutToRight(timerTextView, 120);
+            TransitionAnimationManager.slideOutToRight(jobTitle, 130);
+            TransitionAnimationManager.slideOutToRight(fab, 150);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                timerTextView.setVisibility(View.GONE);
+                jobTitle.setVisibility(View.GONE);
+                fab.setVisibility(View.GONE);
+                Log.d(TAG, "UI components hidden.");
+            }, 150);
         } else {
+            TransitionAnimationManager.slideInFromRight(timerTextView, 150);
+            TransitionAnimationManager.slideInFromRight(jobTitle, 130);
+            TransitionAnimationManager.slideInFromRight(fab, 120);
             timerTextView.setVisibility(View.VISIBLE);
+            jobTitle.setVisibility(View.VISIBLE);
             fab.setVisibility(View.VISIBLE);
             Log.d(TAG, "UI components visible.");
         }
+
         isHidden = !isHidden;
     }
 
@@ -117,6 +167,9 @@ public class TimerUIManager implements TimerManager.TimerListener {
             });
         }
     }
+
+
+
 
     public void cleanup() {
         Log.d(TAG, "Cleaning up TimerUIManager...");

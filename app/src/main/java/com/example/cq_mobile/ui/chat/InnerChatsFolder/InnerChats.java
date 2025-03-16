@@ -32,7 +32,6 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.sendMessageFolder.SendMessageApiManager;
-import com.example.cq_mobile.ui.chat.sendMessageFolder.UpdateReadAPIManager;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -81,11 +80,16 @@ public class InnerChats extends AppCompatActivity {
         backPressManager = new BackPressManager(this);
 
 
+
+
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
         String username = sharedPrefManager.getFirstName() +" "+ sharedPrefManager.getLastName();
         int currentUserID = sharedPrefManager.getUserId();
+        sharedPrefManager.clearCurrentUserChat();
+
+        Log.d("ChatAdapter", "notifCount: " + sharedPrefManager.getKeyisCurrentUserSeen());
 
         Intent intent2 = getIntent();
         if (intent2 != null && intent2.getBooleanExtra("fromNotification", false)) {
@@ -132,6 +136,8 @@ public class InnerChats extends AppCompatActivity {
         String email = intent.getStringExtra("Email");
         receiverId = String.valueOf(getIntent().getIntExtra("id", 0));
         String source = getIntent().getStringExtra("source_adapter");
+        boolean isSeen = intent.getBooleanExtra("isSeen", false);
+
 
 
 
@@ -149,18 +155,6 @@ public class InnerChats extends AppCompatActivity {
 
 
         int channel = -1;
-
-        UpdateReadAPIManager.updateReadStatus(channel, accessToken, new UpdateReadAPIManager.ApiCallback() {
-            @Override
-            public void onSuccess() {
-                Log.d("ChatAdapter", "Total Unread Messages: " + "Read status updated successfully!");
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Log.d("ChatAdapter", "Total Unread Messages: " + "Read status unsuccessfully!   "+ error);
-            }
-        });
 
 
         if (intent.hasExtra("channel")) {
@@ -347,15 +341,13 @@ public class InnerChats extends AppCompatActivity {
 
 
         }
+
         AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
         getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username, String.valueOf(currentUserID),avatar_receiver,hhtpAvatar_url,firebaseRetrieveDataManager);
 
 
-
-
         recyclerView_messages.setHasFixedSize(true);
         recyclerView_messages.setLayoutManager(new LinearLayoutManager(this));
-
 
 
 
@@ -557,8 +549,6 @@ public class InnerChats extends AppCompatActivity {
 
 
 
-
-
     private void loadChatsWithToken(ProgressBar progressBar, int id, int channel, List<ChatMember> membersList, String username, String currentUserID, String hhtpAvatar_url) {
         if (isLoading) return;
         isLoading = true;
@@ -579,8 +569,6 @@ public class InnerChats extends AppCompatActivity {
                 isLoading = false;
                 List<InnerMessageDetails> chatDetailsList = extractMessageData(rawJson);
                 Log.d("InnerChats", "Extracted chat details: " + chatDetailsList);
-
-
 
                 Log.d("InnerChats", "Raw JSON received: " + rawJson);
                // extractMessageData(rawJson);
@@ -648,6 +636,8 @@ public class InnerChats extends AppCompatActivity {
                     Log.d("ChatLoader", " - Text: " + text);
                     Log.d("ChatLoader", " - Time: " + time);
 
+                    InnerMessageDetails chatDetail = new InnerMessageDetails(date, avatar, name, sender, text, time);
+                    chatDetailsList.add(chatDetail);
                 }
             }
         } catch (JsonSyntaxException e) {
@@ -670,8 +660,6 @@ public class InnerChats extends AppCompatActivity {
 
         recyclerView_messages.post(() -> recyclerView_messages.scrollToPosition(messagesAdapter.getItemCount() - 1));
     }
-
-
 
 
     private void showEmptyState(ProgressBar progressBar) {

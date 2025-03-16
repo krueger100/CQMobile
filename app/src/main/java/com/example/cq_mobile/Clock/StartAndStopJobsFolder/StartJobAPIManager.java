@@ -106,23 +106,27 @@ public class StartJobAPIManager {
 
         @Override
         public void run() {
-            String baseUrl = "https://aws.customquoter.co.uk";
-            String endpoint = "/api/m/start-working/timed_in";
-            // Create JSON body properly
+            String baseUrl = "https://cqbms.app";
+            String endpoint = "/api/m/jobs/work-status/start";
             String jsonBody = createJsonBody(userId, jobId, latitude, longitude);
 
             postStartJob(baseUrl, endpoint, accessToken, jsonBody);
+
         }
 
         private String createJsonBody(int userId, String jobId, double latitude, double longitude) {
             JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put("status", "start");  // Start the job
-                jsonObject.put("job", jobId);  // Job ID
-                jsonObject.put("custom_job", JSONObject.NULL);  // No custom job
-                jsonObject.put("lat_out", latitude);  // Latitude
-                jsonObject.put("long_out", longitude);  // Longitude
-                jsonObject.put("user_id", userId);  // Add user_id (this is likely required)
+                jsonObject.put("status", "start");
+                jsonObject.put("job", jobId);
+                jsonObject.put("custom_job", JSONObject.NULL);
+                jsonObject.put("lat_out", latitude);
+                jsonObject.put("long_out", longitude);
+                jsonObject.put("user_id", userId);
+
+                Log.d(TAG, ": " + "userID: " + userId +  "/n"  +"jobID: "+ jobId   );
+
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -144,15 +148,17 @@ public class StartJobAPIManager {
                     .addHeader("x-api-key", "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2")
                     .addHeader("Content-Type", "application/json")
                     .addHeader("Accept", "application/json")
-                    .post(body)  // Changed from PUT to POST
+                    .put(body)
                     .build();
+
+
 
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
                 public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
                     String responseBody = response.body() != null ? response.body().string() : null;
                     if (response.isSuccessful()) {
-                        Log.d(TAG, "Job started successfully. Response: " + responseBody);
+                        Log.d(TAG, "Job started successfully: " + responseBody);
                         callback.onSuccess(responseBody);
                     } else {
                         Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());

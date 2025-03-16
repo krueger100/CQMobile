@@ -10,7 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class TaskActivityManager {
-    private static final String BASE_URL = "https://aws.customquoter.co.uk";
+    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk";
     private final TaskApi taskApi;
 
     public interface TaskFetchCallback {
