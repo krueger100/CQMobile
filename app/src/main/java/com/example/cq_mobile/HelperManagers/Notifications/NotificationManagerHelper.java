@@ -105,7 +105,7 @@ public class NotificationManagerHelper {
                 });
     }
 
-    public void showNotification(String title, String content, Bitmap avatarBitmap, String time, String date, String channelUrl) {
+    public void showNotification2nd(String title, String content, Bitmap avatarBitmap, String time, String date, String channelUrl) {
         String fullContent = content + "\n📅 " + date + " 🕒 " + time;
 
         Intent intent = new Intent(context, ChatReceiver.class);

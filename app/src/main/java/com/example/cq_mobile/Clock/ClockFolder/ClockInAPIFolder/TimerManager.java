@@ -8,8 +8,9 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LogoutFolder.LogoutManager;
 
-import java.text.ParseException;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;

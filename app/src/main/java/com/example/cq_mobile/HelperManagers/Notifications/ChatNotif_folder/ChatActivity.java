@@ -43,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private List<ChatDetails> notificationsItems = new ArrayList<>();
     private static final String TAG = "ChatActivity";
-    private int currentPage = 1;  // Track pagination
+    private int currentPage = 1;
     private final int pageSize = 20;
     String accessToken;
     private ChatManager chatManager;
@@ -65,7 +65,6 @@ public class ChatActivity extends AppCompatActivity {
 
         if (channelUrl != null) {
             Log.d("ChatActivity", "Navigated to ChatActivity with Channel URL: " + channelUrl);
-            // Load chat based on `channelUrl`
         }
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
@@ -286,7 +285,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
 
-
     private void fetchChatNotifications(String accessToken) {
         ChatsNotificationsApiManager.fetchChatNotifications(accessToken, new ChatsNotificationsApiManager.ApiCallback() {
             @Override
@@ -315,6 +313,10 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
+}
+
+
 
     /*
 
@@ -357,4 +359,3 @@ public class ChatActivity extends AppCompatActivity {
     }
 
      */
-}

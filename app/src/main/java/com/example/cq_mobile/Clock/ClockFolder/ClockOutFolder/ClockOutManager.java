@@ -81,8 +81,6 @@ public class ClockOutManager {
                     public void onSuccess(String message) {
                         new Handler(Looper.getMainLooper()).post(() -> {
 
-                            SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-                            sharedPrefManager.clearStartJob();
                             AutoClockOutandLogout(accessToken, jobId, savedTaskId,startDate);
                             Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
 
@@ -155,6 +153,8 @@ public class ClockOutManager {
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
         sharedPrefManager.clearEmail();
         sharedPrefManager.clearPassword();
+        sharedPrefManager.clearStartJob();
+
     }
 
     ///ClockOut Without Logout

@@ -164,6 +164,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 TransitionAnimationManager.zoomIn(v, 50);
                 isSeen = true;
                 holder.chatCount.setVisibility(View.GONE);
+
                 UpdateReadAPIManager.updateReadStatus(chatChannels, accessToken, new UpdateReadAPIManager.ApiCallback() {
                     @Override
                     public void onSuccess() {

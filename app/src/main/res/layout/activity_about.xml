@@ -1,61 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/background">
 
     <!-- Common Header -->
     <include
         android:id="@+id/include"
-        layout="@layout/layout_common_header"
+        layout="@layout/layout_common_header_black"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Title Text -->
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="15dp"
-        android:text="About CQBMS"
-        android:textAlignment="center"
-        android:textColor="@color/black"
-        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/include" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- About Section with Scrollable Text -->
+
+    <!-- Title Text -->
     <androidx.cardview.widget.CardView
-        android:id="@+id/cardView4"
+        android:id="@+id/cardView44"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        app:cardCornerRadius="10dp"
+        android:backgroundTint="#D2F57C00"
+        app:cardCornerRadius="30dp"
         app:cardElevation="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4">
+        app:layout_constraintTop_toBottomOf="@+id/include">
 
-        <ScrollView
+        <TextView
+            android:id="@+id/textView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fillViewport="true">
+            android:layout_margin="5dp"
+            android:elevation="15dp"
+            android:text="ABOUT US"
+            android:background="@drawable/background_about"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
 
-            <TextView
-                android:id="@+id/text_about"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="15dp"
-                android:scrollbars="vertical"
-                android:text="@string/about"
-                android:textAlignment="viewStart"
-                android:textSize="16sp" />
-        </ScrollView>
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView4"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="30dp"
+        android:backgroundTint="@color/tab_icon_color"
+        app:cardCornerRadius="10dp"
+        android:layout_marginTop="10dp"
+        app:cardElevation="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardView44">
+
+
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="15dp"
+            android:scrollbars="vertical"
+            android:text="@string/about"
+            android:textAlignment="viewStart"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
 
     </androidx.cardview.widget.CardView>
 
@@ -63,49 +78,90 @@
         android:id="@+id/cardView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
+        android:layout_margin="5dp"
         android:visibility="gone"
         app:cardCornerRadius="10dp"
         app:cardElevation="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4">
+        app:cardMaxElevation="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/cardView44"
+        app:layout_constraintStart_toStartOf="@+id/cardView44"
+        app:layout_constraintTop_toBottomOf="@+id/cardView44">
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:background="@drawable/background"
+            android:gravity="start"
+            android:orientation="horizontal"
             android:padding="10dp">
 
-            <ImageButton
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="200dp"
-                android:adjustViewBounds="true"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                android:src="@drawable/dev" />
-
-            <TextView
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:text="Carl Oliver A. Krueger"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:orientation="vertical"
+                android:padding="10dp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="8dp"
-                android:text="carloliverkrueger@gmail.com"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="10sp" />
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardView51"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="10dp">
+
+                    <ImageButton
+                        android:id="@+id/btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="300dp"
+                        android:layout_gravity="start"
+                        android:adjustViewBounds="true"
+                        android:background="@null"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/dev"
+                        tools:ignore="SpeakableTextPresentCheck" />
+
+
+                </androidx.cardview.widget.CardView>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:text="Carl Oliver A. Krueger"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="21sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="8dp"
+                    android:text="@string/textCO"
+                    android:textAlignment="viewStart"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
 
         </LinearLayout>
+
+
     </androidx.cardview.widget.CardView>
+
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="15dp"
+        android:indeterminateTint="@color/cq_secondary_color"
+        android:outlineSpotShadowColor="@color/darkBlue"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/cardView4"
+        app:layout_constraintEnd_toEndOf="@+id/cardView4"
+        app:layout_constraintStart_toStartOf="@+id/cardView4"
+        app:layout_constraintTop_toBottomOf="@+id/cardView44" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

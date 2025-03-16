@@ -6,11 +6,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,19 +28,22 @@ import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForTask;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav;
+import com.example.cq_mobile.HelperManagers.IDSfolder.IDsManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.JobDetailsManagerFolder.JobDetailsManager;
 import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateAddFilesApiManager;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -59,25 +63,55 @@ public class FilesActivity extends AppCompatActivity {
     private int currentPage = 1;
     private final int pageSize = 10;
     private String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-    private String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
+    private String baseUrl = "https://cqbms.app";
     private int jobScheduleId, taskId;
     private String accessToken, jobId;
     private NavigationManagerForTask navigationManager;
     private int lastLoadedPage = -1; // Track last loaded page
-
+    private static final String TAG = "FilesActivity";
+    ProgressBar progressBar;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<Intent> filePickerLauncher, cameraLauncher;
-
+    String savedJobIds;
+    String taskIds;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_files);
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
+        Intent intent = getIntent();
+        String jobScheduleIdStr = intent.getStringExtra("job_id");
+        String taskIdStr = intent.getStringExtra("task_id");
+
+        accessToken = sharedPrefManager.getAccessToken();
+        jobScheduleId = (jobScheduleIdStr != null && !jobScheduleIdStr.isEmpty()) ? Integer.parseInt(jobScheduleIdStr) : sharedPrefManager.getJobId();
+        jobId = String.valueOf(jobScheduleId);
+        taskId = (sharedPrefManager.getTaskId());
+
+        progressBar = findViewById(R.id.progressBar);
+
         initActivityResultLaunchers();
         initViews();
         setupNavigation();
         setupRecyclerView();
-        loadFiles(currentPage, accessToken, String.valueOf(taskId));
+        loadFiles(currentPage, accessToken);
+
+
+        JobDetailsManager.fetchJob_Details(accessToken, progressBar, this, new JobDetailsManager.JobDetailsCallback() {
+            @Override
+            public void onJobDetailsFetched() {
+                Log.d(TAG, "Job details successfully fetched!");
+
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error fetching job details: " + error);
+            }
+        });
+
+
 
     }
 
@@ -90,7 +124,7 @@ public class FilesActivity extends AppCompatActivity {
         recyclerView.setAdapter(filesAdapter);
 
         // Load initial files
-        loadFiles(currentPage, accessToken, String.valueOf(taskId));
+        loadFiles(currentPage, accessToken);
 
         // Infinite scroll listener
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -105,7 +139,7 @@ public class FilesActivity extends AppCompatActivity {
 
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
                         currentPage++;
-                        loadFiles(currentPage, accessToken, String.valueOf(taskId));
+                        loadFiles(currentPage, accessToken);
                     }
                 }
             }
@@ -121,15 +155,7 @@ public class FilesActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
 
-        Intent intent = getIntent();
-        String jobScheduleIdStr = intent.getStringExtra("job_id");
-        String taskIdStr = intent.getStringExtra("task_id");
-
-        jobScheduleId = (jobScheduleIdStr != null && !jobScheduleIdStr.isEmpty()) ? Integer.parseInt(jobScheduleIdStr) : sharedPrefManager.getJobId();
-        taskId = (taskIdStr != null && !taskIdStr.isEmpty()) ? Integer.parseInt(taskIdStr) : sharedPrefManager.getTaskId();
-        jobId = String.valueOf(jobScheduleId);
 
         files_back = findViewById(R.id.files_back);
         files_back2 = findViewById(R.id.files_back2);
@@ -137,9 +163,9 @@ public class FilesActivity extends AppCompatActivity {
         emptyTask = findViewById(R.id.emptyTask);
         add_photo = findViewById(R.id.add_photo);
 
-        accessToken = sharedPrefManager.getAccessToken();
-        Log.d("FilesActivity", "Access Token: " + accessToken);
-        Log.d("FilesActivity", "taskId: " + taskId);
+
+        Log.d(TAG, "Access Token: " + accessToken);
+        Log.d(TAG, "taskId: " + taskId);
         // Bottom navigation setup
         Notes_Files_Docs_Sheets_nav bottomNavView = findViewById(R.id.nfds_bottom);
         navigationManager = new NavigationManagerForTask(this);
@@ -212,7 +238,6 @@ public class FilesActivity extends AppCompatActivity {
                     }
                 }
         );
-
         filePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -230,6 +255,7 @@ public class FilesActivity extends AppCompatActivity {
                 }
         );
     }
+
     private void openCameraX() {
         Intent intent = new Intent(this, CameraXActivity.class);
         cameraLauncher.launch(intent);
@@ -243,15 +269,15 @@ public class FilesActivity extends AppCompatActivity {
         intent.setType("*/*");
         filePickerLauncher.launch(intent);
     }
+
     private void showUploadDialog(File file) {
         Dialog progressDialog = new Dialog(this);
         progressDialog.setContentView(R.layout.dialog_progress);
         progressDialog.setCancelable(false);
         progressDialog.show();
-
         new Thread(() -> {
             boolean success = UpdateAddFilesApiManager.uploadTaskFiles(
-                    accessToken, jobId, String.valueOf(taskId), new File[]{file}, apiKey
+                    accessToken, jobId,taskIds, new File[]{file}, apiKey
             );
             runOnUiThread(() -> {
                 progressDialog.dismiss();
@@ -260,15 +286,47 @@ public class FilesActivity extends AppCompatActivity {
             });
         }).start();
     }
-    private void loadFiles(int page, String token, String taskid) {
+
+    private void loadFiles(int page, String token) {
         if (isLoading || page == lastLoadedPage) return;
         isLoading = true;
         lastLoadedPage = page;
 
-        String url = baseUrl + "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskid + "/files?page=" + page + "&per_page=" + pageSize;
+        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(this);
+        List<Integer> savedJobIdsList = sharedPrefManager.getJobIds();
+        Map<Integer, List<Integer>> jobTaskMap = sharedPrefManager.getJobTaskMap();
 
-        // Debugging: Log the request URL
-        Log.d("FilesActivity", "Loading files from URL: " + url);
+        if (savedJobIdsList == null || savedJobIdsList.isEmpty()) {
+            Log.e(TAG, "Error: No saved job IDs found!");
+            isLoading = false;
+            return; // ❌ Stop execution
+        }
+
+        // Convert Job IDs to a comma-separated string
+         savedJobIds = TextUtils.join(",", savedJobIdsList);
+
+        // Collect all task IDs from all jobs
+        Set<Integer> allTaskIdsSet = new HashSet<>();
+        for (int jobId : savedJobIdsList) {
+            List<Integer> taskIds = jobTaskMap.get(jobId);
+            if (taskIds != null) {
+                allTaskIdsSet.addAll(taskIds);
+            }
+        }
+
+        if (allTaskIdsSet.isEmpty()) {
+            Log.e(TAG, "Error: No task IDs found for jobs: " + savedJobIds);
+            isLoading = false;
+            return; // ❌ Stop execution
+        }
+
+        // Convert Task IDs to a comma-separated string
+         taskIds = TextUtils.join(",", allTaskIdsSet);
+
+        String url = baseUrl + "/api/m/jobs/schedules/" + savedJobIds + "/tasks/" + taskIds + "/files?page=" + page + "&per_page=" + pageSize;
+
+        // ✅ Debugging: Log the correct request URL
+        Log.d(TAG, "Loading files from URL: " + url);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -284,7 +342,7 @@ public class FilesActivity extends AppCompatActivity {
                 isLoading = false;
                 if (response.isSuccessful() && response.body() != null) {
                     List<FileItem> newFiles = response.body().getData();
-                    Log.d("FilesActivity", "Files loaded successfully.");
+                    Log.d(TAG, "Files loaded successfully.");
                     if (page == 1) {
                         filesAdapter.setData(newFiles);
                     } else {
@@ -292,31 +350,33 @@ public class FilesActivity extends AppCompatActivity {
                     }
                     filesAdapter.notifyItemRangeInserted(filesAdapter.getItemCount() - newFiles.size(), newFiles.size());
                 } else if (response.code() == 401) {
-                    Log.e("FilesActivity", "Unauthorized! Please log in again.");
+                    Log.e(TAG, "Unauthorized! Please log in again.");
                     Intent loginIntent = new Intent(FilesActivity.this, Login.class);
                     startActivity(loginIntent);
                 } else {
-                    Log.e("FilesActivity", "Error loading files: " + response.message());
+                    Log.e(TAG, "Error loading files: " + response.message());
                     Toast.makeText(FilesActivity.this, "Error loading files", Toast.LENGTH_SHORT).show();
                 }
-
             }
-
 
             @Override
             public void onFailure(Call<FilesResponse> call, Throwable t) {
                 isLoading = false;
-                Log.e("FilesActivity", "Error loading files: " + t.getMessage());
+                Log.e(TAG, "Error loading files: " + t.getMessage());
                 Toast.makeText(FilesActivity.this, "Error loading files: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+
     private void refreshFileList() {
         currentPage = 1; // Reset pagination
         filesList.clear(); // Clear the list
         filesAdapter.notifyDataSetChanged(); // Notify adapter
-        loadFiles(currentPage, accessToken, String.valueOf(taskId)); // Reload files
+        loadFiles(currentPage, accessToken); // Reload files
     }
+
+
     private void navigateBack() {
         Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);
         backIntent.putExtra("job_id", jobId);

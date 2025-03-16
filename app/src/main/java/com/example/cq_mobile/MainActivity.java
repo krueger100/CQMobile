@@ -4,14 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -19,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
@@ -30,19 +23,11 @@ import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibi
 import com.example.cq_mobile.HelperManagers.NavigationManager;
 import com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder.GetChatNotifManager;
 import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
-import com.example.cq_mobile.HelperManagers.Notifications.NotificationManagerHelper;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
-import com.example.cq_mobile.ui.chat.ChatNotif.ChatNotificationItem;
-import com.example.cq_mobile.ui.chat.ChatNotif.ChatsNotificationsApiManager;
-import com.example.cq_mobile.ui.chat.ChatNotif.NotificationAPIResponse;
-import com.example.cq_mobile.ui.chat.ChatPageFragment;
 import com.google.firebase.FirebaseApp;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements ClockOutVisibilityHandler {
@@ -166,9 +151,9 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
             }
         });
 
+
+
     }
-
-
 
     private void initializeApp(String currentUser_notification_token, int userId, String avatarUrl) {
         FirebaseApp.initializeApp(this);

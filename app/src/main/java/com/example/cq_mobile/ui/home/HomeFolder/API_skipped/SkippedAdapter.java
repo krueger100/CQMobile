@@ -92,7 +92,7 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             skippedHolder.nameTextView.setText(skipped.getName());
             skippedHolder.stateDescription.setText(skipped.getDescription());
             String id = String.valueOf(skipped.getId());
-
+            String jobid = String.valueOf(skipped.getJob_id());
             String categories = skipped.getCategory() != null ? skipped.getCategory().trim() : "Empty Category";
             String categoriesColors = String.valueOf(skipped.getCategory_color()).trim();
             if (categoriesColors == null || categoriesColors.trim().isEmpty()) {
@@ -105,6 +105,7 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             if (id != null) {
                 Log.d("User ID ->", "Received Todo ID's: " + id);
+                Log.d("User ID ->", "Received Todo jobID's: " +jobid );
                 Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
 
                 skippedHolder.category.setText(categories);
@@ -133,7 +134,7 @@ public class SkippedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                             skippedHolder.progressBar.setVisibility(View.VISIBLE);
                             Intent intent = new Intent(context, NewBuild.class);
                             intent.putExtra("job_id", id);
-
+                            intent.putExtra("task_id", jobid);
                             try {
                                 context.startActivity(intent);
                             } catch (Exception e) {

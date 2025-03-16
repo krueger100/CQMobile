@@ -15,9 +15,16 @@
     <string name="tab_icon_desc">Tab Icon</string>
     <string name="api_key">BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2</string>
     <string name="about">
-        CQ Business Management Software is a platform that helps businesses streamline operations, improve communication,and track performance.
+        Your All-in-One, End-to-End Business Management Software for Landscapers
+        \n
+        Empowering Landscapers with Comprehensive Tools for Success
+        \n
+        \n
+
+        CQ Business Management Software is a platform that helps businesses streamline
+        operations, improve communication,and track performance.
         It\'s designed for medium to enterprise-sized businesses.
-       \n
+        \n
         \nFeatures:\n
         Project management: Includes tools for estimating, tracking, and managing projects
         \nAnalytics: Provides real-time profit and loss tracking, and helps businesses understand how each job performs
@@ -28,6 +35,13 @@
         \n
         \nBenefits Helps businesses operate more efficiently,
         Helps businesses reduce costs, Helps businesses drive sustainable growth, and Helps businesses make data-driven decisions
+    </string>
+    <string name="cqbms_textBody">Contact Developer</string>
+    <string name="textCO">
+        Contact no. +639959383093
+        \nEmail: carloliverkreuger111@gmail.com
+        \nWebsite: https://carloliverkrueger1.wixsite.com/website-1
+        \nLinkIn : linkedin.com/in/carl-oliver-krueger-106a94208
     </string>
 
 

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
@@ -24,6 +25,7 @@ import com.example.cq_mobile.ui.chat.sendMessageFolder.UpdateReadAPIManager;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -39,6 +41,7 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
     ProgressBar progressBar;
     String chatCount;
     int message_read;
+    private boolean isSeen = false;
 
     public ChatNotificationAdapter(Context context, List<ChatDetails> chatList, String accessToken, String email, String password, ProgressBar progressBar, String chatCount, int message_read) {
         this.context = context;
@@ -71,19 +74,6 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
 
         int chatChannels = chatItem.getChannel();
 
-        UpdateReadAPIManager.updateReadStatus(chatChannels, accessToken, new UpdateReadAPIManager.ApiCallback() {
-            @Override
-            public void onSuccess() {
-                Log.d("ChatAdapter", "Total Unread Messages: " + "Read status updated successfully!");
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Toast.makeText(context, "Failed to update read status: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
 
         // Set the chat name
         holder.chatName.setText(chatItem.getChatName() != null ? chatItem.getChatName() : "Unknown Chat");
@@ -92,8 +82,9 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
         String receivers_name = chatItem.getChatName() != null ? chatItem.getChatName() : "No Receiver Name";
         String senders_name = chatItem.getName() != null ? chatItem.getName() : "No Senders Name";
 
-//        int id = (chatItem.getId() != null) ? Integer.parseInt(chatItem.getId()) : 0;
-//        Log.w("ChatAdapter", "ID:---->>> " + id );
+
+        int id = (chatItem.getId() != null) ? Integer.parseInt(chatItem.getId()) : 0;
+        Log.w("ChatAdapter", "ID:---->>> " + id );
 
         List<ChatMessage> messages = chatItem.getMessages();
 
@@ -101,35 +92,44 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
         if (messages != null && !messages.isEmpty()) {
             int totalUnread = 0;
 
+
             for (ChatMessage message : messages) {
                 totalUnread += message.getUnread();
             }
 
-            holder.chatCount.setText(String.valueOf(totalUnread));
+
             Log.d("ChatAdapter", "Total Unread Messages: " + totalUnread);
+            Log.w("ChatAdapter", "message_read ->: " +message_read);
+
+            SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
 
 
             int chatIsRead = Integer.parseInt(String.valueOf(chatItem.getMessage_read()));
-            if (chatIsRead != 0) {
-                holder.chatCount.setBackgroundResource(R.drawable.indicator_off);
+
+            if (chatIsRead != 0 || isSeen) {
+                holder.chatCount.setVisibility(View.GONE);
                 Log.d("ChatAdapter", "chatIsRead: " + chatIsRead);
-            } else  {
+            } else {
                 TransitionAnimationManager.zoomOut(holder.chatCount, 1500);
                 TransitionAnimationManager.zoomIn(holder.chatCount, 1700);
                 holder.chatCount.setBackgroundResource(R.drawable.indicator_on);
                 Log.d("ChatAdapter", "chatIsRead: " + chatIsRead);
+                holder.chatCount.setVisibility(View.VISIBLE);
+                holder.chatCount.setText(String.valueOf(totalUnread));
 
+                ChatMessage lastMessage = messages.get(messages.size() - 1);
+                holder.chatName.setText(lastMessage.getText());
             }
-
 
         } else {
             holder.chatCount.setText("0");
+
         }
 
 
 
-        int firstMemberId = -1;
-        int secondMemberId = -1;
+
+
 
         List<ChatMember> members = chatItem.getMembers();
         if (members != null && !members.isEmpty()) {
@@ -138,6 +138,7 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
         } else {
             Log.e(TAG, "MEMBERS " + "No MEMBERS");
         }
+
 
 
         // Load the avatar image for the chat
@@ -154,49 +155,90 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
 
         // Handle item click
         holder.itemView.setOnClickListener(v -> {
+            Log.d("ITEMS_COLLEGUE", "Item clicked: Channel=" + chatChannels + ", Receiver=" + receivers_name +",  Sender=  , "+senders_name +  "  SenderID=  , "+id);
+            if (members == null || members.isEmpty()) {
+                Log.e(TAG, "No members found for this chat. Aborting click action.");
+                Toast.makeText(context, "No contact data available.", Toast.LENGTH_SHORT).show();
+                return;
+            }
             TransitionAnimationManager.zoomOut(v, 100);
             v.postDelayed(() -> {
-
                 TransitionAnimationManager.zoomIn(v, 50);
-                // Start a new activity with necessary data   messagesList
-                Intent intent = new Intent(context, InnerChats.class);
-                intent.putExtra("token", accessToken);
-                intent.putExtra("channel", chatChannels);
-                intent.putExtra("Email", email);
-                intent.putExtra("Password", password);
-                intent.putExtra("Sender", senders_name);
-                intent.putExtra("Receiver", receivers_name);
-                intent.putExtra("Avatar", chatItem.getAvatarPath());
+                isSeen = true;
+                holder.chatCount.setVisibility(View.GONE);
+                UpdateReadAPIManager.updateReadStatus(chatChannels, accessToken, new UpdateReadAPIManager.ApiCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("ChatAdapter", "Total Unread Messages: " + "Read status updated successfully!");
+                        Intent intent = new Intent(context, InnerChats.class);
+                        intent.putExtra("token", accessToken);
+                        intent.putExtra("channel", chatChannels);
+                        intent.putExtra("Email", email);
+                        intent.putExtra("Password", password);
+                        intent.putExtra("Sender", senders_name);
+                        intent.putExtra("Receiver", receivers_name);
+                        intent.putExtra("Avatar", chatItem.getAvatarPath());
+                        intent.putExtra("id", id);
+                        intent.putExtra("isSeen", isSeen);
+
+                        Gson gson = new Gson();
+                        String membersJson = gson.toJson(members);
+                        intent.putExtra("chatAPIData", membersJson);
+                        context.startActivity(intent);
 
 
-                Gson gson = new Gson();
-                String membersJson = gson.toJson(members);
-                intent.putExtra("chatAPIData", membersJson);
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.d("ChatAdapter", "Total Unread Messages: " + "Read status unsuccessfully!   "+ error);
+                    }
+                });
 
 
-
-
-                context.startActivity(intent);
             }, 100);
-
-
-
-
         });
 
     }
+
+
+
     @Override
     public int getItemCount() {
         return chatList.size();
     }
 
+
+
     public void addChats(List<ChatDetails> newChats) {
         if (newChats != null) {
+            chatList.clear();
             chatList.addAll(newChats);
-            Log.d(TAG, "Total number of chats after adding new ones: " + chatList.size());
+
+            Collections.sort(chatList, (chat1, chat2) -> {
+                int unreadCount1 = getTotalUnreadMessages(chat1);
+                int unreadCount2 = getTotalUnreadMessages(chat2);
+
+                return Integer.compare(unreadCount2, unreadCount1);
+            });
+
+            Log.d(TAG, "Total number of chats after sorting: " + chatList.size());
             notifyDataSetChanged();
         }
     }
+
+    private int getTotalUnreadMessages(ChatDetails chatItem) {
+        if (chatItem.getMessages() != null) {
+            int totalUnread = 0;
+            for (ChatMessage message : chatItem.getMessages()) {
+                totalUnread += message.getUnread();
+            }
+            return totalUnread;
+        }
+        return 0;
+    }
+
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView chatName,chatCount;
         CircleImageView chatAvatar;
@@ -211,30 +253,3 @@ public class ChatNotificationAdapter extends RecyclerView.Adapter<ChatNotificati
     }
 }
 
-        /*
-
-
-            holder.senderTextView.setText(notification.getSender());
-        holder.messageTextView.setText(notification.getText());
-        holder.timeTextView.setText(notification.getTime());
-
-
-        int channelId = notification.getChannel();
-        Log.d("ChatNotificationAdapter", "--------------->>>>>>>>>>>>"+ channelId);
-
-        UpdateReadAPIManager.updateReadStatus(channelId, accessToken, new UpdateReadAPIManager.ApiCallback() {
-            @Override
-            public void onSuccess() {
-                Log.d("ChatNotificationAdapter", "Read status updated successfully");
-
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Toast.makeText(context, "Failed to update read status: " + error, Toast.LENGTH_SHORT).show();
-                Log.d("ChatNotificationAdapter", "Failed to update read status: " + error);
-
-            }
-        });
-
-         */

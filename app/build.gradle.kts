@@ -13,6 +13,11 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+        }
+
     }
 
 
@@ -30,8 +35,10 @@ android {
 
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
         isCoreLibraryDesugaringEnabled = true
 
     }
@@ -67,7 +74,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-
+    implementation("androidx.annotation:annotation:1.7.1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
@@ -80,14 +87,10 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:21.0.5")
 
     implementation ("androidx.recyclerview:recyclerview:1.3.1")
-    implementation ("com.firebaseui:firebase-ui-database:8.0.1")
 
-    implementation ("com.firebaseui:firebase-ui-database:8.0.1")
     implementation ("com.firebaseui:firebase-ui-firestore:8.0.1")
 
-    implementation("com.firebaseui:firebase-ui-database:8.0.1") // Firebase UI Database
     implementation("androidx.paging:paging-runtime:3.1.1") // Paging Library
-    implementation("com.google.firebase:firebase-database:20.0.5") // Firebase Realtime Database
 
     implementation ("com.squareup.retrofit2:retrofit:2.11.0");
     implementation("com.android.volley:volley:1.2.1")
@@ -101,8 +104,7 @@ dependencies {
     implementation ("androidx.appcompat:appcompat:1.7.0")
 
     implementation ("com.fasterxml.jackson.core:jackson-databind:2.14.0")
-    implementation ("com.github.bumptech.glide:glide:4.13.0")
-    implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
+  //  implementation ("com.squareup.retrofit2:converter-scalars:2.9.0")
     implementation ("de.hdodenhof:circleimageview:3.1.0")
 
 
@@ -120,5 +122,7 @@ dependencies {
     implementation ("androidx.camera:camera-lifecycle:1.3.0")
     implementation ("androidx.camera:camera-view:1.3.0")
     implementation ("androidx.camera:camera-camera2:1.3.0")
+
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
 
 }

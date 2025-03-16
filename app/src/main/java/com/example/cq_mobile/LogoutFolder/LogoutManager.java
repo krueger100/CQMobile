@@ -35,7 +35,7 @@ public class LogoutManager {
         sharedPrefManager.clearEmail();
         sharedPrefManager.clearPassword();
         sharedPrefManager.clearCoordinates();
-
+        sharedPrefManager.clearStartJob();
 
         SharedPreferences clockPrefs= context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         clockPrefs.edit().clear().apply();

@@ -9,8 +9,19 @@ public class Done {
     private String category_color;
     private String start_date;
     private String end_date;
+    private int job_id;
 
     // Getters and setters for all fields
+
+
+    public int getJob_id() {
+        return job_id;
+    }
+
+    public void setJob_id(int job_id) {
+        this.job_id = job_id;
+    }
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

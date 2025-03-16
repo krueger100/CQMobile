@@ -7,6 +7,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_white">
 
+    <View
+        android:id="@+id/view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -257,11 +263,10 @@
 
         </androidx.cardview.widget.CardView>
 
-
         <TextView
             android:id="@+id/start_job"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_marginHorizontal="26dp"
             android:layout_marginVertical="10dp"
             android:background="@drawable/check_in_btn"
@@ -272,7 +277,10 @@
             android:text="Start Job"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
 
 
 
@@ -490,6 +498,7 @@
         android:id="@+id/progress_circular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:indeterminateTint="@color/cq_secondary_color"
         android:layout_gravity="center"/>
 
 

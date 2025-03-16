@@ -31,7 +31,6 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context context;
     private List<Done> doneList;
     private Set<String> uniqueIds;  // Set to track unique IDs
-
     public DoneAdapter(Context context, List<Done> doneList) {
         this.context = context;
         this.doneList = doneList;
@@ -90,7 +89,7 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             doneHolder.nameTextView.setText(done.getName());
             doneHolder.stateDescription.setText(done.getDescription());
             String id = String.valueOf(done.getId());
-
+            String jobid = String.valueOf(done.getJob_id());
             String categories = done.getCategory() != null ? done.getCategory().trim() : "Empty Category";
             String categoriesColors = String.valueOf(done.getCategory_color()).trim();
             if (categoriesColors == null || categoriesColors.trim().isEmpty()) {
@@ -103,6 +102,7 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             if (id != null) {
                 Log.d("User ID ->", "Received Todo ID's: " + id);
+                Log.d("User ID ->", "Received Todo jobID's: " +jobid );
                 Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
 
                 doneHolder.category.setText(categories);
@@ -131,7 +131,7 @@ public class DoneAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                             doneHolder.progressBar.setVisibility(View.VISIBLE);
                             Intent intent = new Intent(context, NewBuild.class);
                             intent.putExtra("job_id", id);
-
+                            intent.putExtra("task_id", jobid);
                             try {
                                 context.startActivity(intent);
                             } catch (Exception e) {

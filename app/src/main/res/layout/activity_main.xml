@@ -63,10 +63,12 @@
 
             <TextView
                 android:id="@+id/job_title"
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:elevation="25dp"
+                android:layout_marginStart="5dp"
+                android:fontFamily="@font/mono_medium"
                 android:visibility="gone"
                 android:textColor="@color/white"
                 android:gravity="center" />
@@ -79,6 +81,7 @@
                 android:layout_marginStart="15dp"
                 android:layout_marginEnd="10dp"
                 android:text="00:00:00"
+                android:fontFamily="@font/mono_medium"
                 android:textColor="@color/white"
                 android:textSize="18sp" />
 
@@ -90,6 +93,7 @@
                 android:layout_height="40dp"
                 android:backgroundTint="@color/textBtnRed"
                 android:scaleType="center"
+                android:layout_gravity="center"
                 android:src="@drawable/baseline_stop_circle_24"
                 app:fabCustomSize="40dp"
                 app:shapeAppearanceOverlay="@style/CustomFABShape"

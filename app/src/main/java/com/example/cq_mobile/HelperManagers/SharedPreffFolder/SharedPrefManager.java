@@ -10,7 +10,11 @@ import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SharedPrefManager {
     private static final String PREF_NAME = "UserPreferences";
@@ -28,18 +32,20 @@ public class SharedPrefManager {
     private static final String KEY_ADDRESS = "address";
     private static final String KEY_LATITUDE = "latitude";
     private static final String KEY_LONGITUDE = "longitude";
-
     private static final String KEY_CHAT_CURRENTUSER_SEEN = "iscurrentuser_seen";
-
     private static final String KEY_COORDINATES_LIST = "coordinates_list";
-
     private static final String KEY_START_DATE = "start_date";
     private static final String KEY_STOP_DATE = "sop_date";
 
+
     private static final String KEY_JOBSTARTED = "job_started";
+
+    private static final String KEY_JOBS_IDS = "JOBS_IDS";
+    private static final String KEY_TASK_IDS_PREFIX = "TASK_IDS";
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+    private static SharedPrefManager instance;
 
     public SharedPrefManager(Context context) {
         sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -47,7 +53,12 @@ public class SharedPrefManager {
 
 
     }
-
+    public static synchronized SharedPrefManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new SharedPrefManager(context);
+        }
+        return instance;
+    }
 
     public void saveStartedJob(String jobstarted) {
         editor.putString(KEY_JOBSTARTED, jobstarted).apply();
@@ -74,6 +85,7 @@ public class SharedPrefManager {
         editor.putString(KEY_FIRST_NAME, firstname).apply();
         Log.w("SharedPrefManager", "KEY_FIRST_NAME   -->> Updated");
     }
+
     public void saveLastName(String lastname) {
         editor.putString(KEY_LAST_NAME, lastname).apply();
         Log.w("SharedPrefManager", "KEY_LAST_NAME   -->> Updated");
@@ -112,7 +124,6 @@ public class SharedPrefManager {
     }
 
 
-
     public void saveCoordinatesList(List<Taskmain.Coordinates> coordinatesList) {
         Gson gson = new Gson();
         String json = gson.toJson(coordinatesList);
@@ -125,7 +136,8 @@ public class SharedPrefManager {
         if (json == null) return new ArrayList<>();
 
         Gson gson = new Gson();
-        Type type = new TypeToken<List<Taskmain.Coordinates>>() {}.getType();
+        Type type = new TypeToken<List<Taskmain.Coordinates>>() {
+        }.getType();
         return gson.fromJson(json, type);
     }
 
@@ -167,7 +179,94 @@ public class SharedPrefManager {
                 return -1;
             }
         }
+
+
     }
+
+
+
+    /** ✅ Save Fresh Job IDs **/
+    public void saveJobIds(List<Integer> jobIdsList) {
+        Set<String> jobIds = new HashSet<>();
+        for (int jobId : jobIdsList) {
+            jobIds.add(String.valueOf(jobId));
+        }
+
+        // 🔹 Remove old job IDs before saving fresh ones
+        editor.remove(KEY_JOBS_IDS).apply();
+        editor.putStringSet(KEY_JOBS_IDS, jobIds).apply();
+
+        Log.w("SharedPrefManager", "Fresh Job IDs Saved: " + jobIds);
+    }
+
+    /** ✅ Get Saved Job IDs **/
+    public List<Integer> getJobIds() {
+        Set<String> jobIds = sharedPreferences.getStringSet(KEY_JOBS_IDS, new HashSet<>());
+        List<Integer> jobIdList = new ArrayList<>();
+        for (String id : jobIds) {
+            jobIdList.add(Integer.parseInt(id));
+        }
+        return jobIdList;
+    }
+
+    /** ✅ Save Fresh Task IDs Per Job **/
+    public void saveTaskIds(int jobId, List<Integer> taskIds) {
+        Set<String> newTaskIds = new HashSet<>();
+        for (int taskId : taskIds) {
+            newTaskIds.add(String.valueOf(taskId));
+        }
+
+        // 🔹 Remove old tasks for this job before saving new ones
+        editor.remove(KEY_TASK_IDS_PREFIX + jobId).apply();
+        editor.putStringSet(KEY_TASK_IDS_PREFIX + jobId, newTaskIds).apply();
+
+        Log.w("SharedPrefManager", "Saved Task IDs for Job ID " + jobId + ": " + newTaskIds);
+    }
+
+
+    /// -------->>GET
+
+
+    /** ✅ Get Task IDs for a Specific Job **/
+    public List<Integer> getTaskIds(int jobId) {
+        Set<String> taskIds = sharedPreferences.getStringSet(KEY_TASK_IDS_PREFIX + jobId, new HashSet<>());
+        List<Integer> taskIdList = new ArrayList<>();
+        for (String id : taskIds) {
+            taskIdList.add(Integer.parseInt(id));
+        }
+        return taskIdList;
+    }
+
+    /** ✅ Get All Job-Task Mappings **/
+    public Map<Integer, List<Integer>> getJobTaskMap() {
+        Map<Integer, List<Integer>> jobTaskMap = new HashMap<>();
+
+        for (String key : sharedPreferences.getAll().keySet()) {
+            if (key.startsWith(KEY_TASK_IDS_PREFIX)) {
+                Set<String> taskIds = sharedPreferences.getStringSet(key, new HashSet<>());
+
+                // ✅ Extract jobId safely
+                String jobIdStr = key.replace(KEY_TASK_IDS_PREFIX, "").trim();
+                if (jobIdStr.isEmpty()) {
+                    Log.e("SharedPrefManager", "Invalid Job ID key: " + key);
+                    continue; // ❌ Skip this entry if jobIdStr is empty
+                }
+
+                try {
+                    int jobId = Integer.parseInt(jobIdStr); // ✅ Safe parsing
+                    List<Integer> taskIdList = new ArrayList<>();
+                    for (String id : taskIds) {
+                        taskIdList.add(Integer.parseInt(id));
+                    }
+                    jobTaskMap.put(jobId, taskIdList);
+                } catch (NumberFormatException e) {
+                    Log.e("SharedPrefManager", "Error parsing Job ID: " + jobIdStr, e);
+                }
+            }
+        }
+        return jobTaskMap;
+    }
+
 
 
     public String getUserName() {
@@ -245,6 +344,16 @@ public class SharedPrefManager {
     }
 
 
+    /// -------->>CLEAR DATA
+
+    public void clearJobIds() {
+        editor.remove(KEY_JOBS_IDS).apply();
+        Log.w("SharedPrefManager", "All Task IDs Cleared");
+    }
+    public void clearTaskIds() {
+        editor.remove(KEY_TASK_IDS_PREFIX).apply();
+        Log.w("SharedPrefManager", "All Task IDs Cleared");
+    }
 
 
     public void clearStartJob() {

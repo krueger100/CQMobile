@@ -2,7 +2,9 @@ package com.example.cq_mobile.ui.chat.ChatNotif;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;public class NotificationAPIResponse {
+import java.util.List;
+
+public class NotificationAPIResponse {
     private boolean success;
     private String error_code;
     private String message;
