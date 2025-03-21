@@ -6,6 +6,7 @@ import android.util.Log;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FileItem;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FilesApi;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FilesResponse;
+import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -15,12 +16,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class FilesManager {
+public class FilesInnerTaskManager {
     private final String baseUrl;
     private final String apiKey;
     private final Context context;
-
-    public FilesManager(Context context, String baseUrl, String apiKey) {
+    public FilesInnerTaskManager(Context context, String baseUrl, String apiKey) {
         this.context = context;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
@@ -31,11 +31,13 @@ public class FilesManager {
         void onError(String errorMessage);
     }
 
-    public void loadFiles(int jobScheduleId, String taskId, int page, int pageSize, String accessToken, FilesCallback callback) {
-        String url = baseUrl + "/api/m/jobs/schedules/" + jobScheduleId + "/tasks/" + taskId + "/files?page=" + page + "&per_page=" + pageSize;
+    public void loadFiles(int jobId, int taskIds, int page, int pageSize, String accessToken, FilesCallback callback) {
 
-        // Debugging: Log the request URL
-        Log.d("FilesManager", "Loading files from URL: " + url);
+
+
+        String url = baseUrl + "/api/m/jobs/schedules/" + jobId + "/tasks/" + taskIds + "/files?page=" + page + "&per_page=" + pageSize;
+
+        Log.d("FilesInnerTaskManager", "Loading files from URL: " + url);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -48,17 +50,31 @@ public class FilesManager {
         call.enqueue(new Callback<FilesResponse>() {
             @Override
             public void onResponse(Call<FilesResponse> call, Response<FilesResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<FileItem> files = response.body().getData();
-                    callback.onFilesLoaded(files);
-                } else {
-                    String errorMessage = response.message() != null ? response.message() : "Unknown error";
-                    callback.onError(errorMessage);
+                try {
+                    if (response.isSuccessful() && response.body() != null) {
+                        Gson gson = new Gson();
+                        String jsonResponse = gson.toJson(response.body());
+
+                        Log.d("FilesInnerTaskManager", "Response Code: " + response.code());
+                        Log.d("FilesInnerTaskManager", "Response Message: " + response.message());
+                        Log.d("FilesInnerTaskManager", "Full Response: " + jsonResponse);
+
+                        List<FileItem> files = response.body().getData();
+                        callback.onFilesLoaded(files);
+                    } else {
+                        String errorMessage = response.message() != null ? response.message() : "Unknown error";
+                        Log.e("FilesInnerTaskManager", "Error: " + response.code() + " - " + errorMessage);
+                        callback.onError(errorMessage);
+                    }
+                } catch (Exception e) {
+                    Log.e("FilesInnerTaskManager", "Parsing Error: " + e.getMessage());
+                    callback.onError("Parsing error: " + e.getMessage());
                 }
             }
 
             @Override
             public void onFailure(Call<FilesResponse> call, Throwable t) {
+                Log.e("FilesInnerTaskManager", "Request Failed: " + t.getMessage());
                 callback.onError(t.getMessage());
             }
         });

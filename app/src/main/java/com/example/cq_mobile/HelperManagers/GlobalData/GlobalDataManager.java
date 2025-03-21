@@ -1,7 +1,7 @@
 package com.example.cq_mobile.HelperManagers.GlobalData;
 
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 

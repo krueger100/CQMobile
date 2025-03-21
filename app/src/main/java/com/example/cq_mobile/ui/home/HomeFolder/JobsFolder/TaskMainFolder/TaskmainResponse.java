@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder;
 
 public class TaskmainResponse {
     private Taskmain data;

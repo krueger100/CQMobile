@@ -22,7 +22,7 @@ import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationMana
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 
 import java.util.ArrayList;
 import java.util.List;

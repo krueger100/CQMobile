@@ -34,8 +34,8 @@ import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
 import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 

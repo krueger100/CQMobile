@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/btnContinue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Continue"
+        android:textColor="@color/white"
+        android:background="@drawable/map_button"
+       />
+
+    <TextView
+        android:id="@+id/btnClockOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/map_button"
+        android:textColor="@color/white"
+        android:text="Clock Out"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/btnStopJob"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/map_button"
+        android:text="Stop Job"
+        android:textColor="@color/white"
+        android:layout_marginTop="10dp"/>
+
+
+</LinearLayout>

@@ -7,8 +7,8 @@ import android.widget.ProgressBar;
 
 import com.example.cq_mobile.HelperManagers.IDSfolder.IDsManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,3 +85,66 @@ public class JobDetailsManager {
 }
 
 
+/*
+
+             JobDetailsManager.fetchJob_Details(accessToken, progressBar, this, new JobDetailsManager.JobDetailsCallback() {
+            @Override
+            public void onJobDetailsFetched() {
+                Log.d(TAG, "Job details successfully fetched!");
+
+                // ✅
+                SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getApplicationContext());
+                List<Integer> savedJobIdsList = sharedPrefManager.getJobIds();
+                Map<Integer, List<Integer>> jobTaskData = sharedPrefManager.getJobTaskMap();
+
+                if (savedJobIdsList == null || savedJobIdsList.isEmpty()) {
+                    Log.e(TAG, "Error: No saved job IDs found!");
+                    return; // ❌
+                }
+
+                String savedJobIds = TextUtils.join(",", savedJobIdsList);
+
+                // ✅
+                Set<String> jobScheduleIdSet = new HashSet<>(Arrays.asList(jobScheduleIdStr.split(",")));
+                List<String> savedJobIdList = Arrays.asList(savedJobIds.split(","));
+
+                String matchedJobId = savedJobIdList.stream()
+                        .filter(jobScheduleIdSet::contains)
+                        .findFirst()
+                        .orElse(null);
+
+                if (matchedJobId != null) {
+                    Log.d(TAG, "✅ Matched Job ID: " + matchedJobId);
+                } else {
+                    Log.e(TAG, "❌ No matching Job ID found!");
+                    return; // ❌
+                }
+
+                // ✅
+                int matchedJobIdInt = Integer.parseInt(matchedJobId);
+                List<Integer> matchedTaskIds  = jobTaskData.getOrDefault(matchedJobIdInt, new ArrayList<>());
+
+                Set<Integer> uniqueTaskIds = new LinkedHashSet<>(matchedTaskIds);
+                 taskIdsStr = TextUtils.join(",", uniqueTaskIds);
+                Log.d(TAG, "Matched Job ID: " + matchedJobIdInt + " -> Task IDs: " + taskIdsStr);
+
+                 currentID_url = baseUrl + "/api/m/jobs/schedules/" + jobScheduleIdStr + "/tasks/" + taskIdsStr + "/files?page=" + 1 + "&per_page=" + pageSize;
+
+                jobToTaskMap.clear();
+                jobToTaskMap.put(matchedJobIdInt, new HashSet<>(matchedTaskIds));
+
+
+
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error fetching job details: " + error);
+
+
+
+            }
+        });
+
+
+ */

@@ -12,6 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+
+
+
     <TextView
         android:id="@+id/task_back"
         android:layout_width="match_parent"
@@ -23,9 +26,30 @@
         android:textSize="16sp"
         android:textStyle="bold"
         app:drawableLeftCompat="@drawable/baseline_arrow_back_ios_24"
+        android:drawableTint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/include" />
+
+    <TextView
+        android:id="@+id/add_photo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        app:drawableLeftCompat="@drawable/baseline_camera_alt_24"
+        app:layout_constraintBottom_toBottomOf="@+id/task_back"
+        app:layout_constraintEnd_toStartOf="@+id/add_files"
+        app:layout_constraintTop_toTopOf="@+id/task_back" />
+
+    <TextView
+        android:id="@+id/add_files"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        app:drawableLeftCompat="@drawable/baseline_note_add_24"
+        app:layout_constraintBottom_toBottomOf="@+id/task_back"
+        app:layout_constraintEnd_toEndOf="@+id/task_back"
+        app:layout_constraintTop_toTopOf="@+id/task_back" />
 
     <TextView
         android:id="@+id/task_title"
@@ -61,7 +85,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="5dp"
         android:padding="5dp"
+        android:background="@drawable/background_white"
+        android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -88,35 +115,40 @@
     </HorizontalScrollView>
 
 
-    <TextView
-        android:id="@+id/checklist_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingStart="18dp"
-        android:text="Checklist:"
-        android:textAlignment="textStart"
-        android:textColor="@color/black"
-        android:textSize="12sp"
-        app:layout_constraintStart_toStartOf="@+id/h_scrollView"
-        app:layout_constraintTop_toBottomOf="@+id/h_scrollView" />
 
     <!-- ScrollView added around LinearLayout3 -->
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/checklist_text">
+        app:layout_constraintTop_toBottomOf="@+id/h_scrollView">
 
         <LinearLayout
             android:id="@+id/linearLayout3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/background_white"
+            android:elevation="5dp"
             android:orientation="vertical"
             android:padding="16dp">
+
+
+            <TextView
+                android:id="@+id/checklist_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Checklist:"
+                android:textAlignment="textStart"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="@+id/h_scrollView"
+                app:layout_constraintTop_toBottomOf="@+id/h_scrollView" />
 
             <!-- RecyclerView details -->
             <androidx.recyclerview.widget.RecyclerView
@@ -126,8 +158,38 @@
                 android:layout_marginTop="5dp"
                 android:layout_weight="1"
                 android:clipToPadding="false"
+                android:elevation="15dp"
                 android:padding="8dp"
-                android:scrollbars="vertical" />
+                android:scrollbars="vertical"
+                tools:ignore="SpeakableTextPresentCheck" />
+
+            <LinearLayout
+                android:id="@+id/emptyChecklist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="15dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/include">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/android12splash_orange" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:text="No checklist available"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
 
             <!-- Task details -->
 
@@ -135,14 +197,14 @@
                 android:id="@+id/priority_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Priority"
+                android:text="Priority:"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/priorityTextView"
                 android:layout_width="match_parent"
-                android:layout_height="45dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="15dp"
@@ -159,7 +221,8 @@
                 android:id="@+id/description_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Description"
+                android:layout_marginTop="10dp"
+                android:text="Description:"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
@@ -170,14 +233,18 @@
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
-                android:text="description"
+                android:background="@drawable/background_white"
+                android:elevation="5dp"
+                android:text="Loading.. ."
                 android:textSize="16sp" />
+
 
             <TextView
                 android:id="@+id/files_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Files"
+                android:layout_marginTop="10dp"
+                android:text="Files:"
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
@@ -188,7 +255,41 @@
                 android:layout_marginHorizontal="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
-                android:scrollbars="vertical" />
+                android:elevation="15dp"
+                android:scrollbars="vertical"
+                tools:ignore="SpeakableTextPresentCheck" />
+
+
+
+            <LinearLayout
+                android:id="@+id/emptyTask"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="5dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/recyclerview_files"
+                app:layout_constraintEnd_toEndOf="@+id/recyclerview_files"
+                app:layout_constraintStart_toStartOf="@+id/recyclerview_files"
+                app:layout_constraintTop_toTopOf="@+id/recyclerview_files">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:contentDescription="No tasks available"
+                    android:src="@drawable/android12splash_orange" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:text="No files available"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
 
             <TextView
                 android:id="@+id/statusTextView"
@@ -218,6 +319,18 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:elevation="18dp"
+        android:indeterminateTint="@color/cq_secondary_color"
+        app:layout_constraintBottom_toBottomOf="@+id/scrollView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/task_back" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

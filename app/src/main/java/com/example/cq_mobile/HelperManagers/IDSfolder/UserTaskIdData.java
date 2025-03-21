@@ -1,6 +1,6 @@
 package com.example.cq_mobile.HelperManagers.IDSfolder;
 
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 
 import java.util.List;

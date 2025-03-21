@@ -17,6 +17,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.ClockFolder.TimerUIManager;
+import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+
         // -->>> Check Network Status
         networkManager = new NetworkManager(this);
         if (!networkManager.isConnected()) {
@@ -72,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         boolean isClockedIn = sharedPreferences.getBoolean("ClockInSuccess", false);
         Log.d("MainActivity", "Clock In Status: " + isClockedIn);
 
+
+        sharedPreferences.edit().putBoolean("AddressDialogShown", false).apply();
 
         SharedPreferences userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String accessToken = userPrefs.getString("accessToken", null);
@@ -153,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
 
 
 
+
+
+
     }
 
     private void initializeApp(String currentUser_notification_token, int userId, String avatarUrl) {
@@ -171,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         String startDate = sharedPrefManager.getKeyStartDate();
 
         navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout,binding.progressBar,accessToken,jobId,taskId,startDate,userId);
-
 
         ClockOutManager clockOutManager = new ClockOutManager(this,  binding.progressBar,  jobId,  taskId,  userId,  startDate);
         clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId);
@@ -272,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
             }
         }
     }
+
 
 
 

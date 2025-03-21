@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks;
 
 import com.google.gson.annotations.SerializedName;
 

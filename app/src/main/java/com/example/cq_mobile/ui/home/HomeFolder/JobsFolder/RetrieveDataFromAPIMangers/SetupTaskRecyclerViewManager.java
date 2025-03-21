@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.RetrieveDataFromAPIMangers;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuildApiManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTaskAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuildApiManager;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTaskAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +35,15 @@ public class SetupTaskRecyclerViewManager {
     boolean isChecked;
     String accessToken;
  String taskId;
+    String taskID;
     ProgressBar progressbar;
     TextView progress_text;
-    public SetupTaskRecyclerViewManager(Context context, RecyclerView recyclerView, ProgressBar progressbar, TextView progress_text) {
+    public SetupTaskRecyclerViewManager(Context context, RecyclerView recyclerView, ProgressBar progressbar, TextView progress_text, String taskID) {
         this.context = context;
         this.recyclerView = recyclerView;
         this.progressbar = progressbar;
         this.progress_text = progress_text;
+        this.taskID = taskID;
     }
 
     public void setupRecyclerView(String jobId, boolean isChecked, String accessToken, String taskId) {
@@ -49,11 +51,13 @@ public class SetupTaskRecyclerViewManager {
         this.isChecked = isChecked;
         this.accessToken = accessToken;
         this.taskId = taskId;
-        //
-        // Set up RecyclerView
+
+        Log.w("SubTaskAdapter", "taskId -> " + taskId);
+        Log.w("SubTaskAdapter", "taskId -->>" + taskID);
+
         layoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(layoutManager);
-        subTaskAdapter = new SubTaskAdapter(subTaskList, context, jobId,isChecked,accessToken,taskId);
+        subTaskAdapter = new SubTaskAdapter(subTaskList, context, jobId,isChecked,accessToken,taskId,progressbar);
         recyclerView.setAdapter(subTaskAdapter);
         Log.d("checkBoxData", "isChecked From SetupTaskRecyclerViewManager: " + isChecked);
         // Fetch the first page of data
@@ -73,7 +77,6 @@ public class SetupTaskRecyclerViewManager {
             }
         });
     }
-
 
     private void fetchPage(int page) {
         isLoading = true;

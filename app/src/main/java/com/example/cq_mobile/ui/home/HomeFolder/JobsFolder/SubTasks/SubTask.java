@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks;
 
 
 public class SubTask {

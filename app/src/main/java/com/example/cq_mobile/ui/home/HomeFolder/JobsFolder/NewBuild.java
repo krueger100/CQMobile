@@ -1,6 +1,7 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -29,8 +31,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
-import com.example.cq_mobile.Clock.StartAndStopJobsFolder.jobEventCheckerFolder.JobEventCallback;
-import com.example.cq_mobile.Clock.StartAndStopJobsFolder.jobEventCheckerFolder.JobEventChecker;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
@@ -45,10 +45,10 @@ import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.RetrieveDataFromAPIMangers.SetupTaskRecyclerViewManager;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SetupMainTaskSpinnerAdapter;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.RetrieveDataFromAPIMangers.SetupTaskRecyclerViewManager;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SpinnerFolder.SetupMainTaskSpinnerAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFolder.NotesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
@@ -115,13 +115,28 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     ProgressBar progressbar;
     Double latOut;
     Double longOut;
-    String jobTitle;
+    String jobTitle,jobTitleMessage;
 
     private WeakReference<Activity> activityRef;
 
     private Double lat = null;
     private Double lon = null;
     private View view;
+    @SuppressLint("SetTextI18n")
+
+
+    /*
+    1. When clock in and clock out
+    > Create a timesheet before clock out.
+        Endpoint: api/m/time-sheet/store/colleague/{user_id}
+
+
+    2. When clock in and start a job, then clock out.
+    > Create timesheet for the job when you stop it
+        Endpoint: api/m/time-sheet/store/{job_id}
+    > Create a timesheet before clock out.
+        Endpoint: api/m/time-sheet/store/colleague/{user_id}
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,10 +151,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         Log.d(TAG, "Task ID: <-" + taskId);
         Log.d(TAG, "Job ID: <-" + jobId);
-
-
-
-
 
          accessToken = sharedPrefManager.getAccessToken();
          userId = sharedPrefManager.getUserId();
@@ -185,13 +196,19 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         }else {
                recreate();
         }
-        routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
+       routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
+
+        String jobTitle_started = sharedPrefManager.getStartJob();
+        String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
+        start_job.setText(jobTitle_started_message);
+        if (jobTitle_started_message == null || jobTitle_started_message.trim().isEmpty()) {
+            start_job.setText("Start Job");
+        } else {
+            start_job.setText("Job Started: " + jobTitle_started);
+        }
 
         start_job.setEnabled(false);
         start_job.setAlpha(0.5f);
-
-
-
 
         fetchData();
 
@@ -355,10 +372,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                         }
                     }
 
-                    // Setup RecyclerView **once**, not inside the loop
-                    setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view,progressbar,progress_text);
+                    Log.w("SubTaskAdapter", "taskId <- -> " + taskId);
+                    setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view,progressbar,progress_text,taskId);
                     setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
-
                     progress_circular_2.setVisibility(View.GONE);
                 });
             }
@@ -434,9 +450,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     taskLatLng = new LatLng(lat, lon);
                     Log.d("enableUserLocation", "First saved coordinate: Lat=" + firstCoordinate.getLatitude() + ", Lon=" + firstCoordinate.getLongitude());
                     start_jobBranch(lat, lon);
-                    checkStartedJob(lat, lon);
+                 //   checkStartedJob(lat, lon);
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        checkStartedJob(lat, lon);
+                    //    checkStartedJob(lat, lon);
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         start_jobBranch(lat, lon);
@@ -448,14 +464,13 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 } else {
                     Log.e("enableUserLocation", "No valid coordinates found. lat=" + lat + ", lon=" + lon);
 
-
                     if (!coordinatesList.isEmpty()) {
                         Taskmain.Coordinates firstCoordinate = coordinatesList.get(0);
                         taskLatLng = new LatLng(firstCoordinate.getLatitude(), firstCoordinate.getLongitude());
                     } else {
                         Log.e("enableUserLocation", "No saved coordinates found.");
                     }
-
+                    return;
                 }
 
 
@@ -493,6 +508,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     }
 
     private void start_jobBranch(double latitude, double longitude) {
+
         start_job.setEnabled(true);
         start_job.setAlpha(1.0f);
 
@@ -530,11 +546,12 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                         Log.d("StartJob", "Success: " + success);
                         Log.d("StartJob", "Server Message: " + serverMessage);
 
-
                         runOnUiThread(() -> {
                             progress_circular.setVisibility(View.GONE);
                             start_job.setText(serverMessage);
+                            sharedPrefManager.saveStartedJobMessage(serverMessage);
                             showAlertDialog(NewBuild.this, success, serverMessage, accessToken, userId, progress_circular, startJob, jobId, taskId);
+
                         });
 
 
@@ -581,20 +598,18 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                 if (job != null) {
                                     String jobTitle = job.getTitle();
                                     int jobStatus = job.getJob_status();
-
+                                    sharedPrefManager.saveStartedJob(jobTitle);
                                     Log.d("StartJob", "Job Title: " + jobTitle);
                                     Log.d("StartJob", "Job Status: " + jobStatus);
 
                                 }
 
+
+
                             }
 
 
                         }
-                        runOnUiThread(() -> {
-                            showAlertDialog(NewBuild.this, success, serverMessage, accessToken,  userId, progress_circular, startJob, jobId, taskId);
-
-                        });
 
 
                     }
@@ -607,32 +622,14 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
 
                 });
+
+
+
             }
         });
 
     }
 
-    private void checkStartedJob(Double latitude, Double longitude) {
-       int tasK_id = Integer.parseInt(taskId);
-        JobEventChecker jobEventChecker = new JobEventChecker(email, password, accessToken, userId, tasK_id, progress_circular, start_job,
-                new JobEventCallback() {
-                    @Override
-                    public void onSuccess(String response) {
-                        Log.d("JobEvent", "Job started successfully: " + response);
-
-                    }
-
-                    @Override
-                    public void onFailure(String error) {
-                        Log.e("JobEvent", "Job start failed: " + error);
-                        // Handle UI errors
-                    }
-                }
-        );
-
-        jobEventChecker.checkStartedJob(latitude, longitude);
-
-    }
 
 
     @Override
@@ -663,8 +660,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     intent.putExtra("task_id", taskId);
                     startActivity(intent);
                 }
-
-
             }
         });
 
@@ -710,45 +705,59 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         TimerManager timerManager = TimerManager.getInstance(NewBuild.this, startJob);
         timerManager.resetTimer(NewBuild.this);
         sharedPrefManager.saveStartedJob(jobTitle);
-        new AlertDialog.Builder(newBuild)
+
+        LayoutInflater inflater = LayoutInflater.from(newBuild);
+        View dialogView = inflater.inflate(R.layout.dialog_start_jobs, null);
+
+        AlertDialog dialog = new AlertDialog.Builder(newBuild)
                 .setTitle(serverMessage)
                 .setMessage("Choose from the options")
-                .setPositiveButton("Clock out", (dialog, which) -> {
-                    // Auto Clock Out on OK
-                    ClockOutManager clockOutManager = new ClockOutManager(newBuild, progress_circular, Integer.parseInt(jobId), Integer.parseInt(taskId), userId, startJob);
-                    clockOutManager.AutoClockOutandLogout(accessToken, Integer.parseInt(jobId),Integer.parseInt(taskId),startJob);
-                })
-                .setNegativeButton("Stop job", (dialog, which) -> {
-                    StopJobApiManager.stopJob(accessToken, userId, progress_circular, new StopJobApiManager.ApiCallback() {
-                        @Override
-                        public void onSuccess(String message) {
-                            runOnUiThread(() -> {
-                                new AlertDialog.Builder(newBuild)
-                                        .setTitle(serverMessage)
-                                        .setMessage("Job stopped successfully.")
-                                        .setPositiveButton("OK", (dialog2, which2) -> {
-                                            SharedPrefManager sharedPrefManager = new SharedPrefManager(newBuild);
-                                            sharedPrefManager.clearStartJob();
-                                            dialog2.dismiss();
-                                        })
-                                        .show();
-                                dialog.dismiss();
-                            });
-                        }
+                .setView(dialogView)
+                .create();
 
+        TextView btnClockOut = dialogView.findViewById(R.id.btnClockOut);
+        TextView btnStopJob = dialogView.findViewById(R.id.btnStopJob);
+        TextView btnContinue = dialogView.findViewById(R.id.btnContinue);
 
-                        @Override
-                        public void onFailure(String error) {
-                            Log.e("StartJob", "Failed to stop job: " + error);
-                            runOnUiThread(() -> {
-                                Toast.makeText(newBuild, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show();
-                            });
+        btnClockOut.setOnClickListener(v -> {
+            ClockOutManager clockOutManager = new ClockOutManager(newBuild, progress_circular, Integer.parseInt(jobId), Integer.parseInt(taskId), userId, startJob);
+            clockOutManager.AutoClockOutandLogout(accessToken, Integer.parseInt(jobId), Integer.parseInt(taskId), startJob);
+            dialog.dismiss();
+        });
 
-                            }
+        btnStopJob.setOnClickListener(v -> {
+            StopJobApiManager.stopJob(accessToken, userId, progress_circular, new StopJobApiManager.ApiCallback() {
+                @Override
+                public void onSuccess(String message) {
+                    runOnUiThread(() -> {
+                        new AlertDialog.Builder(newBuild)
+                                .setTitle(serverMessage)
+                                .setMessage("Job stopped successfully.")
+                                .setPositiveButton("OK", (dialog2, which2) -> {
+                                    SharedPrefManager sharedPrefManager = new SharedPrefManager(newBuild);
+                                    sharedPrefManager.clearStartJob();
+                                    sharedPrefManager.clearStartJobMessage();
+                                    dialog2.dismiss();
+                                })
+                                .show();
+                        dialog.dismiss();
                     });
-                })
-                .setNeutralButton("Continue", (dialog, which) -> dialog.dismiss()) //
-                .show();
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Log.e("StartJob", "Failed to stop job: " + error);
+                    runOnUiThread(() -> {
+                        Toast.makeText(newBuild, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            });
+        });
+
+        btnContinue.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+
 
     }
 

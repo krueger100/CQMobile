@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -28,19 +27,16 @@ import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForTask;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav;
-import com.example.cq_mobile.HelperManagers.IDSfolder.IDsManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks.SubTask;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
-import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.JobDetailsManagerFolder.JobDetailsManager;
-import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateAddFilesApiManager;
+
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateAddJobFilesApiManager;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,13 +63,13 @@ public class FilesActivity extends AppCompatActivity {
     private int jobScheduleId, taskId;
     private String accessToken, jobId;
     private NavigationManagerForTask navigationManager;
-    private int lastLoadedPage = -1; // Track last loaded page
+    private int lastLoadedPage = -1;
     private static final String TAG = "FilesActivity";
     ProgressBar progressBar;
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<Intent> filePickerLauncher, cameraLauncher;
-    String savedJobIds;
-    String taskIds;
+    private Map<Integer, Set<Integer>> jobToTaskMap = new HashMap<>();
+    String jobScheduleIdStr,taskIdStr;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,14 +77,13 @@ public class FilesActivity extends AppCompatActivity {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         Intent intent = getIntent();
-        String jobScheduleIdStr = intent.getStringExtra("job_id");
-        String taskIdStr = intent.getStringExtra("task_id");
+         jobScheduleIdStr = intent.getStringExtra("job_id");
+        taskIdStr = intent.getStringExtra("task_id");
 
         accessToken = sharedPrefManager.getAccessToken();
         jobScheduleId = (jobScheduleIdStr != null && !jobScheduleIdStr.isEmpty()) ? Integer.parseInt(jobScheduleIdStr) : sharedPrefManager.getJobId();
         jobId = String.valueOf(jobScheduleId);
         taskId = (sharedPrefManager.getTaskId());
-
         progressBar = findViewById(R.id.progressBar);
 
         initActivityResultLaunchers();
@@ -96,21 +91,6 @@ public class FilesActivity extends AppCompatActivity {
         setupNavigation();
         setupRecyclerView();
         loadFiles(currentPage, accessToken);
-
-
-        JobDetailsManager.fetchJob_Details(accessToken, progressBar, this, new JobDetailsManager.JobDetailsCallback() {
-            @Override
-            public void onJobDetailsFetched() {
-                Log.d(TAG, "Job details successfully fetched!");
-
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "Error fetching job details: " + error);
-            }
-        });
-
 
 
     }
@@ -270,15 +250,15 @@ public class FilesActivity extends AppCompatActivity {
         filePickerLauncher.launch(intent);
     }
 
+
     private void showUploadDialog(File file) {
         Dialog progressDialog = new Dialog(this);
         progressDialog.setContentView(R.layout.dialog_progress);
         progressDialog.setCancelable(false);
         progressDialog.show();
-        new Thread(() -> {
-            boolean success = UpdateAddFilesApiManager.uploadTaskFiles(
-                    accessToken, jobId,taskIds, new File[]{file}, apiKey
-            );
+
+        new Thread(() -> {boolean success = UpdateAddJobFilesApiManager.uploadTaskFiles(accessToken, jobScheduleIdStr, Integer.parseInt(taskIdStr), file, apiKey);
+
             runOnUiThread(() -> {
                 progressDialog.dismiss();
                 Toast.makeText(this, success ? "File uploaded successfully" : "File upload failed", Toast.LENGTH_SHORT).show();
@@ -292,44 +272,12 @@ public class FilesActivity extends AppCompatActivity {
         isLoading = true;
         lastLoadedPage = page;
 
-        SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(this);
-        List<Integer> savedJobIdsList = sharedPrefManager.getJobIds();
-        Map<Integer, List<Integer>> jobTaskMap = sharedPrefManager.getJobTaskMap();
+        String url = "https://cqbms.app/api/m/jobs/schedules/" + jobScheduleIdStr + "/files?page=" + page + "&per_page=" + pageSize + "&type=files";
 
-        if (savedJobIdsList == null || savedJobIdsList.isEmpty()) {
-            Log.e(TAG, "Error: No saved job IDs found!");
-            isLoading = false;
-            return; // ❌ Stop execution
-        }
-
-        // Convert Job IDs to a comma-separated string
-         savedJobIds = TextUtils.join(",", savedJobIdsList);
-
-        // Collect all task IDs from all jobs
-        Set<Integer> allTaskIdsSet = new HashSet<>();
-        for (int jobId : savedJobIdsList) {
-            List<Integer> taskIds = jobTaskMap.get(jobId);
-            if (taskIds != null) {
-                allTaskIdsSet.addAll(taskIds);
-            }
-        }
-
-        if (allTaskIdsSet.isEmpty()) {
-            Log.e(TAG, "Error: No task IDs found for jobs: " + savedJobIds);
-            isLoading = false;
-            return; // ❌ Stop execution
-        }
-
-        // Convert Task IDs to a comma-separated string
-         taskIds = TextUtils.join(",", allTaskIdsSet);
-
-        String url = baseUrl + "/api/m/jobs/schedules/" + savedJobIds + "/tasks/" + taskIds + "/files?page=" + page + "&per_page=" + pageSize;
-
-        // ✅ Debugging: Log the correct request URL
-        Log.d(TAG, "Loading files from URL: " + url);
+        Log.w(TAG, "Loading files from URL: -> " + url);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(baseUrl)
+                .baseUrl("https://cqbms.app/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -343,6 +291,8 @@ public class FilesActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     List<FileItem> newFiles = response.body().getData();
                     Log.d(TAG, "Files loaded successfully.");
+
+                    progressBar.setVisibility(View.GONE);
                     if (page == 1) {
                         filesAdapter.setData(newFiles);
                     } else {
@@ -369,6 +319,7 @@ public class FilesActivity extends AppCompatActivity {
     }
 
 
+
     private void refreshFileList() {
         currentPage = 1; // Reset pagination
         filesList.clear(); // Clear the list
@@ -386,11 +337,6 @@ public class FilesActivity extends AppCompatActivity {
 
 
 }
-/*
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-            filesAdapter.notifyDataSetChanged();
-                    Intent filesActivityIntent = new Intent(FilesActivity.this, FilesActivity.class);
-                    startActivity(filesActivityIntent);
- */
+
+

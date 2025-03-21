@@ -24,6 +24,7 @@
         android:visibility="gone"
         android:textColor="@color/black"
         app:drawableLeftCompat="@drawable/baseline_arrow_back_ios_24"
+        android:drawableTint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/fragment_container" />
@@ -49,6 +50,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             app:drawableLeftCompat="@drawable/baseline_arrow_back_ios_24"
+            android:drawableTint="@color/black"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

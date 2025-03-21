@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SubTasks;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -21,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder.SubTaskSpinnerAdapter;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
 
 
@@ -40,15 +40,17 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
     String accessToken;
     String taskId;
     String taskStatus;
-
-    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId, boolean isChecked, String accessToken, String taskId) {
+    ProgressBar progressbar;
+    public SubTaskAdapter(List<SubTask> secondaryDataList, Context context, String jobId, boolean isChecked, String accessToken, String taskId, ProgressBar progressbar) {
         this.context = context;
         this.jobId = jobId;
         this.accessToken = accessToken;
         this.isChecked = isChecked;
         this.taskId = taskId;
+        this.progressbar = progressbar;
+
         this.secondaryDataList = secondaryDataList != null ? secondaryDataList : new ArrayList<>();
-        initializeTaskIdList(); // Initialize taskId list
+        initializeTaskIdList();
     }
 
     // Initialize the taskIdList during adapter creation
@@ -93,7 +95,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                 taskIdList.add(taskId.toString());
             }
 
-            Log.d("taskId", "taskId " + taskId);
+            Log.w("SubTaskAdapter", "taskId <- " + taskId);
 
             SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(context);
             sharedPrefTaskADandJobID.saveUserjobANDtaskID(String.valueOf(taskId));
@@ -137,6 +139,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             Log.d("SubTaskAdapterManagerrSharedPreff", "Last Name: " + lastName);
             Log.d("SubTaskAdapterManagerrSharedPreff", "Email: " + email);
 
+            Log.d("SubTaskAdapter", "Task ID" + taskId);
 
             // Handle task status and spinner setup
              taskStatus = task.getStatus();
@@ -206,8 +209,8 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                 public void onClick(View v) {
                     if (taskId != null) { // Ensure taskId is not null
                         Intent intent = new Intent(context, TaskActivity.class);
-                        intent.putExtra("jobId", jobId); // Pass jobId as a string
-                        intent.putExtra("taskId", taskId); // Pass taskId as an integer
+                        intent.putExtra("jobId", jobId);
+                        intent.putExtra("taskId", taskId);
                         intent.putExtra("title", title);
                         intent.putExtra("description", description);
                         context.startActivity(intent);

@@ -154,7 +154,7 @@ public class ClockOutManager {
         sharedPrefManager.clearEmail();
         sharedPrefManager.clearPassword();
         sharedPrefManager.clearStartJob();
-
+        sharedPrefManager.clearStartJobMessage();
     }
 
     ///ClockOut Without Logout

@@ -96,5 +96,26 @@ public class JobEventChecker {
 
 }
 
+/*
+    private void checkStartedJob(Double latitude, Double longitude) {
+        int tasK_id = Integer.parseInt(taskId);
+        JobEventChecker jobEventChecker = new JobEventChecker(email, password, accessToken, userId, tasK_id, progress_circular, start_job,
+                new JobEventCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                        Log.d("JobEvent", "Job Response: " + response);
+                    }
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("JobEvent", "Job start failed: " + error);
+                        // Handle UI errors
+                    }
+                }
+        );
 
+        jobEventChecker.checkStartedJob(latitude, longitude);
+
+    }
+
+ */
 

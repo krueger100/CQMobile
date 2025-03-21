@@ -8,11 +8,10 @@ import androidx.fragment.app.Fragment;
 
 import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.ui.chat.ChatFragment;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFragment;
 import com.example.cq_mobile.ui.home.myJobsFolder.myJobs;
 import com.example.cq_mobile.ui.map.MapFragment;
-import com.example.cq_mobile.ui.MoreInFragment.MoreFragment;
 import com.example.cq_mobile.ui.ticket.TicketFragment;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 

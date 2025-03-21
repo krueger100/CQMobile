@@ -18,8 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.NewBuild;
-import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 
 import java.util.List;
 

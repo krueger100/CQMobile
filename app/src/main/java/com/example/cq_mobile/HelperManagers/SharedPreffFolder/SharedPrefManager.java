@@ -2,9 +2,10 @@ package com.example.cq_mobile.HelperManagers.SharedPreffFolder;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.TaskMainFolder.Taskmain;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
@@ -39,6 +40,7 @@ public class SharedPrefManager {
 
 
     private static final String KEY_JOBSTARTED = "job_started";
+    private static final String KEY_JOBSTARTED_MESSAGE = "job_started_message";
 
     private static final String KEY_JOBS_IDS = "JOBS_IDS";
     private static final String KEY_TASK_IDS_PREFIX = "TASK_IDS";
@@ -63,6 +65,10 @@ public class SharedPrefManager {
     public void saveStartedJob(String jobstarted) {
         editor.putString(KEY_JOBSTARTED, jobstarted).apply();
         Log.w("SharedPrefManager", "KEY_JOBSTARTED   -->> Updated");
+    }
+    public void saveStartedJobMessage(String jobstarted_message) {
+        editor.putString(KEY_JOBSTARTED_MESSAGE, jobstarted_message).apply();
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED_MESSAGE   -->> Updated");
     }
 
     // Save methods
@@ -227,7 +233,9 @@ public class SharedPrefManager {
     /// -------->>GET
 
 
-    /** ✅ Get Task IDs for a Specific Job **/
+    /**
+     * ✅ Get Task IDs for a Specific Job
+     **/
     public List<Integer> getTaskIds(int jobId) {
         Set<String> taskIds = sharedPreferences.getStringSet(KEY_TASK_IDS_PREFIX + jobId, new HashSet<>());
         List<Integer> taskIdList = new ArrayList<>();
@@ -236,6 +244,19 @@ public class SharedPrefManager {
         }
         return taskIdList;
     }
+
+
+    public String getTaskIdsAsString(int jobId) {
+        Set<String> taskIds = sharedPreferences.getStringSet(KEY_TASK_IDS_PREFIX + jobId, new HashSet<>());
+        List<String> taskIdList = new ArrayList<>();
+
+        for (String id : taskIds) {
+            taskIdList.add(id);
+        }
+
+        return TextUtils.join(",", taskIdList);
+    }
+
 
     /** ✅ Get All Job-Task Mappings **/
     public Map<Integer, List<Integer>> getJobTaskMap() {
@@ -334,7 +355,9 @@ public class SharedPrefManager {
     public String getStartJob() {
         return sharedPreferences.getString(KEY_JOBSTARTED, null);
     }
-
+    public String getStartJobMessage() {
+        return sharedPreferences.getString(KEY_JOBSTARTED_MESSAGE, null);
+    }
     public SharedPreferences getSharedPreferences() {
         return sharedPreferences;
     }
@@ -355,12 +378,17 @@ public class SharedPrefManager {
         Log.w("SharedPrefManager", "All Task IDs Cleared");
     }
 
-
     public void clearStartJob() {
         editor.remove(KEY_JOBSTARTED).apply();
         Log.w("SharedPrefManager", "All KEY_JOBSTARTED data cleared!");
     }
+    public void clearStartJobMessage() {
+        editor.remove(KEY_JOBSTARTED_MESSAGE).apply();
+        Log.w("SharedPrefManager", "All KEY_JOBSTARTED_MESSAGE data cleared!");
+    }
+
     // Clear all Chat notif
+
     public void clearCurrentUserChat() {
         editor.remove(KEY_CHAT_CURRENTUSER_SEEN).apply();
         Log.w("SharedPrefManager", "All Chat notification data cleared!");

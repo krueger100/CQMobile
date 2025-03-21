@@ -79,7 +79,7 @@
             android:hardwareAccelerated="true"
             android:theme="@style/SplashTheme" />
 
-        <activity android:name=".ui.home.HomeFolder.NewBuildFolder.NewBuild"
+        <activity android:name=".ui.home.HomeFolder.JobsFolder.NewBuild"
             android:exported="true"
             android:label="@string/app_name"
             android:hardwareAccelerated="true"

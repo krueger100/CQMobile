@@ -37,7 +37,6 @@ public class StartJobAPIManager {
         void onError(String error);
     }
 
-    // Method to get the access token
     public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
         AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
         Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
@@ -65,7 +64,6 @@ public class StartJobAPIManager {
         });
     }
 
-    // Start job with token
     public void startJobWithToken(int userId, String jobId, double latitude, double longitude, AccessTokenRequest tokenRequest, ApiCallback callback) {
         getAccessToken(tokenRequest, new AccessTokenCallback() {
             @Override
@@ -80,7 +78,6 @@ public class StartJobAPIManager {
         });
     }
 
-    // Start job execution
     public static void startJob(int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(new ApiStartJobTask(userId, jobId, latitude, longitude, accessToken, callback));
@@ -140,7 +137,7 @@ public class StartJobAPIManager {
                     .build();
 
             RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
-            String url = baseUrl + endpoint + "/" + userId; // Corrected URL format
+            String url = baseUrl + endpoint + "/" + userId;
 
             Request request = new Request.Builder()
                     .url(url)

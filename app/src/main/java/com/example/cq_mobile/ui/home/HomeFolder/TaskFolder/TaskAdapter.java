@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -33,7 +34,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     String accessToken;
     String jobId;
     int taskId;
-    public TaskAdapter(Context context, List<String> taskList, List<String> checked_List, List<String> checked_Id, String accessToken, String jobId, int taskId) {
+    public TaskAdapter(Context context, List<String> taskList, List<String> checked_List, List<String> checked_Id, String accessToken, String jobId, int taskId ) {
         this.context = context;
         this.taskList = taskList;
         this.checked_List = checked_List;
@@ -96,6 +97,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                                             ", checked: " + updatedTask.getData().getChecked());
                         } else {
                             Log.e("TaskData&Checklist", "Response Error: " + response.code() + ", " + response.message());
+
                         }
                     }
 

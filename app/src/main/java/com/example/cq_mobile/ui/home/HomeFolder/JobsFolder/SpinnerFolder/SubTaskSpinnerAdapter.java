@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder.SpinnerFolder;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SpinnerFolder;
 
 import android.content.Context;
 import android.text.TextUtils;

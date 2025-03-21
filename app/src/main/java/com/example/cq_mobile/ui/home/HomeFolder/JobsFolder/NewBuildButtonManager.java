@@ -1,4 +1,4 @@
-package com.example.cq_mobile.ui.home.HomeFolder.NewBuildFolder;
+package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder;
 
 import android.view.View;
 import android.widget.LinearLayout;
