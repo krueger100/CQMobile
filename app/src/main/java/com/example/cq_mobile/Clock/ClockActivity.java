@@ -499,8 +499,9 @@ public class ClockActivity extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
 
                     // Logout user
-                    LogoutManager.logoutUser(getApplicationContext());
-
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(getApplicationContext());
+                    }, 3000);
 
                     // Delay dismissing the dialog
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {

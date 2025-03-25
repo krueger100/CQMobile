@@ -1,13 +1,17 @@
 package com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.ProgressBar;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 
 
@@ -32,7 +36,10 @@ public class TimerManager {
         void onTimerUpdate(String time);
     }
 
-    public TimerManager() {}
+    public TimerManager() {
+
+
+    }
 
     public static synchronized TimerManager getInstance(Context context, String startDate) {
         if (instance == null) {
@@ -61,6 +68,10 @@ public class TimerManager {
         String stopTime = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH).format(new Date());
         sharedPrefManager.saveClockinStopDate(stopTime);
         Log.d(TAG, "Stop time saved: " + stopTime);
+
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            LogoutManager.logoutUser(context);
+        }, 3000);
 
     }
 
@@ -138,7 +149,33 @@ public class TimerManager {
         Log.d(TAG, "Timer resumed from saved state: " + formatTime(seconds));
     }
 
-    // 🔹 Helper method to format time properly
+    public void stopTimerWithTimeSheet(Context context) {
+        running = false;
+        Log.d(TAG, "Timer stopped.");
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            startTimer();
+        }, 2000);
+
+    }
+
+    public void resetTimerTimeSheet(Context context) {
+        stopTimerWithTimeSheet(context);
+        seconds = 0;
+        startTimeMillis = 0;
+
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove(KEY_SAVED_TIME);
+        editor.remove(KEY_LAST_TIMESTAMP);
+        editor.apply();
+
+        if (listener != null) {
+            listener.onTimerUpdate(formatTime(seconds));
+        }
+        Log.d(TAG, "Timer reset and data wiped.");
+    }
+
+
     private String formatTime(int totalSeconds) {
         int hrs = totalSeconds / 3600;
         int mins = (totalSeconds % 3600) / 60;

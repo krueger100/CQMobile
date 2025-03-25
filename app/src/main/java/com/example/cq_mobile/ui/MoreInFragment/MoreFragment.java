@@ -1,6 +1,5 @@
 package com.example.cq_mobile.ui.MoreInFragment;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,28 +9,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
-import com.example.cq_mobile.LogoutFolder.LogoutNotificationManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.MoreActivityFolder.AccountSettingManager;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.databinding.BottomSheetAccountSettingBinding;
 import com.example.cq_mobile.databinding.FragmentMoreBinding;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-
-import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class MoreFragment extends Fragment {
@@ -115,10 +107,29 @@ public class MoreFragment extends Fragment {
                 ClickAnimationManager.applyClickAnimation(v);
                 Log.d("MoreFragment", "Notification token deleted successfully.");
                 binding.progressBar.setVisibility(View.VISIBLE);
-
+                SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
                 ClockOutManager clockOutManager = new ClockOutManager(context, binding.progressBar, jobId, taskId, userId, startDate);
-                clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
-                LogoutManager.logoutUser(requireContext());
+
+                String jobTitle = sharedPrefManager.getStartJob();
+                Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
+
+                if (jobTitle != null && !jobTitle.trim().isEmpty()) {
+                    clockOutManager.setupClockOutWithTimeSheet(binding.logoutButton, accessToken, jobId,taskId,sharedPrefManager,binding.progressBar);
+
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(context);
+                    }, 3000);
+                    Log.d("TimeSheetManager", "AutoClockOutWithTimeSheets: ");
+
+                }else {
+                    clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(context);
+                    }, 3000);
+                    Log.d("TimeSheetManager", "AutoClockOutandLogout: ");
+
+                }
+
             }
         });
 

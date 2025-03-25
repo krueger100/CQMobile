@@ -5,7 +5,10 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -16,6 +19,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
@@ -35,7 +39,8 @@ public class NavigationManager {
     int userId;
     String startDate;
     ProgressBar progressBar;
-    public NavigationManager(AppCompatActivity activity, BottomNavigationView navView, NavigationView navViewDrawer, DrawerLayout drawerLayout, ProgressBar progressBar, String accessToken, int jobId, int taskId, String startDate, int userId) {
+    TextView clockoutBtn;
+    public NavigationManager(AppCompatActivity activity, TextView clockoutBtn, BottomNavigationView navView, NavigationView navViewDrawer, DrawerLayout drawerLayout, ProgressBar progressBar, String accessToken, int jobId, int taskId, String startDate, int userId) {
         this.activity = activity;
         this.navView = navView;
         this.navViewDrawer = navViewDrawer;
@@ -47,6 +52,7 @@ public class NavigationManager {
         this.taskId = taskId;
         this.startDate = startDate;
         this.userId = userId;
+        this.clockoutBtn = clockoutBtn;
     }
 
     public void setupNavigation() {
@@ -109,13 +115,33 @@ public class NavigationManager {
 
             } else if (id == R.id.nav_item_three) {
                 // Handle logout using LogoutManager
+                SharedPrefManager sharedPrefManager = new SharedPrefManager(activity);
                 ClockOutManager clockOutManager = new ClockOutManager(activity, progressBar, jobId, taskId, userId, startDate);
-                clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    LogoutManager.logoutUser(activity);
-                }, 3000);
 
-            } else {
+
+
+                String jobTitle = sharedPrefManager.getStartJob();
+                Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
+                if (jobTitle != null && !jobTitle.trim().isEmpty()) {
+                    clockOutManager.setupClockOutWithTimeSheet(clockoutBtn, accessToken, jobId,taskId,sharedPrefManager,progressBar);
+
+
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(activity);
+                    }, 3000);
+
+                    Log.d("TimeSheetManager", "AutoClockOutWithTimeSheets: ");
+                } else {
+                    clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(activity);
+                    }, 3000);
+                    Log.w("TimeSheetManager " , "Timer Stopped");
+                }
+
+
+
+        } else {
                 return false;
             }
 

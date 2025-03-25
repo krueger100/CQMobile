@@ -14,9 +14,9 @@ import android.widget.Toast;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
+import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApiTimeSheetManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -34,11 +34,17 @@ public class TimerUIManager implements TimerManager.TimerListener {
     private final FloatingActionButton fab;
     private final ImageButton clockOutController;
     private final ProgressBar progressBarTimer;
+    ProgressBar progressBar;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean isHidden = false;
     private final TimerManager timerManager;
+    SharedPrefManager sharedPrefManager;
     String startDate;
-    public TimerUIManager(View rootView, String startDate) {
+    int jobId;
+    int taskId;
+    int userId;
+    ClockOutManager  clockOutManager;
+    public TimerUIManager(View rootView, String startDate, int jobId, int taskId, int userId, ProgressBar progressBar, ClockOutManager clockOutManager) {
         Log.d(TAG, "Initializing TimerUIManager...");
 
         this.rootView = rootView;
@@ -46,17 +52,26 @@ public class TimerUIManager implements TimerManager.TimerListener {
         this.fab = rootView.findViewById(R.id.fab_timer);
         this.clockOutController = rootView.findViewById(R.id.clockOutController);
         this.progressBarTimer = rootView.findViewById(R.id.progress_bar_timer);
-        this.startDate = startDate;
-        this.jobTitle = rootView.findViewById(R.id.job_title);
-        timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
-        timerManager.setListener(this);
-
+        this.progressBar = rootView.findViewById(R.id.progressBar);
+        this. startDate = startDate;
+        this.jobId = jobId;
+        this. taskId = taskId;
+        this. userId = userId;
+        this. jobTitle = rootView.findViewById(R.id.job_title);
+        this. timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
+        this. timerManager.setListener(this);
+        this.  sharedPrefManager = new SharedPrefManager(fab.getContext());
+        this.clockOutManager = new ClockOutManager(fab.getContext(), progressBar, jobId, taskId, userId, startDate);
         restoreTimerState(startDate);
-        setupListeners();
+        setupListeners(sharedPrefManager);
     }
 
-    private void setupListeners() {
-        Log.d(TAG, "Setting up listeners...");
+    private void setupListeners(SharedPrefManager sharedPrefManager) {
+
+        Log.w(TAG, "ClockOutManager -> "+ "Setting up listeners..."+ "  jobId  " + jobId + "  taskId " + taskId +"  userId  "+userId
+                +"  startDate  "+startDate);
+
+
         clockOutController.setOnClickListener(v -> {
             Log.d(TAG, "Clock out button clicked.");
             toggleVisibilityWithAnimation();
@@ -78,43 +93,67 @@ public class TimerUIManager implements TimerManager.TimerListener {
         });
 
 
+
         fab.setOnClickListener(v -> {
             Context context = rootView.getContext();
             if (context instanceof MainActivity) {
                 MainActivity activity = (MainActivity) context;
                 activity.getTimerManager().resetTimer(context);
 
-                SharedPrefManager sharedPrefManager = new SharedPrefManager(fab.getContext());
                 String accessToken = sharedPrefManager.getAccessToken();
                 int userID = sharedPrefManager.getUserId();
                 int savedJobId = sharedPrefManager.getJobId();
                 int savedTaskId = sharedPrefManager.getTaskId();
                 String startTime = sharedPrefManager.getKeyStartDate();
-
+                String jobTitle = sharedPrefManager.getStartJob();
                 if (accessToken == null || accessToken.isEmpty()) {
                     Toast.makeText(context, "Error: Access token missing", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                StopJobApiManager.stopJob(accessToken, userID, progressBarTimer, new StopJobApiManager.ApiCallback() {
-                    @Override
-                    public void onSuccess(String message) {
-                        new Handler(Looper.getMainLooper()).post(() -> {
 
-                            ClockOutManager clockOutManager = new ClockOutManager(context, progressBarTimer, savedJobId, savedTaskId, userID, startDate);
-                            clockOutManager.AutoClockOutandLogout(accessToken, savedJobId, savedTaskId, startTime);
-                            Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
+                if (jobTitle != null && !jobTitle.trim().isEmpty()) {
+                    StopJobApiTimeSheetManager.stopJobWithTimesheet(accessToken, userID, progressBarTimer,context, new StopJobApiTimeSheetManager.ApiTSCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            new Handler(Looper.getMainLooper()).post(() -> {
 
-                        });
-                    }
+                                Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
 
-                    @Override
-                    public void onFailure(String error) {
-                        Log.e("StartJob", "Failed to stop job: " + error);
-                        new Handler(Looper.getMainLooper()).post(() ->
-                                Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
-                        );
-                    }
-                });
+                            });
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            Log.e("StartJob", "Failed to stop job: " + error);
+                            new Handler(Looper.getMainLooper()).post(() ->
+                                    Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
+                            );
+                        }
+                    });
+
+
+                } else {
+
+                    StopJobApiManager.stopJob(accessToken, userID, progressBarTimer, context, new StopJobApiManager.ApiJSCallback() {
+                        @Override
+                        public void onSuccess(String message) {
+                            new Handler(Looper.getMainLooper()).post(() -> {
+
+                                Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
+
+                            });
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            Log.e("StartJob", "Failed to stop job: " + error);
+                            new Handler(Looper.getMainLooper()).post(() ->
+                                    Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
+                            );
+                        }
+                    });
+
+                }
 
             }
         });

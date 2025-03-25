@@ -4,10 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,7 +21,6 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
-import com.example.cq_mobile.databinding.ActivityMainBinding;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -107,11 +109,25 @@ public class MoreActivity extends AppCompatActivity {
                 ClickAnimationManager.applyClickAnimation(v);
                 SharedPreferences sharedPreferencesClockout = getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
                 sharedPreferencesClockout.edit().clear().apply();
+                SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
                 ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, startDate);
-                clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
-                LogoutManager.logoutUser(MoreActivity.this);
 
+                String jobTitle = sharedPrefManager.getStartJob();
+                Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
 
+                if (jobTitle != null && !jobTitle.trim().isEmpty()) {
+                    clockOutManager.setupClockOutWithTimeSheet(logoutButton, accessToken, jobId,taskId,sharedPrefManager,progressBar);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(MoreActivity.this);
+                    }, 3000);
+                    Log.d("TimeSheetManager", "AutoClockOutWithTimeSheets: ");
+                }else {
+                    clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        LogoutManager.logoutUser(MoreActivity.this);
+                    }, 3000);
+                    Log.d("TimeSheetManager", "AutoClockOutandLogout: ");
+                }
 
             }
         });

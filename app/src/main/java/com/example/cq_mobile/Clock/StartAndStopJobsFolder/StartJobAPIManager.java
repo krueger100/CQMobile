@@ -70,7 +70,6 @@ public class StartJobAPIManager {
             public void onAccessTokenReceived(String accessToken) {
                 startJob(userId, jobId, latitude, longitude, accessToken, callback);
             }
-
             @Override
             public void onError(String error) {
                 callback.onFailure("Failed to get access token: " + error);
@@ -90,8 +89,8 @@ public class StartJobAPIManager {
         private final double latitude;
         private final double longitude;
         private final String accessToken;
-        private final ApiCallback callback;
 
+        private final ApiCallback callback;
         public ApiStartJobTask(int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
             this.userId = userId;
             this.jobId = jobId;
@@ -99,6 +98,7 @@ public class StartJobAPIManager {
             this.longitude = longitude;
             this.accessToken = accessToken;
             this.callback = callback;
+
         }
 
         @Override
@@ -184,7 +184,7 @@ public class StartJobAPIManager {
 
     private static final String TAG = "StartJobAPIManager";
 
-    public interface ApiCallback {
+    public interface ApiTimeSheetCallback {
         void onSuccess(String response);
         void onFailure(String error);
     }
@@ -223,7 +223,7 @@ public class StartJobAPIManager {
     }
 
     // Start job with token
-    public void startJobWithToken(int userId, int jobId, Double latOut, Double longOut, AccessTokenRequest tokenRequest, ApiCallback callback) {
+    public void startJobWithToken(int userId, int jobId, Double latOut, Double longOut, AccessTokenRequest tokenRequest, ApiTimeSheetCallback callback) {
         getAccessToken(tokenRequest, new AccessTokenCallback() {
             @Override
             public void onAccessTokenReceived(String accessToken) {
@@ -238,7 +238,7 @@ public class StartJobAPIManager {
     }
 
     // Start job execution
-    public static void startJob(int userId, int jobId, Double latOut, Double longOut, String accessToken, ApiCallback callback) {
+    public static void startJob(int userId, int jobId, Double latOut, Double longOut, String accessToken, ApiTimeSheetCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(new ApiStartJobTask(userId, jobId, latOut, longOut, accessToken, callback));
     }
@@ -250,9 +250,9 @@ public class StartJobAPIManager {
         private final Double latOut;
         private final Double longOut;
         private final String accessToken;
-        private final ApiCallback callback;
+        private final ApiTimeSheetCallback callback;
 
-        public ApiStartJobTask(int userId, int jobId, Double latOut, Double longOut, String accessToken, ApiCallback callback) {
+        public ApiStartJobTask(int userId, int jobId, Double latOut, Double longOut, String accessToken, ApiTimeSheetCallback callback) {
             this.userId = userId;
             this.jobId = jobId;
             this.latOut = latOut;
@@ -340,7 +340,7 @@ CALL
         Double longOut = 120.6059008;
         String accessToken = "YOUR_ACCESS_TOKEN";
 
-        startJob(userId, jobId, latOut, longOut, accessToken, new ApiCallback() {
+        startJob(userId, jobId, latOut, longOut, accessToken, new ApiTimeSheetCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d(TAG, "API Success Response: " + response);

@@ -98,7 +98,7 @@ public class UpdateReadAPIManager {
 SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
         String accessToken = sharedPrefManager.getAccessToken();
         int channelId = 58;
-        UpdateReadAPIManager.updateReadStatus(channelId, accessToken, new UpdateReadAPIManager.ApiCallback() {
+        UpdateReadAPIManager.updateReadStatus(channelId, accessToken, new UpdateReadAPIManager.ApiTimeSheetCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(context, "Read status updated successfully!", Toast.LENGTH_SHORT).show();

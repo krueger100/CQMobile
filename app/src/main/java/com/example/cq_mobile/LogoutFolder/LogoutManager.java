@@ -1,5 +1,6 @@
 package com.example.cq_mobile.LogoutFolder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -56,10 +57,15 @@ public class LogoutManager {
                 if (response.isSuccessful()) {
                     Log.d("LogoutManager", "User logged out successfully.");
 
-                    // Navigate the user back to the Login screen
+                    // ✅ Navigate to Login
                     Intent intent = new Intent(context, Login.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the back stack
                     context.startActivity(intent);
+                    if (context instanceof Activity) {
+                        ((Activity) context).finish();
+                    }
+
+
                 } else {
                     Log.e("LogoutManager", "Logout failed: " + response.message());
                 }

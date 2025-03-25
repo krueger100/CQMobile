@@ -38,7 +38,6 @@
         <activity
             android:name=".SplashFolder.SplashActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/SplashTheme"
         android:hardwareAccelerated="true">
 
@@ -54,52 +53,43 @@
 
         <activity android:name=".Clock.ClockActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/ClockStyle"  />
 
 
-
         <activity android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"/>
 
         <activity android:name=".Clock.ViewListFolder.ViewListActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
 
         <activity android:name=".LoginFolder.Login"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/SplashTheme" />
 
         <activity android:name=".ui.home.HomeFolder.JobsFolder.NewBuild"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.home.HomeFolder.TaskFolder.TaskActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFolder.NotesActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FilesActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
@@ -108,44 +98,37 @@
 
         <activity android:name=".MoreActivityFolder.MoreActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme" />
 
 
         <activity android:name=".ui.home.myJobsFolder.myJobs"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".NotificationData.ShowNotificationActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".TestFolder.WebViewActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.ticket.ReplyTicketFolder.ReplyTicket"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.ticket.CreateFolder.CreateTicket"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.chat.InnerChatsFolder.InnerChats"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 
@@ -156,7 +139,6 @@
 
         <activity android:name=".ui.MoreInFragment.AboutActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme"/>
 

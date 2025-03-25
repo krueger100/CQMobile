@@ -329,7 +329,7 @@ public class ChatActivity extends AppCompatActivity {
 
     fetchChatNotifications(accessToken);
     private void fetchChatNotifications(String accessToken) {
-        ChatsNotificationsApiManager.fetchChatNotifications(accessToken, new ChatsNotificationsApiManager.ApiCallback() {
+        ChatsNotificationsApiManager.fetchChatNotifications(accessToken, new ChatsNotificationsApiManager.ApiTimeSheetCallback() {
             @Override
             public void onSuccess(NotificationAPIResponse response) {
                 if (response != null && response.isSuccess() && response.getData() != null && response.getData().getChat() != null) {

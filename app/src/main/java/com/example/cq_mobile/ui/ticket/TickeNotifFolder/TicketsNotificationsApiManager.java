@@ -60,7 +60,7 @@ public class TicketsNotificationsApiManager {
 
 
     private void getTicketNotif(String accessToken) {
-        TicketsNotificationsApiManager.fetchTicketNotifications(accessToken, new TicketsNotificationsApiManager.ApiCallback() {
+        TicketsNotificationsApiManager.fetchTicketNotifications(accessToken, new TicketsNotificationsApiManager.ApiTimeSheetCallback() {
             @Override
             public void onSuccess(TicketNotifAPIResponse response) {
                 if (response != null && response.isSuccess() && response.getData() != null) {

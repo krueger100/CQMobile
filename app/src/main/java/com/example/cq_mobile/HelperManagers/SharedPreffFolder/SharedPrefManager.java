@@ -36,7 +36,7 @@ public class SharedPrefManager {
     private static final String KEY_CHAT_CURRENTUSER_SEEN = "iscurrentuser_seen";
     private static final String KEY_COORDINATES_LIST = "coordinates_list";
     private static final String KEY_START_DATE = "start_date";
-    private static final String KEY_STOP_DATE = "sop_date";
+    private static final String KEY_STOP_DATE = "stop_date";
 
 
     private static final String KEY_JOBSTARTED = "job_started";
@@ -44,6 +44,13 @@ public class SharedPrefManager {
 
     private static final String KEY_JOBS_IDS = "JOBS_IDS";
     private static final String KEY_TASK_IDS_PREFIX = "TASK_IDS";
+
+    private static final String KEY_USER_START_JOB_LAT = "userStartJobLat";
+    private static final String KEY_USER_START_JOB_LON = "userStartJobLon";
+
+    private static final String KEY_START_JOB_LAT = "StartJobLat";
+    private static final String KEY_START_JOB_LON = "StartJobLon";
+    private static final String KEY_JOB_STARTED_JOBID = "StartJobID";
 
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -62,6 +69,10 @@ public class SharedPrefManager {
         return instance;
     }
 
+
+/*
+* Start Job DATA  --->>
+*/
     public void saveStartedJob(String jobstarted) {
         editor.putString(KEY_JOBSTARTED, jobstarted).apply();
         Log.w("SharedPrefManager", "KEY_JOBSTARTED   -->> Updated");
@@ -71,7 +82,88 @@ public class SharedPrefManager {
         Log.w("SharedPrefManager", "KEY_JOBSTARTED_MESSAGE   -->> Updated");
     }
 
-    // Save methods
+    public void saveStartJobUserLocation(double latitude, double longitude) {
+        double currentLat = getUserStartJobLatitude();
+        double currentLon = getUserStartJobLongitude();
+        if (latitude != currentLat || longitude != currentLon) {
+            editor.putString(KEY_USER_START_JOB_LAT, String.valueOf(latitude));
+            editor.putString(KEY_USER_START_JOB_LON, String.valueOf(longitude));
+            editor.apply();
+            Log.w("SharedPrefManager", "KEY_USER_START_JOB_LAT Updated: Lat=" + latitude + ", Lon=" + longitude);
+        } else {
+            Log.d("SharedPrefManager", "USER Start Job Location remains unchanged.");
+        }
+
+        Log.w("SharedPrefManager", "Start Job Location Saved: Lat=" + latitude + ", Lon=" + longitude);
+    }
+    public double getUserStartJobLatitude() {
+        return Double.parseDouble(sharedPreferences.getString(KEY_USER_START_JOB_LAT, "0.0"));
+    }
+    public double getUserStartJobLongitude() {
+        return Double.parseDouble(sharedPreferences.getString(KEY_USER_START_JOB_LON, "0.0"));
+    }
+
+    public void saveStartJobLocation(double latitude, double longitude) {
+        double StartLat = getStartJobLatitude();
+        double StarLon = getStartJobLongitude();
+
+        if (latitude != StartLat || longitude != StarLon) {
+            editor.putString(KEY_START_JOB_LAT, String.valueOf(latitude));
+            editor.putString(KEY_START_JOB_LON, String.valueOf(longitude));
+            editor.apply();
+            Log.w("SharedPrefManager", "Start Job Location Updated: Lat=" + latitude + ", Lon=" + longitude);
+        } else {
+            Log.d("SharedPrefManager", "Start Job Location remains unchanged.");
+        }
+    }
+    public double getStartJobLatitude() {
+        return Double.parseDouble(sharedPreferences.getString(KEY_START_JOB_LAT, "0.0"));
+    }
+   public double getStartJobLongitude() {
+        return Double.parseDouble(sharedPreferences.getString(KEY_START_JOB_LON, "0.0"));
+    }
+
+    public void saveStartJobID(String jobIDStartJob) {
+        String jobID_StartJob = getStartJobID();
+        if (jobIDStartJob != null || !jobIDStartJob.isEmpty()) {
+            editor.putString(KEY_JOB_STARTED_JOBID,jobIDStartJob);
+            editor.apply();
+            Log.w("SharedPrefManager", "KEY_JOB_STARTED_JOBID " + jobID_StartJob );
+        } else {
+            Log.d("SharedPrefManager", "USER Start Job Location remains unchanged.");
+        }
+
+        Log.w("SharedPrefManager", "KEY_JOB_STARTED_JOBID Saved: " + jobIDStartJob);
+    }
+    public String getStartJobID() {
+        return sharedPreferences.getString(KEY_JOB_STARTED_JOBID, null);
+
+    }
+
+
+    public void clearJobTrackingData() {
+        editor.remove(KEY_USER_START_JOB_LAT);
+        editor.remove(KEY_USER_START_JOB_LON);
+        editor.remove(KEY_START_JOB_LAT);
+        editor.remove(KEY_START_JOB_LON);
+        editor.remove(KEY_JOB_STARTED_JOBID);
+        editor.remove("userStartJobLat");
+        editor.remove("userStartJobLon");
+        editor.remove("StartJobLat");
+        editor.remove("StartJobLon");
+        editor.remove("StartJobID");
+        editor.apply();
+
+        Log.d("SharedPrefManager", "Job tracking data cleared.");
+    }
+
+    /*
+     * Start Job DATA  <<---
+     */
+
+
+
+
     public void saveNewNotificationToken(String token) {
         editor.putString(NOTIFTOKEN, token).apply();
         Log.w("SharedPrefManager", "NOTIFTOKEN   -->> Updated");

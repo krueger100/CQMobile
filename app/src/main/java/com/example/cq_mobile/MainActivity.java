@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -13,11 +15,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.ClockFolder.TimerUIManager;
-import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
@@ -26,6 +28,7 @@ import com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder.GetCh
 import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
+import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
 import com.google.firebase.FirebaseApp;
@@ -177,21 +180,31 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         taskId = sharedPrefManager.getTaskId();
         String startDate = sharedPrefManager.getKeyStartDate();
 
-        navigationManager = new NavigationManager(this, binding.navView, binding.navViewDrawer, drawerLayout,binding.progressBar,accessToken,jobId,taskId,startDate,userId);
 
-        ClockOutManager clockOutManager = new ClockOutManager(this,  binding.progressBar,  jobId,  taskId,  userId,  startDate);
-        clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId);
+        Log.w(TAG, "ClockOutManager -> " + "  jobId  " + jobId + "  taskId " + taskId +"  userId  "+userId
+                +"  startDate  "+ startDate);
 
+
+
+        navigationManager = new NavigationManager(this,binding.clockoutBtn, binding.navView, binding.navViewDrawer, drawerLayout, binding.progressBar, accessToken, jobId, taskId, startDate, userId);
+
+        ClockOutManager clockOutManager = new ClockOutManager(MainActivity.this, binding.progressBar, jobId, taskId, userId, startDate);
         String jobTitle = sharedPrefManager.getStartJob();
-        Log.w("JobTitle", "jobTitle  ->> "  + jobTitle);
+        Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
         if (jobTitle != null && !jobTitle.trim().isEmpty()) {
+            //    binding.clockoutBtn.setBackgroundColor(ContextCompat.getColor(this, R.color.cq_grey));
+            clockOutManager.setupClockOutWithTimeSheet(binding.clockoutBtn, accessToken, jobId,taskId,sharedPrefManager,binding.progressBar);
             binding.jobTitle.setVisibility(View.VISIBLE);
             binding.jobTitle.setText(jobTitle);
+            Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
 
         } else {
             binding.jobTitle.setVisibility(View.GONE);
-        }
+            clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId,sharedPrefManager);
+            Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
 
+
+        }
 
         if (startDate == null) {
             Log.w("MainActivity", "Warning: Start date is null, using default value 0.");
@@ -200,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
 
         rootView = findViewById(android.R.id.content);
         timerManager = TimerManager.getInstance(this,startDate);
-        timerUIManager = new TimerUIManager(rootView,startDate);
+        timerUIManager = new TimerUIManager(rootView,startDate, jobId, taskId, userId,binding.progressBar, clockOutManager );
         timerManager.startTimer();
         timerManager.restoreSavedTime(this);
         Log.d("MainActivity", "FirebaseDataManager User ID:  --------->>> " + userId );

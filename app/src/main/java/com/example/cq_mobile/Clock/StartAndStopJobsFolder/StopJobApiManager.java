@@ -1,5 +1,6 @@
 package com.example.cq_mobile.Clock.StartAndStopJobsFolder;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -18,6 +19,7 @@ import android.os.Looper;
 import android.widget.Toast;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.google.gson.Gson;
 
 import okhttp3.Response;
@@ -28,16 +30,16 @@ import org.json.JSONObject;
 
 public class StopJobApiManager {
     private static final String TAG = "StopJobApiManager";
-    private static final String BASE_URL = "https://cqbms.app";//"https://aws.customquoter.co.uk";
+    private static final String BASE_URL = "https://cqbms.app";
     private static final String API_ENDPOINT = "/api/m/jobs/work-status/stop/%d";
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-    public interface ApiCallback {
+    public interface ApiJSCallback {
         void onSuccess(String message);
         void onFailure(String error);
     }
 
-    public static void stopJob(String accessToken, int userId, ProgressBar progressBar, ApiCallback callback) {
+    public static void stopJob(String accessToken, int userId, ProgressBar progressBar, Context context, ApiJSCallback callback) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS) // Adjust as needed
                 .readTimeout(30, TimeUnit.SECONDS) // Adjust as needed
@@ -83,7 +85,8 @@ public class StopJobApiManager {
                     try {
                         // Process successful response (example)
                         StopJobResponse stopJobResponse = new Gson().fromJson(responseBody, StopJobResponse.class);
-
+                        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+                        sharedPrefManager.clearStartJob();
                         if (stopJobResponse != null && stopJobResponse.success) {
                             String message = stopJobResponse.data.message;
                             callback.onSuccess(message);
@@ -117,6 +120,8 @@ public class StopJobApiManager {
         });
     }
 
+
+
     // StopJobResponse class
     public static class StopJobResponse {
         boolean success;
@@ -141,7 +146,7 @@ public void stopJobExample() {
     int userId = 379; // Replace with the actual user ID
     ProgressBar progressBar = findViewById(R.id.progressBar); // Replace with your actual ProgressBar ID
 
-    StopJobApiManager.stopJob(accessToken, userId, progressBar, new StopJobApiManager.ApiCallback() {
+    StopJobApiManager.stopJob(accessToken, userId, progressBar, new StopJobApiManager.ApiTimeSheetCallback() {
         @Override
         public void onSuccess(String message) {
             // Handle the success response here
@@ -158,3 +163,4 @@ public void stopJobExample() {
 
 
  */
+

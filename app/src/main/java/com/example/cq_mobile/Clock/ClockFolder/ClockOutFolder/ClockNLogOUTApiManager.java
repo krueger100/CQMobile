@@ -16,16 +16,20 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;public class ClockNLogOUTApiManager {
+import okhttp3.RequestBody;
+
+
+
+public class ClockNLogOUTApiManager {
 
     private static final String TAG = "ClockNLogOUTApiManager";
 
-    public interface ApiCallback {
+    public interface ApiCLCallback {
         void onSuccess();
         void onFailure(String error);
     }
 
-    public static void clockOuTwithLogOut(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, int userId, ApiCallback callback) {
+    public static void clockOuTwithLogOut(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, int userId, ApiCLCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(new ApiClockNLogOUTTask(jobScheduleId, taskId, ticketMessageId, progressBar, accessToken, userId, callback));
     }
@@ -37,10 +41,10 @@ import okhttp3.RequestBody;public class ClockNLogOUTApiManager {
         private final int ticketMessageId;
         private final ProgressBar progressBar;
         private final String accessToken;
-        private final ApiCallback callback;
+        private final ApiCLCallback callback;
         int userId;
 
-        public ApiClockNLogOUTTask(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, int userId, ApiCallback callback) {
+        public ApiClockNLogOUTTask(int jobScheduleId, int taskId, int ticketMessageId, ProgressBar progressBar, String accessToken, int userId, ApiCLCallback callback) {
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
             this.ticketMessageId = ticketMessageId;

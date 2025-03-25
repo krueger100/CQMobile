@@ -29,16 +29,19 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.Clock.ApiTimeSheetCallback;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
-import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
+import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApiTimeSheetManager;
+
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.HelperManagers.UKDateTime;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
@@ -52,6 +55,7 @@ import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskma
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.FilesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFolder.NotesActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder.RouteNewBuildManager;
+import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.TimeSheetAPI;
 import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.UpdateJobApiManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -66,9 +70,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     Activity activity;
@@ -116,28 +125,18 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     Double latOut;
     Double longOut;
     String jobTitle,jobTitleMessage;
-
+    String Start_date,End_date;
     private WeakReference<Activity> activityRef;
-
+    String startedDate,stopDate ;
     private Double lat = null;
     private Double lon = null;
+    String startTime;
     private View view;
     @SuppressLint("SetTextI18n")
-
-
-    /*
-    1. When clock in and clock out
-    > Create a timesheet before clock out.
-        Endpoint: api/m/time-sheet/store/colleague/{user_id}
-
-
-    2. When clock in and start a job, then clock out.
-    > Create timesheet for the job when you stop it
-        Endpoint: api/m/time-sheet/store/{job_id}
-    > Create a timesheet before clock out.
-        Endpoint: api/m/time-sheet/store/colleague/{user_id}
-     */
-
+    String ukDate,ukTime;
+    ClockOutManager clockOutManager;
+    int jobId_int;
+    int taskId_int;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,10 +161,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
           latOut = sharedPrefManager.getLatitude();
            longOut= sharedPrefManager.getLongitude();
 
-        Log.d("NewBuild", "User ID: " + userId);
+        Log.d(TAG, "User ID: " + userId);
         Log.d("start_Job", "latOut: " + latOut);
         Log.d("start_Job", "longOut: " + longOut);
 
+        sharedPrefManager.saveStartJobID(jobId);
 
         backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
@@ -200,7 +200,12 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         String jobTitle_started = sharedPrefManager.getStartJob();
         String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
+         startedDate = sharedPrefManager.getKeyStartDate();
+         stopDate = sharedPrefManager.getKeyStopDate();
         start_job.setText(jobTitle_started_message);
+        jobId_int = (jobId != null && !jobId.isEmpty()) ? Integer.parseInt(jobId) : 0;
+        taskId_int = (taskId != null && !taskId.isEmpty()) ? Integer.parseInt(taskId) : 0;
+
         if (jobTitle_started_message == null || jobTitle_started_message.trim().isEmpty()) {
             start_job.setText("Start Job");
         } else {
@@ -211,12 +216,14 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         start_job.setAlpha(0.5f);
 
         fetchData();
+         ukDate = UKDateTime.getCurrentUKDate();
+         ukTime = UKDateTime.getCurrentUKTime();
+
+         clockOutManager = new ClockOutManager(NewBuild.this, progressbar, jobId_int, taskId_int, userId, startedDate);
 
 
 
     }
-
-
 
 
 
@@ -227,7 +234,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 runOnUiThread(() -> {
                     if (data == null || data.isEmpty()) {
                         Toast.makeText(NewBuild.this, "No data found.", Toast.LENGTH_SHORT).show();
-                        return; // Exit early to avoid crashes
+                        return;
                     }
 
                     Taskmain task = data.get(0);
@@ -250,6 +257,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     task_description.setText(task.getDescription() != null ? task.getDescription() : "No Description Available");
                     category_todo.setText(task.getCategory() != null ? task.getCategory() : "No Category");
                     jobTitle= task.getName() != null ? task.getName() : "No Title Available";
+                     Start_date = task.getStart_date() != null ? task.getStart_date() : "No Start_date";
+                      End_date = task.getEnd_date() != null ? task.getEnd_date() : "No End_date";
+
+
+                    Log.w(TAG, "Start_date: -> " + Start_date + " End_date: -> " + End_date);
 
                     String city = (task.getAddress() != null && task.getAddress().getCity() != null) ? task.getAddress().getCity() : "";
                     String country = (task.getAddress() != null && task.getAddress().getCountry() != null) ? task.getAddress().getCountry() : "";
@@ -276,18 +288,16 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
                     Log.d("CoordinatesNewBuild", "LAT: -> " + lat + " LON: -> " + lon);
                     if (lat != null && lon != null) {
-                        enableUserLocation();
+                        enableUserLocation(ukDate, ukTime);
                     } else {
                         Log.e("CoordinatesNewBuild", "lat or lon is null, cannot enable location.");
 
                     }
 
-                    String status_main = (task.getStatus() != null) ? task.getStatus() : "Todo"; // Default to "Todo" if null
+                    String status_main = (task.getStatus() != null) ? task.getStatus() : "Todo";   // Default to "Todo" if null
 
-                    // Define a list of statuses
                     List<String> statusList = Arrays.asList("Todo", "Skipped", "Done");
 
-                    // Setup Spinner Adapter
                     SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
                             NewBuild.this,
                             R.layout.task_spinner_item,
@@ -397,7 +407,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            enableUserLocation();
+            enableUserLocation(ukDate,ukTime);
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
@@ -411,7 +421,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     }
 
 
-    private void enableUserLocation() {
+    private void enableUserLocation(String ukDate, String ukTime) {
         if (googleMap == null) {
             Log.e("enableUserLocation", "GoogleMap is null. Cannot enable user location.");
             return;
@@ -432,12 +442,15 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                Log.d("UserLocation", "Retrieved user location: Lat=" + userLocation.latitude + ", Lon=" + userLocation.longitude);
+                Double userLatitude = userLocation.latitude;
+                Double userLongitude = userLocation.longitude;
+
+                Log.d("UserLocation", "Retrieved user location: Lat=" +userLatitude + ", Lon=" + userLongitude);
 
                 SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
                 List<Taskmain.Coordinates> coordinatesList = sharedPrefManager.getCoordinatesList();
+                sharedPrefManager.saveStartJobUserLocation(userLatitude, userLongitude);
                 Log.d("enableUserLocation", "Retrieved coordinates list: " + coordinatesList.size() + " entries found.");
-
                 MarkerManager markerManager = new MarkerManager();
                 BitmapDescriptor taskMarkerIcon = markerManager.getCustomCircleMarkerIcon(this);
 
@@ -445,17 +458,29 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 BitmapDescriptor userPositionMarkerIcon = userPositionMarkerManager.getCustomCircleMarkerIcon(this);
                 Log.d("enableUserLocation", "API coordinate: Lat=" + lat + ", Lon=" + lon);
 
+
+
+
                 if (lat != null && lon != null && !lat.isNaN() && !lon.isNaN()) {
                     Taskmain.Coordinates firstCoordinate = coordinatesList.get(0);
                     taskLatLng = new LatLng(lat, lon);
                     Log.d("enableUserLocation", "First saved coordinate: Lat=" + firstCoordinate.getLatitude() + ", Lon=" + firstCoordinate.getLongitude());
-                    start_jobBranch(lat, lon);
-                 //   checkStartedJob(lat, lon);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    //    checkStartedJob(lat, lon);
+                    start_jobBranch(lat, lon,userLatitude,userLongitude,ukDate,ukTime);
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        start_jobBranch(lat, lon);
+                        sharedPrefManager.saveStartJobLocation(lat, lon);
+
+
+                        Double userStartLat = sharedPrefManager.getUserStartJobLatitude();
+                        Double userStartLon = sharedPrefManager.getUserStartJobLongitude();
+                        Double StartLat = sharedPrefManager.getStartJobLatitude();
+                        Double StartLon = sharedPrefManager.getUserStartJobLongitude();
+
+                        Log.w(TAG, "KEY_USER_START_JOB_LAT Updated:"+"\n"+ "Lat=" + userStartLat +"\n"+ ", Lon=" + userStartLon);
+                        Log.w(TAG, "KEY_START_JOB_LAT Updated: Lat=" +"\n"+ "Lat=" + StartLat +"\n"+ ", Lon=" + StartLon);
+
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        start_jobBranch(lat, lon, userLatitude, userLongitude, ukDate, ukTime);
                     }, 2000);
 
                     }, 1000);
@@ -507,7 +532,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         });
     }
 
-    private void start_jobBranch(double latitude, double longitude) {
+    private void start_jobBranch(double latitude, double longitude, Double userLatitude, Double userLongitude, String ukDate, String ukTime) {
 
         start_job.setEnabled(true);
         start_job.setAlpha(1.0f);
@@ -527,7 +552,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 Log.d("start_Job", "latOut: " + latitude);
                 Log.d("start_Job", "longOut: " + longitude);
 
-                startJobAPIManager.startJobWithToken(userId, taskId,  latitude,longitude, request, new StartJobAPIManager.ApiCallback() {
+                startJobAPIManager.startJobWithToken(userId, taskId, latitude, longitude, request, new StartJobAPIManager.ApiCallback() {
                     @Override
                     public void onSuccess(String response) {
                         Log.d("StartJob", "Job started successfully. Response: " + response);
@@ -538,21 +563,60 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                             return;
                         }
 
-                        // Log top-level response data
                         boolean success = startJobResponse.isSuccess();
                         String serverMessage = startJobResponse.getMessage();
+                        String serverAdditionalMessage = startJobResponse.getData().getMessage2();
                         StartJobResponse.Data data = startJobResponse.getData();
 
                         Log.d("StartJob", "Success: " + success);
                         Log.d("StartJob", "Server Message: " + serverMessage);
+                        Log.d("StartJob", "Server Message2: " + serverAdditionalMessage);
 
-                        runOnUiThread(() -> {
-                            progress_circular.setVisibility(View.GONE);
-                            start_job.setText(serverMessage);
-                            sharedPrefManager.saveStartedJobMessage(serverMessage);
-                            showAlertDialog(NewBuild.this, success, serverMessage, accessToken, userId, progress_circular, startJob, jobId, taskId);
+                        String startedDate = sharedPrefManager.getKeyStartDate();
+                        String stopDate = sharedPrefManager.getKeyStopDate();
 
+
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            if (accessToken != null && !accessToken.isEmpty()) {
+                                new Thread(() -> {
+                                    TimeSheetAPI.sendTimeSheetData(accessToken, userId, userLatitude, userLongitude, latitude, longitude,
+                                            Integer.parseInt(jobId), ukDate, startedDate, stopDate,
+                                            new ApiTimeSheetCallback() {
+                                                @Override
+                                                public void onSuccess(String serverMessage) {
+                                                    Log.d("TimeSheetManager", "sendTimeSheetData: " + serverMessage);
+                                                    new Handler(Looper.getMainLooper()).post(() -> {
+                                                        Log.w("StartJob", "TimeSheetManager: sendTimeSheetData -- >> " + serverMessage);
+
+                                                        runOnUiThread(() -> {
+                                                            progress_circular.setVisibility(View.GONE);
+                                                            start_job.setText(serverMessage + "\n" + serverAdditionalMessage);
+                                                            sharedPrefManager.saveStartedJobMessage(serverMessage);
+                                                            showAlertDialog(NewBuild.this, success, serverMessage, accessToken, userId, progress_circular, startJob, jobId, taskId
+                                                            );
+                                                        });
+                                                    });
+                                                }
+
+                                                @Override
+                                                public void onFailure(String error) {
+                                                    Log.e("ClockOutManager", "Failed to send TimeSheet Data: " + error);
+                                                    new Handler(Looper.getMainLooper()).post(() ->
+                                                            Toast.makeText(NewBuild.this, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show()
+                                                    );
+                                                }
+                                            }
+                                    );
+                                }).start();
+                            } else {
+                                Log.d("ClockOutManager", "Access token is missing!");
+                                Toast.makeText(NewBuild.this, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show();
+                            }
                         });
+
+
+
+
 
 
                         if (data != null) {
@@ -572,7 +636,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                 int organizationId = work.getOrganization_id();
                                 int workUserId = work.getUser_id();
                                 int jobId = work.getJob_id();
-                                String startTime = work.getStart_time();
+                                startTime = work.getStart_time();
 
                                 Log.d("StartJob", "Work ID: " + workId);
                                 Log.d("StartJob", "Organization ID: " + organizationId);
@@ -580,10 +644,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                 Log.d("StartJob", "Job ID: " + jobId);
                                 Log.d("StartJob", "Start Time: " + startTime);
 
-
-
-
-                                // Extract location details
                                 StartJobResponse.Data.Work.Remarks remarks = work.getRemarks();
                                 if (remarks != null) {
                                     double latitude = remarks.getLat();
@@ -593,17 +653,14 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                     Log.d("StartJob", "Longitude: " + longitude);
                                 }
 
-                                // Extract job details
                                 StartJobResponse.Data.Work.Job job = work.getJob();
                                 if (job != null) {
                                     String jobTitle = job.getTitle();
                                     int jobStatus = job.getJob_status();
-                                    sharedPrefManager.saveStartedJob(jobTitle);
                                     Log.d("StartJob", "Job Title: " + jobTitle);
                                     Log.d("StartJob", "Job Status: " + jobStatus);
 
                                 }
-
 
 
                             }
@@ -625,6 +682,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
 
 
+
+
+
             }
         });
 
@@ -637,7 +697,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableUserLocation();
+                enableUserLocation(ukDate, ukTime);
             } else {
                 Toast.makeText(this, "Location permission is required to display your position", Toast.LENGTH_SHORT).show();
             }
@@ -702,8 +762,8 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
             return;
         }
 
-        TimerManager timerManager = TimerManager.getInstance(NewBuild.this, startJob);
-        timerManager.resetTimer(NewBuild.this);
+        TimerManager timerManager = TimerManager.getInstance(NewBuild.this, this.startJob);
+        timerManager.resetTimerTimeSheet(NewBuild.this);
         sharedPrefManager.saveStartedJob(jobTitle);
 
         LayoutInflater inflater = LayoutInflater.from(newBuild);
@@ -713,20 +773,16 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 .setTitle(serverMessage)
                 .setMessage("Choose from the options")
                 .setView(dialogView)
+                .setCancelable(false)
                 .create();
 
-        TextView btnClockOut = dialogView.findViewById(R.id.btnClockOut);
         TextView btnStopJob = dialogView.findViewById(R.id.btnStopJob);
         TextView btnContinue = dialogView.findViewById(R.id.btnContinue);
-
-        btnClockOut.setOnClickListener(v -> {
-            ClockOutManager clockOutManager = new ClockOutManager(newBuild, progress_circular, Integer.parseInt(jobId), Integer.parseInt(taskId), userId, startJob);
-            clockOutManager.AutoClockOutandLogout(accessToken, Integer.parseInt(jobId), Integer.parseInt(taskId), startJob);
-            dialog.dismiss();
-        });
+        String jobTitle = sharedPrefManager.getStartJob();
+        Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
 
         btnStopJob.setOnClickListener(v -> {
-            StopJobApiManager.stopJob(accessToken, userId, progress_circular, new StopJobApiManager.ApiCallback() {
+            StopJobApiTimeSheetManager.stopJobWithTimesheet(accessToken,userId,progress_circular,this,new StopJobApiTimeSheetManager.ApiTSCallback() {
                 @Override
                 public void onSuccess(String message) {
                     runOnUiThread(() -> {
@@ -735,7 +791,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                 .setMessage("Job stopped successfully.")
                                 .setPositiveButton("OK", (dialog2, which2) -> {
                                     SharedPrefManager sharedPrefManager = new SharedPrefManager(newBuild);
-                                    sharedPrefManager.clearStartJob();
+                                    clockOutManager.AutoClockOutandLogout(accessToken, jobId_int, taskId_int, startedDate);
                                     sharedPrefManager.clearStartJobMessage();
                                     dialog2.dismiss();
                                 })
@@ -752,6 +808,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     });
                 }
             });
+
         });
 
         btnContinue.setOnClickListener(v -> dialog.dismiss());
