@@ -35,6 +35,13 @@ public class FirebaseDataManager {
                 .addOnFailureListener(e -> Log.e(TAG, "Error saving user data", e));
     }
 
+
+    public void saveUserJobTime() {
+        Map<String, Object> userData = new HashMap<>();
+
+    }
+
+
     public void retrieveUserData(UserDataCallback callback) {
         valueEventListener = userRef.addValueEventListener(new ValueEventListener() {
             @Override

@@ -273,19 +273,17 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
 
 
     private void loadTickets() {
-        if (isLoading) return; // Prevent multiple loads
+        if (isLoading) return;
         isLoading = true;
 
-        setProgressBarVisibility(true); // Show progress bar
+        setProgressBarVisibility(true);
 
         AccessTokenRequest request = new AccessTokenRequest(email, password);
 
-        // Lazy initialization of ticketManager
         if (ticketManager == null) {
             ticketManager = new TicketManager(requireContext());
         }
 
-        // Fetch Access Token
         ticketManager.getAccessToken(request, new TicketManager.AccessTokenCallback() {
             @Override
             public void onAccessTokenReceived(String token) {
@@ -301,11 +299,9 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         });
     }
     private void loadTicketsWithToken(String token) {
-        // Current page number
         if (currentPage == 0) {
-            currentPage = 1;  // Initialize to page 1
+            currentPage = 1;
         }
-
         ticketManager.loadTickets(currentPage, pageSize, new TicketManager.AllTicketsCallback() {
             @Override
             public void onAllTicketsLoaded(List<TicketAPIItem> tickets) {

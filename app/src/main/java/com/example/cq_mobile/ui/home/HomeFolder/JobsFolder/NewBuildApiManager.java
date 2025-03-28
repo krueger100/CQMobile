@@ -76,7 +76,6 @@ public class NewBuildApiManager {
         });
     }
 
-
     public static void fetchSecondaryApiData(String jobId, int page, int pageSize, String accessToken, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://cqbms.app";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);

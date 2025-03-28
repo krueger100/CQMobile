@@ -39,7 +39,7 @@ public class ToDoFragment extends Fragment {
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
     private ClockOutVisibilityHandler visibilityHandler;
-
+    private static final String TAG = "Todo Data";
 
     @Nullable
     @Override
@@ -65,10 +65,9 @@ public class ToDoFragment extends Fragment {
         loadMessages(accessToken);
 
 
-        Log.d("ToDoFragment", "Retrieved Job ID: " + savedJobId);
-        Log.d("ToDoFragment", "Retrieved Task ID: " + savedTaskId);
-        Log.d("ToDoFragment", "Retrieved user ID: " + userID);
-        Log.d("ToDoFragment", "Retrieved startDate: " + startDate);
+        Log.d("ToDoFragment", "Retrieved Job ID: " + savedJobId + "Retrieved Task ID: " + savedTaskId);
+        Log.d("ToDoFragment", "Retrieved user ID: " + userID + "Retrieved startDate: " + startDate);
+
 
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -93,7 +92,7 @@ public class ToDoFragment extends Fragment {
 
 
     private void loadMessages(String accessToken) {
-        if (isLoading) return; // Prevent fetching while already loading data
+        if (isLoading) return;
         isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
 
@@ -107,23 +106,66 @@ public class ToDoFragment extends Fragment {
                     isLoading = false;
 
                     if (data != null && !data.isEmpty()) {
+                        for (Todo todo : data) {
+                            Log.w(TAG, "**<- ToDoFragment ->**");
+                            Log.d(TAG, "ID: " + todo.getId());
+                            Log.d(TAG, "Job ID: " + todo.getJob_id());
+                            Log.d(TAG, "Title: " + todo.getName());
+                            Log.d(TAG, "Description: " + todo.getDescription());
+                            Log.d(TAG, "Status: " + todo.getStatus());
+                            Log.d(TAG, "Start Date: " + todo.getStart_date());
+                            Log.d(TAG, "End Date: " + todo.getEnd_date());
+                            Log.d(TAG, "Category: " + todo.getCategory());
+                            Log.d(TAG, "Category Color: " + todo.getCategory_color());
+                            Log.d(TAG, "Is Checked: " + todo.isChecked());
+
+                            // Logging Client Details
+                            if (todo.getClient_details() != null) {
+                                Todo.ClientDetails client = todo.getClient_details();
+                                Log.d(TAG + "Client Details", "Company: " + client.getCompany());
+                                Log.d("Client Details", "Email: " + client.getEmail());
+                                Log.d(TAG +"Client Details", "Title: " + client.getTitle());
+                                Log.d(TAG +"Client Details", "First Name: " + client.getFirst_name());
+                                Log.d(TAG +"Client Details", "Last Name: " + client.getLast_name());
+                                Log.d(TAG +"Client Details", "Suffix: " + client.getSuffix());
+                                Log.d(TAG +"Client Details", "Phone: " + client.getPhone());
+                                Log.d(TAG +"Client Details", "Mobile: " + client.getMobile());
+                            }
+
+                            // Logging Address Details
+                            if (todo.getAddress() != null) {
+                                Todo.Address address = todo.getAddress();
+                                Log.d(TAG +"Address", "Address: " + address.getAddress());
+                                Log.d(TAG +"Address", "Address1: " + address.getAddress1());
+                                Log.d(TAG +"Address", "City: " + address.getCity());
+                                Log.d(TAG +"Address", "County: " + address.getCounty());
+                                Log.d(TAG +"Address", "Postal Code: " + address.getPostal_code());
+                                Log.d(TAG +"Address", "Country: " + address.getCountry());
+                            }
+
+                            // Logging Coordinates
+                            if (todo.getCoordinates() != null) {
+                                Todo.Coordinates coordinates = todo.getCoordinates();
+                                Log.d(TAG +"Coordinates", "Latitude: " + coordinates.getLatitude());
+                                Log.d(TAG +"Coordinates", "Longitude: " + coordinates.getLongitude());
+                            }
+                        }
+
                         joblist.addAll(data);
                         todoAdapter.notifyDataSetChanged();
                         currentPage++;
 
-                        // Check if total data count has reached 100
+                        // Pagination logic
                         if (joblist.size() >= 100 && currentPage == 1) {
-                            // If data reaches 100, skip to page 2 directly, if we are still on page 1
-                            currentPage = 2; // Move to page 2
-                            loadMessages(accessToken); // Recurse to load data from page 2
+                            currentPage = 2;
+                            loadMessages(accessToken);
                         } else {
-                            // Check if this is the last page
                             if (data.size() < PAGE_SIZE) {
                                 isLastPage = true;
                             }
                         }
                     } else {
-                        isLastPage = true; // No more data to load
+                        isLastPage = true;
                     }
                 });
             }
@@ -138,11 +180,7 @@ public class ToDoFragment extends Fragment {
                     Log.d("Paginated Data", "Error loading data: " + error);
                 });
             }
-
-
-
         });
-
     }
 
     @Override

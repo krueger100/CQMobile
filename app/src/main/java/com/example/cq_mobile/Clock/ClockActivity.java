@@ -24,6 +24,7 @@ import com.example.cq_mobile.Clock.ClockFolder.TicketIDManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.IDSfolder.IDsManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.HelperManagers.UKDateTime;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
@@ -34,6 +35,7 @@ import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.Clock.ClockFolder.ClockView;
 import com.example.cq_mobile.Clock.ClockFolder.DigitalClockManager;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -43,6 +45,8 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -270,18 +274,14 @@ public class ClockActivity extends AppCompatActivity {
                     for (Taskmain task : data) {
                         Log.w("ClockActivity", ">>>>>> UseDetails_JobID <<<<<<< " );
                         Log.w("ClockActivity", ">>>>>> ID_Job <<<<<<< " + task.getId());
-                        Log.w("ClockActivity", ">>>>>> jobID <<<<<<< " + task.getJobID());
+                        Log.w("ClockActivity", ">>>>>> jobID <<<<<<< " + task.getJobId());
                         Log.w("ClockActivity", ">>>>>> Name <<<<<<< " + task.getName());
                         Log.w("ClockActivity", ">>>>>> Category <<<<<<< " + task.getCategory());
                         Log.w("ClockActivity", ">>>>>> Status <<<<<<< " + task.getStatus());
                         Log.w("ClockActivity", ">>>>>> Start_date <<<<<<< " + task.getStart_date());
                         Log.w("ClockActivity", ">>>>>> End_date <<<<<<< " + task.getEnd_date());
 
-
-
-
-
-                        sharedPrefManager.saveJobId(task.getJobID());
+                        sharedPrefManager.saveJobId(task.getJobId());
 
                         if (task.getAddress() != null) {
                             Taskmain.Address addr = task.getAddress();
@@ -412,6 +412,8 @@ public class ClockActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putBoolean("ClockInSuccess", true);
                                 editor.apply();
+                                String ukTimeStart = UKDateTime.getCurrentUKTimeStart(ClockActivity.this);
+                                Log.w("ClockActivity", "ukTimeStart "+ ukTimeStart);
                             }
 
                             Log.w("ClockActivity", "ticketsIDClockINManager   <<<<<<<<< CHECK IN PRESSED >>>>>>>> ");

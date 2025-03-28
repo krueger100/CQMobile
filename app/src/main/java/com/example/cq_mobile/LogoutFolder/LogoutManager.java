@@ -22,7 +22,6 @@ public class LogoutManager {
 
 
     public static void logoutUser(Context context) {
-        // First, clear user-related data from SharedPreferences
         SharedPreferences sharedPreferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
@@ -36,14 +35,20 @@ public class LogoutManager {
         sharedPrefManager.clearEmail();
         sharedPrefManager.clearPassword();
         sharedPrefManager.clearCoordinates();
+
         sharedPrefManager.clearStartJob();
         sharedPrefManager.clearStartJobMessage();
+        sharedPrefManager.clearJobTrackingData();
+        sharedPrefManager.clearStartDate();
+        sharedPrefManager.clearStopDate();
+
+
         SharedPreferences clockPrefs= context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         clockPrefs.edit().clear().apply();
 
         Log.d("SharedPrefManager", "All user data has been cleared.");
 
-        String url = "https://cqbms.app/logout"; ///"https://aws.customquoter.co.uk/api/m/logout";
+        String url = "https://cqbms.app/logout";
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = RequestBody.create("", MediaType.get("text/plain"));
         Request request = new Request.Builder()

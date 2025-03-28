@@ -1,4 +1,10 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_todo;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
+
+import java.util.List;
+
 public class Todo {
     private int id;
     private int job_id;
@@ -9,20 +15,17 @@ public class Todo {
     private String category_color;
     private String start_date;
     private String end_date;
+    private boolean is_checked;
+    private ClientDetails client_details;
+    private Address address;
+    private Coordinates coordinates;
 
-    // Getters and setters for all fields
-
-
-    public int getJob_id() {
-        return job_id;
-    }
-
-    public void setJob_id(int job_id) {
-        this.job_id = job_id;
-    }
-
+    // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
+    public int getJob_id() { return job_id; }
+    public void setJob_id(int job_id) { this.job_id = job_id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -45,4 +48,89 @@ public class Todo {
     public String getEnd_date() { return end_date; }
     public void setEnd_date(String end_date) { this.end_date = end_date; }
 
+    public boolean isChecked() { return is_checked; }
+    public void setChecked(boolean is_checked) { this.is_checked = is_checked; }
+
+    public ClientDetails getClient_details() { return client_details; }
+    public void setClient_details(ClientDetails client_details) { this.client_details = client_details; }
+
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
+
+    public Coordinates getCoordinates() { return coordinates; }
+    public void setCoordinates(Coordinates coordinates) { this.coordinates = coordinates; }
+
+    // Inner Classes for Client Details, Address, and Coordinates
+    public static class ClientDetails {
+        private String company;
+        private String email;
+        private String title;
+        private String first_name;
+        private String last_name;
+        private String suffix;
+        private String phone;
+        private String mobile;
+
+        public String getCompany() { return company; }
+        public void setCompany(String company) { this.company = company; }
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+
+        public String getFirst_name() { return first_name; }
+        public void setFirst_name(String first_name) { this.first_name = first_name; }
+
+        public String getLast_name() { return last_name; }
+        public void setLast_name(String last_name) { this.last_name = last_name; }
+
+        public String getSuffix() { return suffix; }
+        public void setSuffix(String suffix) { this.suffix = suffix; }
+
+        public String getPhone() { return phone; }
+        public void setPhone(String phone) { this.phone = phone; }
+
+        public String getMobile() { return mobile; }
+        public void setMobile(String mobile) { this.mobile = mobile; }
+    }
+
+    public static class Address {
+        private String address;
+        private String address1;
+        private String city;
+        private String county;
+        private String postal_code;
+        private String country;
+
+        public String getAddress() { return address; }
+        public void setAddress(String address) { this.address = address; }
+
+        public String getAddress1() { return address1; }
+        public void setAddress1(String address1) { this.address1 = address1; }
+
+        public String getCity() { return city; }
+        public void setCity(String city) { this.city = city; }
+
+        public String getCounty() { return county; }
+        public void setCounty(String county) { this.county = county; }
+
+        public String getPostal_code() { return postal_code; }
+        public void setPostal_code(String postal_code) { this.postal_code = postal_code; }
+
+        public String getCountry() { return country; }
+        public void setCountry(String country) { this.country = country; }
+    }
+
+    public static class Coordinates {
+        private String latitude;
+        private String longitude;
+
+        public String getLatitude() { return latitude; }
+        public void setLatitude(String latitude) { this.latitude = latitude; }
+
+        public String getLongitude() { return longitude; }
+        public void setLongitude(String longitude) { this.longitude = longitude; }
+    }
 }

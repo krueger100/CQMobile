@@ -7,14 +7,12 @@ import android.content.Context;
 import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
-import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StopJobApiManager;
-import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApiTimeSheetManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.MainActivity;
@@ -26,25 +24,27 @@ import android.util.Log;
 
 import androidx.annotation.DrawableRes;
 
-public class TimerUIManager implements TimerManager.TimerListener {
+public class TimerUIManager {
     private static final String TAG = "TimerUIManager";
 
     private final View rootView;
-    private final TextView timerTextView,jobTitle;
+    private final TextView timerTextView, jobTitle;
     private final FloatingActionButton fab;
     private final ImageButton clockOutController;
     private final ProgressBar progressBarTimer;
-    ProgressBar progressBar;
+    private final ProgressBar progressBar;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean isHidden = false;
-    private final TimerManager timerManager;
-    SharedPrefManager sharedPrefManager;
-    String startDate;
-    int jobId;
-    int taskId;
-    int userId;
-    ClockOutManager  clockOutManager;
-    public TimerUIManager(View rootView, String startDate, int jobId, int taskId, int userId, ProgressBar progressBar, ClockOutManager clockOutManager) {
+    private final TimerFunctionManager timerFunctionManager; // Use TimerFunctionManager
+    private final SharedPrefManager sharedPrefManager;
+    private final ClockOutManager clockOutManager;
+    private final String startDate;
+    private final int jobId, taskId, userId;
+    TextView clockoutBtn;
+    LinearLayout timerLayout;
+    public TimerUIManager(View rootView, String startDate, int jobId, int taskId, int userId, ProgressBar progressBar,
+                          ClockOutManager clockOutManager, TimerFunctionManager timerFunctionManager, TextView clockoutBtn,
+                          LinearLayout timerLayout ) {
         Log.d(TAG, "Initializing TimerUIManager...");
 
         this.rootView = rootView;
@@ -52,24 +52,21 @@ public class TimerUIManager implements TimerManager.TimerListener {
         this.fab = rootView.findViewById(R.id.fab_timer);
         this.clockOutController = rootView.findViewById(R.id.clockOutController);
         this.progressBarTimer = rootView.findViewById(R.id.progress_bar_timer);
-        this.progressBar = rootView.findViewById(R.id.progressBar);
-        this. startDate = startDate;
+        this.progressBar = progressBar;
+        this.startDate = startDate;
         this.jobId = jobId;
-        this. taskId = taskId;
-        this. userId = userId;
-        this. jobTitle = rootView.findViewById(R.id.job_title);
-        this. timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
-        this. timerManager.setListener(this);
-        this.  sharedPrefManager = new SharedPrefManager(fab.getContext());
-        this.clockOutManager = new ClockOutManager(fab.getContext(), progressBar, jobId, taskId, userId, startDate);
+        this.taskId = taskId;
+        this.userId = userId;
+        this.jobTitle = rootView.findViewById(R.id.job_title);  //job_title_message
+        this.sharedPrefManager = new SharedPrefManager(fab.getContext());
+        this.clockOutManager = clockOutManager;
+        this.timerFunctionManager = timerFunctionManager;
+        this.clockoutBtn = clockoutBtn;
+        this.timerLayout = timerLayout;
+
         restoreTimerState(startDate);
-        setupListeners(sharedPrefManager);
-    }
 
-    private void setupListeners(SharedPrefManager sharedPrefManager) {
 
-        Log.w(TAG, "ClockOutManager -> "+ "Setting up listeners..."+ "  jobId  " + jobId + "  taskId " + taskId +"  userId  "+userId
-                +"  startDate  "+startDate);
 
 
         clockOutController.setOnClickListener(v -> {
@@ -85,7 +82,7 @@ public class TimerUIManager implements TimerManager.TimerListener {
                         clockOutController.setImageResource(drawableRes);
                         clockOutController.animate()
                                 .alpha(1f)
-                                .setDuration(150) // Fade in
+                                .setDuration(150)
                                 .start();
                     })
                     .start();
@@ -93,12 +90,11 @@ public class TimerUIManager implements TimerManager.TimerListener {
         });
 
 
-
         fab.setOnClickListener(v -> {
             Context context = rootView.getContext();
             if (context instanceof MainActivity) {
                 MainActivity activity = (MainActivity) context;
-                activity.getTimerManager().resetTimer(context);
+                // .getTimerManager().resetTimer(context);
 
                 String accessToken = sharedPrefManager.getAccessToken();
                 int userID = sharedPrefManager.getUserId();
@@ -111,53 +107,24 @@ public class TimerUIManager implements TimerManager.TimerListener {
                     return;
                 }
 
+
+                Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
                 if (jobTitle != null && !jobTitle.trim().isEmpty()) {
-                    StopJobApiTimeSheetManager.stopJobWithTimesheet(accessToken, userID, progressBarTimer,context, new StopJobApiTimeSheetManager.ApiTSCallback() {
-                        @Override
-                        public void onSuccess(String message) {
-                            new Handler(Looper.getMainLooper()).post(() -> {
-
-                                Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
-
-                            });
-                        }
-
-                        @Override
-                        public void onFailure(String error) {
-                            Log.e("StartJob", "Failed to stop job: " + error);
-                            new Handler(Looper.getMainLooper()).post(() ->
-                                    Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
-                            );
-                        }
-                    });
-
-
+                    clockOutManager.setupClockOutButtonFab(fab, accessToken, jobId);
+                    Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
+                    Log.w(TAG, "setupClockOutButton  PRESSED<<-- ");
                 } else {
-
-                    StopJobApiManager.stopJob(accessToken, userID, progressBarTimer, context, new StopJobApiManager.ApiJSCallback() {
-                        @Override
-                        public void onSuccess(String message) {
-                            new Handler(Looper.getMainLooper()).post(() -> {
-
-                                Toast.makeText(context, "Timer Stopped", Toast.LENGTH_SHORT).show();
-
-                            });
-                        }
-
-                        @Override
-                        public void onFailure(String error) {
-                            Log.e("StartJob", "Failed to stop job: " + error);
-                            new Handler(Looper.getMainLooper()).post(() ->
-                                    Toast.makeText(context, "Failed to stop job: " + error, Toast.LENGTH_SHORT).show()
-                            );
-                        }
-                    });
-
+                    clockOutManager.setupStopJobWithTimeSheetFab(fab, accessToken, jobId,taskId,sharedPrefManager,progressBar);
+                    Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
+                    Log.w(TAG, "setupStopJobWithTimeSheet  PRESSED<<-- ");
                 }
 
             }
         });
+
+
     }
+
 
     private void toggleVisibilityWithAnimation() {
         Log.d(TAG, "Toggling UI visibility. isHidden: " + isHidden);
@@ -187,14 +154,11 @@ public class TimerUIManager implements TimerManager.TimerListener {
 
     private void restoreTimerState(String startDate) {
         Log.d(TAG, "Restoring timer state...");
-        Log.d(TAG, "startDate  "  + startDate);
-        timerManager.restoreSavedTime(rootView.getContext());
-
-
+        Log.d(TAG, "startDate  " + startDate);
+        timerFunctionManager.resumeTimerAfterReopen(rootView.getContext());
     }
 
-    @Override
-    public void onTimerUpdate(String time) {
+    public void updateTimerUI(String time) {
         Log.d(TAG, "Timer updated: " + time);
         if (rootView.getContext() instanceof Activity) {
             ((Activity) rootView.getContext()).runOnUiThread(() -> {
@@ -209,11 +173,4 @@ public class TimerUIManager implements TimerManager.TimerListener {
 
 
 
-
-    public void cleanup() {
-        Log.d(TAG, "Cleaning up TimerUIManager...");
-        timerManager.saveTimeState(rootView.getContext());
-        timerManager.setListener(null);
-    }
 }
-

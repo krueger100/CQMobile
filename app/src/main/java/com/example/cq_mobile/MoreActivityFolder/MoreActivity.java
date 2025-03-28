@@ -4,13 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,7 +15,6 @@ import com.bumptech.glide.Glide;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 
@@ -68,7 +64,9 @@ public class MoreActivity extends AppCompatActivity {
 
         name.setText(firstName +" "+lastName);
 
-
+        SharedPreferences sharedPreferencesClockout = getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
+        ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
+        boolean jobSuccess = sharedPrefManager.isJobSuccessful();
 
         if (avatar != null && !avatar.isEmpty()) {
             String baseUrl = "https://customquoteruk-live-uploads.s3.eu-west-2.amazonaws.com/"; // S3 Base URL
@@ -107,28 +105,15 @@ public class MoreActivity extends AppCompatActivity {
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
                 ClickAnimationManager.applyClickAnimation(v);
-                SharedPreferences sharedPreferencesClockout = getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
                 sharedPreferencesClockout.edit().clear().apply();
-                SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
-                ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, startDate);
 
-                String jobTitle = sharedPrefManager.getStartJob();
-                Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
+                if (jobSuccess) {
+                    clockOutManager.setupClockOutButtonLogout(logoutButton, accessToken, jobId);
 
-                if (jobTitle != null && !jobTitle.trim().isEmpty()) {
-                    clockOutManager.setupClockOutWithTimeSheet(logoutButton, accessToken, jobId,taskId,sharedPrefManager,progressBar);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        LogoutManager.logoutUser(MoreActivity.this);
-                    }, 3000);
-                    Log.d("TimeSheetManager", "AutoClockOutWithTimeSheets: ");
-                }else {
-                    clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        LogoutManager.logoutUser(MoreActivity.this);
-                    }, 3000);
-                    Log.d("TimeSheetManager", "AutoClockOutandLogout: ");
+                } else {
+                    clockOutManager.setupStopJobWithTimeSheetLogout(logoutButton, accessToken, jobId, taskId, sharedPrefManager,progressBar);
+
                 }
-
             }
         });
 

@@ -3,13 +3,10 @@ package com.example.cq_mobile.ui.MoreInFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -19,7 +16,6 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.MoreActivityFolder.AccountSettingManager;
 import com.example.cq_mobile.R;
@@ -69,7 +65,9 @@ public class MoreFragment extends Fragment {
         binding.name.setText(userName);
         context = getContext();
 
-
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        ClockOutManager clockOutManager = new ClockOutManager(context, binding.progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
+        boolean jobSuccess = sharedPrefManager.isJobSuccessful();
 
 
 
@@ -107,26 +105,13 @@ public class MoreFragment extends Fragment {
                 ClickAnimationManager.applyClickAnimation(v);
                 Log.d("MoreFragment", "Notification token deleted successfully.");
                 binding.progressBar.setVisibility(View.VISIBLE);
-                SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-                ClockOutManager clockOutManager = new ClockOutManager(context, binding.progressBar, jobId, taskId, userId, startDate);
 
-                String jobTitle = sharedPrefManager.getStartJob();
-                Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
 
-                if (jobTitle != null && !jobTitle.trim().isEmpty()) {
-                    clockOutManager.setupClockOutWithTimeSheet(binding.logoutButton, accessToken, jobId,taskId,sharedPrefManager,binding.progressBar);
+                if (jobSuccess) {
+                    clockOutManager.setupClockOutButtonLogout(binding.logoutButton, accessToken, jobId);
 
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        LogoutManager.logoutUser(context);
-                    }, 3000);
-                    Log.d("TimeSheetManager", "AutoClockOutWithTimeSheets: ");
-
-                }else {
-                    clockOutManager.AutoClockOutandLogout(accessToken, jobId, taskId, startDate);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        LogoutManager.logoutUser(context);
-                    }, 3000);
-                    Log.d("TimeSheetManager", "AutoClockOutandLogout: ");
+                } else {
+                    clockOutManager.setupStopJobWithTimeSheetLogout(binding.logoutButton, accessToken, jobId, taskId, sharedPrefManager, binding.progressBar);
 
                 }
 

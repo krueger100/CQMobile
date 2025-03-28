@@ -1,21 +1,15 @@
 package com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder;
-
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import android.widget.ProgressBar;
-
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.LoginFolder.Login;
-import com.example.cq_mobile.LogoutFolder.LogoutManager;
-
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Locale;
 
@@ -27,19 +21,23 @@ public class TimerManager {
     private static final String TAG = "TimerManager";
 
     private boolean running = false;
-    private long startTimeMillis = 0;
+    long startTimeMillis = 0;
     private int seconds = 0;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private TimerListener listener;
     private SharedPrefManager sharedPrefManager;
+    private boolean isTimerVisible = false;
+
+
+
     public interface TimerListener {
         void onTimerUpdate(String time);
+        void onVisibilityChanged(boolean isVisible);
     }
 
-    public TimerManager() {
+    private TimerManager() {}
 
 
-    }
 
     public static synchronized TimerManager getInstance(Context context, String startDate) {
         if (instance == null) {
@@ -54,25 +52,24 @@ public class TimerManager {
         if (!running) {
             running = true;
             startTimeMillis = System.currentTimeMillis() - (seconds * 1000L);
-            handler.post(runnable);
+ //---> Device Time -->>
+            handler.post(runnableUk);
             Log.d(TAG, "Timer started.");
-
         }
     }
 
     public void stopTimer(Context context) {
         running = false;
-
+        isTimerVisible = false;
         Log.d(TAG, "Timer stopped.");
+
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        String stopTime = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH).format(new Date());
+        String stopTime = new SimpleDateFormat("HH:mm", Locale.ENGLISH).format(new Date());
         sharedPrefManager.saveClockinStopDate(stopTime);
+        sharedPrefManager.clearStartJob();
+        sharedPrefManager.clearStartJobMessage();
+
         Log.d(TAG, "Stop time saved: " + stopTime);
-
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            LogoutManager.logoutUser(context);
-        }, 3000);
-
     }
 
     public void resetTimer(Context context) {
@@ -102,7 +99,23 @@ public class TimerManager {
                 if (listener != null) {
                     listener.onTimerUpdate(formatTime(seconds));
                 }
-                handler.postDelayed(this, 1000); // Update every 1 second
+                handler.postDelayed(this, 1000);
+            }
+        }
+    };
+
+    private final Runnable runnableUk = new Runnable() {
+        @Override
+        public void run() {
+            if (running) {
+                ZonedDateTime currentTime = Instant.now().atZone(ZoneId.of("Europe/London"));
+                long currentTimeMillis = currentTime.toInstant().toEpochMilli();
+                seconds = (int) ((currentTimeMillis - startTimeMillis) / 1000);
+
+                if (listener != null) {
+                    listener.onTimerUpdate(formatTime(seconds));
+                }
+                handler.postDelayed(this, 1000);
             }
         }
     };
@@ -111,7 +124,7 @@ public class TimerManager {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(KEY_SAVED_TIME, seconds);
-        editor.putLong(KEY_LAST_TIMESTAMP, System.currentTimeMillis()); // Save current timestamp
+        editor.putLong(KEY_LAST_TIMESTAMP, System.currentTimeMillis());
         editor.apply();
         Log.d(TAG, "Timer state saved: " + formatTime(seconds));
     }
@@ -123,16 +136,13 @@ public class TimerManager {
         long currentTime = System.currentTimeMillis();
 
         if (savedTime == -1 || lastTimestamp == 0) {
-            // If no saved time exists, reset to 00:00:00
             this.seconds = 0;
             Log.w(TAG, "No saved time found. Starting from 00:00:00.");
         } else if (savedTime == 0) {
-            // If saved time is explicitly 00:00:00, also reset
             this.seconds = 0;
             Log.w(TAG, "Saved time is 00:00:00. Starting fresh.");
         } else {
-            // Calculate elapsed time and resume
-            long elapsedSeconds = (currentTime - lastTimestamp) / 1000; // Convert ms to sec
+            long elapsedSeconds = (currentTime - lastTimestamp) / 1000;
             this.seconds = savedTime + (int) elapsedSeconds;
             Log.d(TAG, "Restored timer with elapsed time: " + formatTime(seconds));
         }
@@ -142,39 +152,12 @@ public class TimerManager {
         }
     }
 
-    // 🚀 NEW METHOD TO RESUME TIMER AFTER APP REOPEN
+    // 🚀
     public void resumeTimerAfterReopen(Context context) {
-        restoreSavedTime(context); // Get saved time + elapsed time
-        startTimer(); // Resume the timer
+        restoreSavedTime(context);
+        startTimer();
         Log.d(TAG, "Timer resumed from saved state: " + formatTime(seconds));
     }
-
-    public void stopTimerWithTimeSheet(Context context) {
-        running = false;
-        Log.d(TAG, "Timer stopped.");
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            startTimer();
-        }, 2000);
-
-    }
-
-    public void resetTimerTimeSheet(Context context) {
-        stopTimerWithTimeSheet(context);
-        seconds = 0;
-        startTimeMillis = 0;
-
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.remove(KEY_SAVED_TIME);
-        editor.remove(KEY_LAST_TIMESTAMP);
-        editor.apply();
-
-        if (listener != null) {
-            listener.onTimerUpdate(formatTime(seconds));
-        }
-        Log.d(TAG, "Timer reset and data wiped.");
-    }
-
 
     private String formatTime(int totalSeconds) {
         int hrs = totalSeconds / 3600;

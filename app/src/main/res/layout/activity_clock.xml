@@ -99,7 +99,7 @@
             android:drawableTint="@color/white"
             android:gravity="center"
             android:paddingHorizontal="110dp"
-            android:text="Check In"
+            android:text="Clock in"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="24sp" />

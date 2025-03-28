@@ -6,32 +6,33 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
-import com.example.cq_mobile.Clock.ClockFolder.TimerUIManager;
+import com.example.cq_mobile.Clock.ClockFolder.TimerFunctionManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
 import com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder.GetChatNotifManager;
 import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
-import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuildApiManager;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 import com.google.firebase.FirebaseApp;
+
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements ClockOutVisibilityHandler {
@@ -42,9 +43,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     private static final String TAG = "MainActivity";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
     String accessToken;
-    private TimerUIManager timerUIManager;
-    String email;
-    String password;
     String userName;
     String notificationToken;
     int jobId = -1 ;
@@ -53,12 +51,11 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     String lastName;
     String avatarPath;
     String avatarUrl;
-    private TimerManager timerManager;
     private NetworkManager networkManager;
     FirebaseDatabaseManager firebaseDatabaseManager;
-    TextView job_title;
+    LinearLayout timer_layout2;
     private View rootView;
-
+   private TimerFunctionManager timerFunctionManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         if (!networkManager.isConnected()) {
             networkManager.showNoConnectionDialog();
         }
-
 
         SharedPreferences sharedPreferences = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
         boolean isClockedIn = sharedPreferences.getBoolean("ClockInSuccess", false);
@@ -90,8 +86,8 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
 
         Intent intent = getIntent();
         accessToken = intent.getStringExtra("accessToken");
-        int userId = intent.getIntExtra("userId", -1); // Get userId from Intent
-        if (userId == -1) { // If not found in Intent, get from SharedPreferences
+        int userId = intent.getIntExtra("userId", -1);
+        if (userId == -1) {
             SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
             String userIdStr = userID;
 
@@ -122,8 +118,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         Log.d("MainActivity", "First Name: Intent ----->>>> " + firstName);
         Log.d("MainActivity", "Last Name: Intent ----->>>> " + lastName);
         Log.d("MainActivity", "Email: Intent ----->>>> " + email);
-        Log.d("MainActivity", "Avatar URL: Intent ----->>>> " + avatarUrl);  //
-
+        Log.d("MainActivity", "Avatar URL: Intent ----->>>> " + avatarUrl);
         drawerLayout = binding.drawerLayout;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -158,11 +153,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
             }
         });
 
-
-
-
-
-
     }
 
     private void initializeApp(String currentUser_notification_token, int userId, String avatarUrl) {
@@ -180,31 +170,67 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         taskId = sharedPrefManager.getTaskId();
         String startDate = sharedPrefManager.getKeyStartDate();
 
-
-        Log.w(TAG, "ClockOutManager -> " + "  jobId  " + jobId + "  taskId " + taskId +"  userId  "+userId
-                +"  startDate  "+ startDate);
-
+        Log.w(TAG, "ClockOutManager: " + "\njobId  ->\n" + jobId + "\n taskId ->\n" + taskId +"\n userId  \n->"+userId
+                +"\n startDate  \n->"+ startDate);
 
 
-        navigationManager = new NavigationManager(this,binding.clockoutBtn, binding.navView, binding.navViewDrawer, drawerLayout, binding.progressBar, accessToken, jobId, taskId, startDate, userId);
+        navigationManager = new NavigationManager(this,binding.clockoutBtn, binding.navView, binding.navViewDrawer, drawerLayout,
+                binding.progressBar, accessToken, jobId, taskId, startDate, userId);
 
-        ClockOutManager clockOutManager = new ClockOutManager(MainActivity.this, binding.progressBar, jobId, taskId, userId, startDate);
+
+
+        ClockOutManager clockOutManager = new ClockOutManager(MainActivity.this, binding.progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
         String jobTitle = sharedPrefManager.getStartJob();
-        Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
-        if (jobTitle != null && !jobTitle.trim().isEmpty()) {
-            //    binding.clockoutBtn.setBackgroundColor(ContextCompat.getColor(this, R.color.cq_grey));
-            clockOutManager.setupClockOutWithTimeSheet(binding.clockoutBtn, accessToken, jobId,taskId,sharedPrefManager,binding.progressBar);
-            binding.jobTitle.setVisibility(View.VISIBLE);
+        String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
+        String jobTitle_id = sharedPrefManager.getStartJobID();
+        String jobTitle_Taskid = sharedPrefManager.getStartJobIDInnerTask();
+        boolean jobSuccess = sharedPrefManager.isJobSuccessful();
+
+        Log.w(TAG, "jobTitle ->> " + jobTitle);
+        Log.w(TAG, "jobMessage ->> " + jobTitle_started_message);
+        Log.w(TAG, "jobTitle ID ->> " + jobTitle_id);
+        Log.w(TAG, "jobTitle TASKID ->> " + jobTitle_Taskid);
+        Log.w(TAG, "Job Success ->> " + jobSuccess);
+
+        if (jobSuccess) {
+            clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId);
+            Log.w(TAG, "From: MainActivity -> " + jobTitle);
             binding.jobTitle.setText(jobTitle);
-            Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
+
+            binding.timerLayout.setVisibility(View.VISIBLE);
+            binding.progressBarTimer.setVisibility(View.VISIBLE);
+
+            binding.jobTitle.setOnClickListener(v -> {
+                TransitionAnimationManager.zoomOut(v, 150);
+                    v.postDelayed(() -> {
+                        TransitionAnimationManager.zoomIn(v, 50);
+                        binding.progressBar.setVisibility(View.VISIBLE);
+                        Intent intent = new Intent(MainActivity.this, NewBuild.class);
+                        intent.putExtra("job_id", jobTitle_id);
+                        intent.putExtra("task_id", jobTitle_Taskid);
+                        try {
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            binding.progressBar.setVisibility(View.GONE);
+                        }
+                    }, 150);
+            });
 
         } else {
-            binding.jobTitle.setVisibility(View.GONE);
-            clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId,sharedPrefManager);
-            Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
+            clockOutManager.setupStopJobWithTimeSheet(binding.clockoutBtn, accessToken, jobId, taskId, sharedPrefManager, binding.progressBar);
+            binding.jobTitle.setText(jobTitle);
 
+            Log.w(TAG, "From: MainActivity <-  " + jobTitle);
+            if (timerFunctionManager != null) {
+                timerFunctionManager.resetTimer(this);
+                Log.d(TAG, "Timer Not Started : No Job Started");
+            }
 
         }
+
+
 
         if (startDate == null) {
             Log.w("MainActivity", "Warning: Start date is null, using default value 0.");
@@ -212,22 +238,17 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         Log.w("MainActivity", "Start time ----->>>> " + startDate);
 
         rootView = findViewById(android.R.id.content);
-        timerManager = TimerManager.getInstance(this,startDate);
-        timerUIManager = new TimerUIManager(rootView,startDate, jobId, taskId, userId,binding.progressBar, clockOutManager );
-        timerManager.startTimer();
-        timerManager.restoreSavedTime(this);
+        timerFunctionManager = new TimerFunctionManager(rootView, startDate, jobId, taskId, userId,
+                binding.progressBar, clockOutManager,binding.clockoutBtn,binding.timerLayout);
+
         Log.d("MainActivity", "FirebaseDataManager User ID:  --------->>> " + userId );
 
-        // Handle null or empty notification token
         if (notificationToken == null || notificationToken.isEmpty()) {
             notificationToken = (currentUser_notification_token != null) ? currentUser_notification_token : "";
             sharedPrefManager.saveNewNotificationToken(notificationToken);
             Log.w("MainActivity", "Notification token updated: " + notificationToken);
         }
 
-
-
-        // Ensure userId is not null before proceeding
         if (userId != 0) {
             FirebaseDataManager firebaseDataManager = new FirebaseDataManager(userId);
             firebaseDataManager.saveUserData(
@@ -238,8 +259,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                     lastName != null ? lastName : "",
                     notificationToken);
 
-
-            // Retrieve and log user data
             firebaseDataManager.retrieveUserData((accessToken1, userId1, avatar1, firstName1, lastName1, notificationToken1) -> {
                 Log.d("MainActivity", "FirebaseDataManager Access Token: " + (accessToken1 != null ? accessToken1 : "N/A"));
                 Log.d("MainActivity", "FirebaseDataManager User ID: " + (userId1 != null ? userId1 : "N/A"));
@@ -249,12 +268,9 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                 Log.d("MainActivity", "FirebaseDataManager Notification Token: " + (notificationToken1 != null ? notificationToken1 : "N/A"));
             });
 
-
         } else {
             Log.d("MainActivity", "Error: userId is null or empty. FirebaseDataManager initialization skipped.");
         }
-
-
 
         Log.w("MainActivity", "Notification token ---> : " + currentUser_notification_token);
 
@@ -265,11 +281,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
             Log.e("MainActivity", "Error: accessToken is null or empty. GetChatNotif skipped.");
         }
 
-
         navigationManager.setupNavigation();
-
-
-
 
     }
 
@@ -284,7 +296,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                 GetNotificationToken.setTokenCallback(token2 -> {
                     Log.d("MainActivity", "Received token: " + token2);
                 });
-                GetNotificationToken.getToken(this);
+
 
             } else {
                 Toast.makeText(this, "Notification permission denied!", Toast.LENGTH_SHORT).show();
@@ -292,31 +304,35 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         }
     }
 
-
-
-
     @Override
     public boolean onSupportNavigateUp() {
         return navigationManager.onSupportNavigateUp();
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (timerFunctionManager != null) {
+            timerFunctionManager.resumeTimerAfterReopen(this);
+            Log.d(TAG, "resumeTimerAfterReopen called in MainActivity");
+        }
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
-        timerManager.saveTimeState(this);
+        if (timerFunctionManager != null) {
+            timerFunctionManager.getTimerManager().saveTimeState(this);
+            Log.d(TAG, "Timer state saved in onPause()");
+        }
     }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        timerUIManager.cleanup();
-
-    }
-
-    public TimerManager getTimerManager() {
-        return timerManager;
+        if (timerFunctionManager != null) {
+            timerFunctionManager.cleanup();
+        }
     }
 
     @Override

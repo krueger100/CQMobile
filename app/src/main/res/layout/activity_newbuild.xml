@@ -59,8 +59,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
@@ -101,9 +99,6 @@
             android:progressTint="@color/cq_secondary_color"
             app:layout_constraintBottom_toTopOf="@+id/linearLayout"
             tools:layout_editor_absoluteX="25dp" />
-
-
-
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -249,7 +244,6 @@
                                 app:layout_constraintTop_toTopOf="parent" />
 
 
-
                         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -285,7 +279,6 @@
 
 
 
-
         <TextView
             android:id="@+id/taskmain"
             android:layout_width="match_parent"
@@ -296,7 +289,6 @@
             android:textStyle="bold"
             android:textColor="@color/black"
             android:textSize="16sp" />
-
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -321,10 +313,14 @@
                 android:clipToPadding="false"
                 android:padding="8dp"
                 android:scrollbars="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="SpeakableTextPresentCheck" />
+
+
+
 
             <LinearLayout
                 android:id="@+id/emptyTask"
@@ -354,6 +350,7 @@
                     android:textColor="@color/black"
                     android:textSize="16sp" />
             </LinearLayout>
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -403,21 +400,23 @@
                     app:cardCornerRadius="8dp"
                     android:elevation="10dp"
                     android:padding="10dp">
+
                     <LinearLayout
                         android:id="@+id/folder"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="84dp"
                         android:gravity="center"
                         android:orientation="vertical">
+
                         <ImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:src="@drawable/folder__2__2"/>
+                            android:src="@drawable/folder__2__2" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Files"/>
+                            android:text="Files" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
@@ -483,6 +482,83 @@
 
             </LinearLayout>
 
+
+            <LinearLayout
+                android:id="@+id/timer_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/timerbckground"
+                android:backgroundTint="@color/black"
+                android:elevation="25dp"
+                android:gravity="end"
+                android:layout_gravity="end"
+                android:visibility="gone"
+                android:layout_marginBottom="10dp"
+                android:layout_marginEnd="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+
+                <ImageButton
+                    android:id="@+id/clockOutController"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center|start"
+                    android:background="@drawable/timerbckground"
+                    android:backgroundTint="@color/black"
+                    android:elevation="15dp"
+                    android:src="@drawable/baseline_arrow_forward_ios_24"
+                    app:tint="@color/white"
+                    tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
+
+
+                <TextView
+                    android:id="@+id/job_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:autoSizeMaxTextSize="18sp"
+                    android:autoSizeMinTextSize="16sp"
+                    android:elevation="25dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/mono_medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:minLines="1"
+                    android:text=""
+                    android:textColor="@color/white" />
+
+
+                <TextView
+                    android:id="@+id/timer_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginHorizontal="8dp"
+                    android:fontFamily="@font/mono_medium"
+                    android:paddingEnd="5dp"
+                    android:text="00:00:00"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_timer"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:backgroundTint="@color/textBtnRed"
+                    android:scaleType="center"
+                    android:src="@drawable/baseline_stop_circle_24"
+                    app:fabCustomSize="40dp"
+                    app:shapeAppearanceOverlay="@style/CustomFABShape"
+                    app:tint="@android:color/white"
+                    tools:ignore="SpeakableTextPresentCheck" />
+
+
+            </LinearLayout>
+
+
             <com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView
                 android:id="@+id/custom_bottom_nav_view"
                 android:layout_width="match_parent"
@@ -493,8 +569,10 @@
 
         </LinearLayout>
 
-    </LinearLayout>
 
+
+
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progress_circular"

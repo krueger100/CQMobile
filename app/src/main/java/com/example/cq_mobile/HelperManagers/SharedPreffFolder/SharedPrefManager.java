@@ -39,8 +39,9 @@ public class SharedPrefManager {
     private static final String KEY_STOP_DATE = "stop_date";
 
 
-    private static final String KEY_JOBSTARTED = "job_started";
+    private static final String KEY_JOBSTARTED_TITTLE = "job_started";
     private static final String KEY_JOBSTARTED_MESSAGE = "job_started_message";
+    private static final String KEY_JOBSTARTED_DESCRIPTION = "job_started_description";
 
     private static final String KEY_JOBS_IDS = "JOBS_IDS";
     private static final String KEY_TASK_IDS_PREFIX = "TASK_IDS";
@@ -51,7 +52,10 @@ public class SharedPrefManager {
     private static final String KEY_START_JOB_LAT = "StartJobLat";
     private static final String KEY_START_JOB_LON = "StartJobLon";
     private static final String KEY_JOB_STARTED_JOBID = "StartJobID";
-
+    private static final String KEY_JOB_STARTED_JOBID_INNERTASK = "StartTaskID";
+    private static final String KEY_JOB_SUCCESS = "job_success";
+    private static final String KEY_UK_START_TIME = "ukStartTime";
+    private static final String KEY_UK_END_TIME = "ukEndTime";
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private static SharedPrefManager instance;
@@ -70,17 +74,56 @@ public class SharedPrefManager {
     }
 
 
+
+
+    public void saveUkStartTime(String UkStartTime) {
+        editor.putString(KEY_UK_START_TIME, UkStartTime).apply();
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED_TITTLE   -->> " + UkStartTime);
+    }
+
+    public void saveUkEndTime(String UkEndTime) {
+        editor.putString(KEY_UK_END_TIME, UkEndTime).apply();
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED_TITTLE   -->> " + UkEndTime);
+    }
+
+
+
+    public void saveJobSuccess(boolean success) {
+        editor.putBoolean(KEY_JOB_SUCCESS, success);
+        Log.w("SharedPrefManager", "KEY_JOB_SUCCESS   -->> " + success);
+        editor.apply();
+    }
+
+    public boolean isJobSuccessful() {
+        return sharedPreferences.getBoolean(KEY_JOB_SUCCESS, false);
+    }
+
+    public void saveJobSuccessAsFalse(boolean success) {
+        editor.putBoolean(KEY_JOB_SUCCESS, false);
+        editor.apply();
+    }
+    public void clearJobSuccess() {
+        editor.remove(KEY_JOB_SUCCESS);
+        editor.apply();
+    }
+
 /*
 * Start Job DATA  --->>
 */
     public void saveStartedJob(String jobstarted) {
-        editor.putString(KEY_JOBSTARTED, jobstarted).apply();
-        Log.w("SharedPrefManager", "KEY_JOBSTARTED   -->> Updated");
+        editor.putString(KEY_JOBSTARTED_TITTLE, jobstarted).apply();
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED_TITTLE   -->> " + jobstarted);
     }
     public void saveStartedJobMessage(String jobstarted_message) {
         editor.putString(KEY_JOBSTARTED_MESSAGE, jobstarted_message).apply();
-        Log.w("SharedPrefManager", "KEY_JOBSTARTED_MESSAGE   -->> Updated");
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED_MESSAGE   -->> " + jobstarted_message);
     }
+
+    public void saveStartedJobDescription(String jobstarted_description) {
+        editor.putString(KEY_JOBSTARTED_DESCRIPTION, jobstarted_description).apply();
+        Log.w("SharedPrefManager", "KEY_JOBSTARTED_DESCRIPTION   -->> " + jobstarted_description);
+    }
+
 
     public void saveStartJobUserLocation(double latitude, double longitude) {
         double currentLat = getUserStartJobLatitude();
@@ -135,11 +178,30 @@ public class SharedPrefManager {
 
         Log.w("SharedPrefManager", "KEY_JOB_STARTED_JOBID Saved: " + jobIDStartJob);
     }
+
     public String getStartJobID() {
         return sharedPreferences.getString(KEY_JOB_STARTED_JOBID, null);
 
     }
 
+
+    public void saveStartJobInnerTask(String jobIDInnerStartJob) {
+        String jobID_StartJobInner = getStartJobID();
+        if (jobIDInnerStartJob != null || !jobIDInnerStartJob.isEmpty()) {
+            editor.putString(KEY_JOB_STARTED_JOBID_INNERTASK,jobIDInnerStartJob);
+            editor.apply();
+            Log.w("SharedPrefManager", "KEY_JOB_STARTED_JOBID_INNERTASK " + jobID_StartJobInner );
+        } else {
+            Log.d("SharedPrefManager", "KEY_JOB_STARTED_JOBID_INNERTASK Start Job Location remains unchanged.");
+        }
+
+        Log.w("SharedPrefManager", "KEY_JOB_STARTED_JOBID_INNERTASK Saved: " + jobIDInnerStartJob);
+    }
+
+    public String getStartJobIDInnerTask() {
+        return sharedPreferences.getString(KEY_JOB_STARTED_JOBID_INNERTASK, null);
+
+    }
 
     public void clearJobTrackingData() {
         editor.remove(KEY_USER_START_JOB_LAT);
@@ -147,10 +209,12 @@ public class SharedPrefManager {
         editor.remove(KEY_START_JOB_LAT);
         editor.remove(KEY_START_JOB_LON);
         editor.remove(KEY_JOB_STARTED_JOBID);
+        editor.remove(KEY_JOB_STARTED_JOBID_INNERTASK);
         editor.remove("userStartJobLat");
         editor.remove("userStartJobLon");
         editor.remove("StartJobLat");
         editor.remove("StartJobLon");
+        editor.remove("StartTaskID");
         editor.remove("StartJobID");
         editor.apply();
 
@@ -281,9 +345,17 @@ public class SharedPrefManager {
 
     }
 
+    public String getUkStartTime() {
+        return sharedPreferences.getString(KEY_UK_START_TIME, null);
+    }
+    public String getUkEndTime() {
+        return sharedPreferences.getString(KEY_UK_END_TIME, null);
+    }
 
 
-    /** ✅ Save Fresh Job IDs **/
+    /**
+     * SAVED ARRAY ID's* ✅ ----->>>>
+     **/
     public void saveJobIds(List<Integer> jobIdsList) {
         Set<String> jobIds = new HashSet<>();
         for (int jobId : jobIdsList) {
@@ -296,8 +368,6 @@ public class SharedPrefManager {
 
         Log.w("SharedPrefManager", "Fresh Job IDs Saved: " + jobIds);
     }
-
-    /** ✅ Get Saved Job IDs **/
     public List<Integer> getJobIds() {
         Set<String> jobIds = sharedPreferences.getStringSet(KEY_JOBS_IDS, new HashSet<>());
         List<Integer> jobIdList = new ArrayList<>();
@@ -306,8 +376,6 @@ public class SharedPrefManager {
         }
         return jobIdList;
     }
-
-    /** ✅ Save Fresh Task IDs Per Job **/
     public void saveTaskIds(int jobId, List<Integer> taskIds) {
         Set<String> newTaskIds = new HashSet<>();
         for (int taskId : taskIds) {
@@ -320,11 +388,6 @@ public class SharedPrefManager {
 
         Log.w("SharedPrefManager", "Saved Task IDs for Job ID " + jobId + ": " + newTaskIds);
     }
-
-
-    /// -------->>GET
-
-
     /**
      * ✅ Get Task IDs for a Specific Job
      **/
@@ -336,8 +399,6 @@ public class SharedPrefManager {
         }
         return taskIdList;
     }
-
-
     public String getTaskIdsAsString(int jobId) {
         Set<String> taskIds = sharedPreferences.getStringSet(KEY_TASK_IDS_PREFIX + jobId, new HashSet<>());
         List<String> taskIdList = new ArrayList<>();
@@ -348,9 +409,6 @@ public class SharedPrefManager {
 
         return TextUtils.join(",", taskIdList);
     }
-
-
-    /** ✅ Get All Job-Task Mappings **/
     public Map<Integer, List<Integer>> getJobTaskMap() {
         Map<Integer, List<Integer>> jobTaskMap = new HashMap<>();
 
@@ -379,8 +437,9 @@ public class SharedPrefManager {
         }
         return jobTaskMap;
     }
-
-
+    /**
+     * SAVED ARRAY ID's * ✅ <<<<------
+     **/
 
     public String getUserName() {
         return sharedPreferences.getString(KEY_USERNAME, null);
@@ -445,10 +504,13 @@ public class SharedPrefManager {
     }
 
     public String getStartJob() {
-        return sharedPreferences.getString(KEY_JOBSTARTED, null);
+        return sharedPreferences.getString(KEY_JOBSTARTED_TITTLE, null);
     }
     public String getStartJobMessage() {
         return sharedPreferences.getString(KEY_JOBSTARTED_MESSAGE, null);
+    }
+    public String getStartJobDescription() {
+        return sharedPreferences.getString(KEY_JOBSTARTED_DESCRIPTION, null);
     }
     public SharedPreferences getSharedPreferences() {
         return sharedPreferences;
@@ -460,10 +522,14 @@ public class SharedPrefManager {
 
 
     /// -------->>CLEAR DATA
+    public void clearUkStartTime() {
+        editor.remove(KEY_UK_START_TIME).apply();
+        Log.w("SharedPrefManager", "KEY_UK_START_TIME Cleared");
+    }
 
-    public void clearJobIds() {
-        editor.remove(KEY_JOBS_IDS).apply();
-        Log.w("SharedPrefManager", "All Task IDs Cleared");
+    public void clearUkEndTime() {
+        editor.remove(KEY_UK_END_TIME).apply();
+        Log.w("SharedPrefManager", "KEY_UK_END_TIME Cleared");
     }
     public void clearTaskIds() {
         editor.remove(KEY_TASK_IDS_PREFIX).apply();
@@ -471,12 +537,16 @@ public class SharedPrefManager {
     }
 
     public void clearStartJob() {
-        editor.remove(KEY_JOBSTARTED).apply();
+        editor.remove(KEY_JOBSTARTED_TITTLE).apply();
         Log.w("SharedPrefManager", "All KEY_JOBSTARTED data cleared!");
     }
     public void clearStartJobMessage() {
         editor.remove(KEY_JOBSTARTED_MESSAGE).apply();
         Log.w("SharedPrefManager", "All KEY_JOBSTARTED_MESSAGE data cleared!");
+    }
+    public void clearStartJobDescription() {
+        editor.remove(KEY_JOBSTARTED_DESCRIPTION).apply();
+        Log.w("SharedPrefManager", "All KEY_JOBSTARTED_DESCRIPTION data cleared!");
     }
 
     // Clear all Chat notif
