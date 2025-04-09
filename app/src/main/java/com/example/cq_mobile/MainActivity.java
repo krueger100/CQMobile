@@ -6,34 +6,41 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.viewpager2.widget.ViewPager2;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.Clock.ClockFolder.TimerFunctionManager;
+import com.example.cq_mobile.Clock.ClockFragment;
+import com.example.cq_mobile.Clock.JobDetails;
+import com.example.cq_mobile.Clock.SaveJobDataManager;
 import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
-import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
+import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.NavigationManager;
 import com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder.GetChatNotifManager;
 import com.example.cq_mobile.HelperManagers.Notifications.GetNotificationToken;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
-import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuildApiManager;
-import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.FirebaseApp;
-
 import java.util.List;
-
 
 public class MainActivity extends AppCompatActivity implements ClockOutVisibilityHandler {
     private ActivityMainBinding binding;
@@ -43,247 +50,249 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     private static final String TAG = "MainActivity";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
     String accessToken;
-    String userName;
-    String notificationToken;
-    int jobId = -1 ;
-    int taskId = -1;
-    String firstName;
-    String lastName;
     String avatarPath;
     String avatarUrl;
     private NetworkManager networkManager;
-    FirebaseDatabaseManager firebaseDatabaseManager;
-    LinearLayout timer_layout2;
     private View rootView;
-   private TimerFunctionManager timerFunctionManager;
+    private TimerFunctionManager timerFunctionManager;
+    int userId;
+    String email, password, avatar, startDate;
+    ServerDataReconnect serverDataReconnect;
+    private BackPressManager backPressManager;
+    private ViewPager2 viewPager;
+    private ProgressBar progressBar;
+    private TabLayout tabLayout;
+    String token2;
+    SaveJobDataManager saveJobDataManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
-        // -->>> Check Network Status
         networkManager = new NetworkManager(this);
         if (!networkManager.isConnected()) {
             networkManager.showNoConnectionDialog();
+
         }
 
         SharedPreferences sharedPreferences = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
         boolean isClockedIn = sharedPreferences.getBoolean("ClockInSuccess", false);
         Log.d("MainActivity", "Clock In Status: " + isClockedIn);
-
-
         sharedPreferences.edit().putBoolean("AddressDialogShown", false).apply();
-
-        SharedPreferences userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        String accessToken = userPrefs.getString("accessToken", null);
-        String userID = userPrefs.getString("userId", null);
-        String email = userPrefs.getString("email", null);
-        String password = userPrefs.getString("password", null);
-        String avatar = userPrefs.getString("avatar", null);
+        sharedPrefManager = new SharedPrefManager(this);
+         token2 = sharedPrefManager.getNotiftoken();
+        Log.d("MainActivity", "token2: ----->>>> " + token2);
+         saveJobDataManager = new SaveJobDataManager(this);
 
 
-        Intent intent = getIntent();
-        accessToken = intent.getStringExtra("accessToken");
-        int userId = intent.getIntExtra("userId", -1);
-        if (userId == -1) {
-            SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
-            String userIdStr = userID;
+        serverDataReconnect = new ServerDataReconnect(getApplicationContext());
+        AuthManager authManager = AuthManager.getInstance(this);
+        if (authManager != null && authManager.isLoggedIn()) {
+            if (authManager.isTokenExpired()) {
+                Log.d("MainActivity", "Token is expired. Please log in again.");
+                Toast.makeText(this, "Your session has expired. Please log in again.", Toast.LENGTH_LONG).show();
 
-            if (userIdStr != null) {
-                userId = Integer.parseInt(userIdStr);
+                Intent loginIntent = new Intent(MainActivity.this, Login.class);
+                startActivity(loginIntent);
+                finish();
+            } else {
+
+                accessToken = authManager.getToken();
+                userId = authManager.getUserId();
+                String firstName = authManager.getFirstName();
+                String lastName = authManager.getLastName();
+                String email = authManager.getEmail();
+                String avatar = authManager.getAvatar();
+                Log.d("MainActivity", "<-AuthManager->" );
+                Log.d("MainActivity", "Access Token: " + accessToken);
+                Log.d("MainActivity", "User ID: " + userId);
+                Log.d("MainActivity", "User Name: " + firstName + " " + lastName);
+                Log.d("MainActivity", "Avatar Path: ----->>>> " + avatar);
+                Log.d("MainActivity", "Email: ----->>>> " + email);
+
+
+                // Proceed with the rest of the logic
+                viewPager = findViewById(R.id.viewPager);
+                progressBar = findViewById(R.id.progressBar);
+                tabLayout = findViewById(R.id.tabLayout);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(
+                                this,
+                                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                                NOTIFICATION_PERMISSION_REQUEST_CODE
+                        );
+                    } else {
+                        int finalUserId = userId;
+                        GetNotificationToken.setTokenCallback(token2 -> {
+                            Log.d("MainActivity", "Received token: " + token2);
+                            initializeApp(finalUserId);
+                        });
+                        GetNotificationToken.getToken(this);
+                    }
+                }
             }
-        }
-        jobId = intent.getIntExtra("jobId", -1);
-        taskId = intent.getIntExtra("taskId", -1);
-        userName = intent.getStringExtra("userName");
-        if (userName == null || userName.trim().isEmpty()) {
-            userName = firstName + " " + lastName;
-        }
-        avatarPath = intent.getStringExtra("avatarPath");
-        firstName = intent.getStringExtra("firstName");
-        lastName = intent.getStringExtra("lastName");
-        email = intent.getStringExtra("email");
-        password = intent.getStringExtra("password");
-        avatarUrl = intent.getStringExtra("avatarUrl");
+        } else {
+            Log.d("MainActivity", "AuthManager is null or user is not logged in. Fetching data from Firebase.");
 
-        Log.d("MainActivity", "<<<<----- MainActivity ----->>>> " );
-        Log.d("MainActivity", "Access Token: Intent ----->>>> " + accessToken);
-        Log.d("MainActivity", "User ID: Intent ----->>>> " + userId);
-        Log.d("MainActivity", "Job ID: Intent ----->>>>  " + jobId);
-        Log.d("MainActivity", "Task ID: Intent ----->>>> " + taskId);
-        Log.d("MainActivity", "User Name: Intent ----->>>> " + userName);
-        Log.d("MainActivity", "Avatar Path: Intent ----->>>> " + avatarPath);
-        Log.d("MainActivity", "First Name: Intent ----->>>> " + firstName);
-        Log.d("MainActivity", "Last Name: Intent ----->>>> " + lastName);
-        Log.d("MainActivity", "Email: Intent ----->>>> " + email);
-        Log.d("MainActivity", "Avatar URL: Intent ----->>>> " + avatarUrl);
+            FirebaseDataManager firebaseDataManager = new FirebaseDataManager(userId);
+            firebaseDataManager.retrieveUserData(new FirebaseDataManager.UserDataCallback() {
+                @Override
+                public void onUserDataRetrieved(String accessToken, String userId, String avatar, String firstName, String lastName, String notificationToken) {
+                    Log.d("MainActivity", "<-FirebaseDataManager->" );
+                    Log.d("MainActivity", "Access Token: " + accessToken);
+                    Log.d("MainActivity", "User ID: " + userId);
+                    Log.d("MainActivity", "User Name: " + firstName + " " + lastName);
+                    Log.d("MainActivity", "Avatar Path: ----->>>> " + avatar);
+                    Log.d("MainActivity", "Email: ----->>>> " + email);
+                    Log.d("MainActivity", "Notification Token: ----->>>> " + notificationToken);
+                    viewPager = findViewById(R.id.viewPager);
+                    progressBar = findViewById(R.id.progressBar);
+                    tabLayout = findViewById(R.id.tabLayout);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS)
+                                != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(
+                                    MainActivity.this,
+                                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                                    NOTIFICATION_PERMISSION_REQUEST_CODE
+                            );
+                        } else {
+                            int finalUserId = Integer.parseInt(userId);
+                            GetNotificationToken.setTokenCallback(token2 -> {
+                                Log.d("MainActivity", "Received token: " + token2);
+                                initializeApp(finalUserId);
+                            });
+                            GetNotificationToken.getToken(MainActivity.this);
+                        }
+                    }
+                }
+            });
+        }
+
+
+        if (!isClockedIn){
+            loadFragment(new ClockFragment());
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new ClockFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
+
+        }else {
+            Log.d("MainActivity", "Already Clocked In" );
+
+        }
+
+
+
+
         drawerLayout = binding.drawerLayout;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        NOTIFICATION_PERMISSION_REQUEST_CODE
-                );
-            } else {
-                int finalUserId = userId;
-                GetNotificationToken.setTokenCallback(token2 -> {
-                    Log.d("MainActivity", "Received token: " + token2);
-                    initializeApp(token2, finalUserId,avatarUrl);
-                });
-                GetNotificationToken.getToken(this);
-            }
-        }
-    //// ------------->>>>>>>>  Access Token Data
-        firebaseDatabaseManager = new FirebaseDatabaseManager();
-        firebaseDatabaseManager.getUserData(String.valueOf(userId), new FirebaseDatabaseManager.UserDataCallback() {
+        backPressManager = new BackPressManager(this);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
-            public void onSuccess(FirebaseDatabaseManager.User user) {
-                Log.d("MainActivity", "User Retrieved: " + user.firstName + " " + user.lastName);
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Log.e("MainActivity", "Failed to retrieve user: " + error);
-           //     AccessTokenData();
+            public void handleOnBackPressed() {
+                backPressManager.handleBackPress(MainActivity.class);
             }
         });
 
+
+
+    }
+    private void loadFragment(Fragment fragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.commit();
+
     }
 
-    private void initializeApp(String currentUser_notification_token, int userId, String avatarUrl) {
+    private void initializeApp(int finalUserId) {
         FirebaseApp.initializeApp(this);
         StatusBarManager.setStatusBarLight(this);
-        sharedPrefManager = new SharedPrefManager(this);
-        accessToken = sharedPrefManager.getAccessToken();
-        userId = sharedPrefManager.getUserId();
-        avatarPath = sharedPrefManager.getAvatarUrl();
-        userName = sharedPrefManager.getUserName();
-        firstName = sharedPrefManager.getFirstName();
-        lastName = sharedPrefManager.getLastName();
-        notificationToken = sharedPrefManager.getNotiftoken();
-        jobId = sharedPrefManager.getJobId();
-        taskId = sharedPrefManager.getTaskId();
-        String startDate = sharedPrefManager.getKeyStartDate();
+        List<JobDetails> savedJobDetailsList = saveJobDataManager.getJobData();
+        if (savedJobDetailsList != null && !savedJobDetailsList.isEmpty()) {
+            for (JobDetails jobDetails : savedJobDetailsList) {
+                Log.d("SavedJobData", "ID: " + jobDetails.getId());
+                Log.d("SavedJobData", "Job ID: " + jobDetails.getJobId());
+                Log.d("SavedJobData", "Job Started: " + jobDetails.getStartDate());
 
-        Log.w(TAG, "ClockOutManager: " + "\njobId  ->\n" + jobId + "\n taskId ->\n" + taskId +"\n userId  \n->"+userId
-                +"\n startDate  \n->"+ startDate);
+                navigationManager = new NavigationManager(MainActivity.this, binding.clockoutBtn, binding.navView, binding.navViewDrawer, drawerLayout,
+                        binding.progressBar, accessToken,jobDetails.getId(), jobDetails.getJobId(), startDate, userId);
+                navigationManager.setupNavigation();
+
+                ClockOutManager clockOutManager = new ClockOutManager(MainActivity.this, binding.progressBar, jobDetails.getId(), jobDetails.getJobId(), userId, sharedPrefManager);
+                String jobTitle = sharedPrefManager.getStartJob();
+                String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
+                String jobTitle_id = sharedPrefManager.getStartJobID();
+                String jobTitle_Taskid = sharedPrefManager.getStartJobIDInnerTask();
+                boolean jobSuccess = sharedPrefManager.isJobSuccessful();
+
+                if (jobSuccess) {
+                    clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobDetails.getId());
+                    binding.jobTitle.setText(jobTitle);
+                    binding.timerLayout.setVisibility(View.VISIBLE);
+                    binding.progressBarTimer.setVisibility(View.VISIBLE);
 
 
-        navigationManager = new NavigationManager(this,binding.clockoutBtn, binding.navView, binding.navViewDrawer, drawerLayout,
-                binding.progressBar, accessToken, jobId, taskId, startDate, userId);
+                    Log.d("MainActivity", "ID: ----->>>>  " + jobDetails.getId());
+                    Log.d("MainActivity", "Job ID: ----->>>> " + jobDetails.getJobId());
 
 
-
-        ClockOutManager clockOutManager = new ClockOutManager(MainActivity.this, binding.progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
-        String jobTitle = sharedPrefManager.getStartJob();
-        String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
-        String jobTitle_id = sharedPrefManager.getStartJobID();
-        String jobTitle_Taskid = sharedPrefManager.getStartJobIDInnerTask();
-        boolean jobSuccess = sharedPrefManager.isJobSuccessful();
-
-        Log.w(TAG, "jobTitle ->> " + jobTitle);
-        Log.w(TAG, "jobMessage ->> " + jobTitle_started_message);
-        Log.w(TAG, "jobTitle ID ->> " + jobTitle_id);
-        Log.w(TAG, "jobTitle TASKID ->> " + jobTitle_Taskid);
-        Log.w(TAG, "Job Success ->> " + jobSuccess);
-
-        if (jobSuccess) {
-            clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobId);
-            Log.w(TAG, "From: MainActivity -> " + jobTitle);
-            binding.jobTitle.setText(jobTitle);
-
-            binding.timerLayout.setVisibility(View.VISIBLE);
-            binding.progressBarTimer.setVisibility(View.VISIBLE);
-
-            binding.jobTitle.setOnClickListener(v -> {
-                TransitionAnimationManager.zoomOut(v, 150);
-                    v.postDelayed(() -> {
-                        TransitionAnimationManager.zoomIn(v, 50);
-                        binding.progressBar.setVisibility(View.VISIBLE);
-                        Intent intent = new Intent(MainActivity.this, NewBuild.class);
-                        intent.putExtra("job_id", jobTitle_id);
-                        intent.putExtra("task_id", jobTitle_Taskid);
-                        try {
+                    binding.jobTitle.setOnClickListener(v -> {
+                        TransitionAnimationManager.zoomOut(v, 150);
+                        v.postDelayed(() -> {
+                            TransitionAnimationManager.zoomIn(v, 50);
+                            binding.progressBar.setVisibility(View.VISIBLE);
+                            Intent intent = new Intent(MainActivity.this, NewBuild.class);
+                            intent.putExtra("job_id", jobTitle_id);
+                            intent.putExtra("task_id", jobTitle_Taskid);
                             startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
                             binding.progressBar.setVisibility(View.GONE);
-                        }
-                    }, 150);
-            });
+                        }, 150);
+                    });
+                } else {
+                    clockOutManager.setupStopJobWithTimeSheet(binding.clockoutBtn, accessToken,jobDetails.getId(), jobDetails.getJobId(), sharedPrefManager, binding.progressBar);
+                    binding.jobTitle.setText(jobTitle);
+                }
 
-        } else {
-            clockOutManager.setupStopJobWithTimeSheet(binding.clockoutBtn, accessToken, jobId, taskId, sharedPrefManager, binding.progressBar);
-            binding.jobTitle.setText(jobTitle);
+                rootView = findViewById(android.R.id.content);
+                timerFunctionManager = new TimerFunctionManager(rootView, jobDetails.getStartDate(),jobDetails.getId(), jobDetails.getJobId(), userId,
+                        binding.progressBar, clockOutManager, binding.clockoutBtn, binding.timerLayout);
 
-            Log.w(TAG, "From: MainActivity <-  " + jobTitle);
-            if (timerFunctionManager != null) {
-                timerFunctionManager.resetTimer(this);
-                Log.d(TAG, "Timer Not Started : No Job Started");
+
+//                HomeFragment homeFragment = new HomeFragment();
+//                Bundle args = new Bundle();
+//                homeFragment.setArguments(args);
+//                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.fragment_container, homeFragment)
+//                        .commit();
+
+                binding.progressBar.setVisibility(View.GONE);
+
+
             }
-
-        }
-
-
-
-        if (startDate == null) {
-            Log.w("MainActivity", "Warning: Start date is null, using default value 0.");
-        }
-        Log.w("MainActivity", "Start time ----->>>> " + startDate);
-
-        rootView = findViewById(android.R.id.content);
-        timerFunctionManager = new TimerFunctionManager(rootView, startDate, jobId, taskId, userId,
-                binding.progressBar, clockOutManager,binding.clockoutBtn,binding.timerLayout);
-
-        Log.d("MainActivity", "FirebaseDataManager User ID:  --------->>> " + userId );
-
-        if (notificationToken == null || notificationToken.isEmpty()) {
-            notificationToken = (currentUser_notification_token != null) ? currentUser_notification_token : "";
-            sharedPrefManager.saveNewNotificationToken(notificationToken);
-            Log.w("MainActivity", "Notification token updated: " + notificationToken);
-        }
-
-        if (userId != 0) {
-            FirebaseDataManager firebaseDataManager = new FirebaseDataManager(userId);
-            firebaseDataManager.saveUserData(
-                    accessToken != null ? accessToken : "",
-                    String.valueOf(userId),
-                    avatarPath != null ? avatarPath : "",
-                    firstName != null ? firstName : "",
-                    lastName != null ? lastName : "",
-                    notificationToken);
-
-            firebaseDataManager.retrieveUserData((accessToken1, userId1, avatar1, firstName1, lastName1, notificationToken1) -> {
-                Log.d("MainActivity", "FirebaseDataManager Access Token: " + (accessToken1 != null ? accessToken1 : "N/A"));
-                Log.d("MainActivity", "FirebaseDataManager User ID: " + (userId1 != null ? userId1 : "N/A"));
-                Log.d("MainActivity", "FirebaseDataManager Avatar: " + (avatar1 != null ? avatar1 : "N/A"));
-                Log.d("MainActivity", "FirebaseDataManager First Name: " + (firstName != null ? firstName : "N/A"));
-                Log.d("MainActivity", "FirebaseDataManager Last Name: " + (lastName != null ? lastName : "N/A"));
-                Log.d("MainActivity", "FirebaseDataManager Notification Token: " + (notificationToken1 != null ? notificationToken1 : "N/A"));
-            });
-
         } else {
-            Log.d("MainActivity", "Error: userId is null or empty. FirebaseDataManager initialization skipped.");
+            Log.d("MainActivity", "No job data found.");
         }
 
-        Log.w("MainActivity", "Notification token ---> : " + currentUser_notification_token);
-
-       if (accessToken != null && !accessToken.isEmpty()) {
-           GetChatNotifManager chatNotifManager = new GetChatNotifManager(getApplicationContext());
-           chatNotifManager.GetChatNotif(accessToken);
+        if (accessToken != null && !accessToken.isEmpty()) {
+            GetChatNotifManager chatNotifManager = new GetChatNotifManager(this);
+            chatNotifManager.GetChatNotif(accessToken);
         } else {
             Log.e("MainActivity", "Error: accessToken is null or empty. GetChatNotif skipped.");
         }
 
-        navigationManager.setupNavigation();
+
 
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -304,6 +313,11 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         }
     }
 
+
+
+
+
+
     @Override
     public boolean onSupportNavigateUp() {
         return navigationManager.onSupportNavigateUp();
@@ -313,11 +327,26 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     @Override
     protected void onResume() {
         super.onResume();
-        if (timerFunctionManager != null) {
-            timerFunctionManager.resumeTimerAfterReopen(this);
-            Log.d(TAG, "resumeTimerAfterReopen called in MainActivity");
-        }
+        serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
+            if (success) {
+                Log.d("MainActivity", "Reconnected successfully.");
+                Log.d(TAG, "Reconnected successfully");
+                if (timerFunctionManager != null) {
+                    timerFunctionManager.resumeTimerAfterReopen(this);
+                    Log.d(TAG, "resumeTimerAfterReopen called in MainActivity");
+                }
+            } else {
+                Log.e("MainActivity", "Reconnection failed. Redirecting to login.");
+                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Intent intent = new Intent(MainActivity.this, Login.class);
+                    startActivity(intent);
+                    finish();
+                }, 500);
+            }
+        }));
+
     }
+
 
     @Override
     protected void onPause() {
@@ -335,6 +364,16 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         }
     }
 
+    public void hideClockFragment() {
+        ClockFragment clockFragment = (ClockFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+
+        if (clockFragment != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .remove(clockFragment)
+                    .commit();
+        }
+    }
+
     @Override
     public void setClockOutVisibility(boolean isVisible) {
         if (binding.clockoutBtn != null) {
@@ -342,9 +381,12 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         }
     }
 
-
 }
 
 
 
 
+/*
+   boolean isLoggedIn = loginSavedData.getIsLoggedIn();
+                                Log.d("Login", "Is Logged In: " + isLoggedIn);
+ */

@@ -28,6 +28,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
@@ -85,7 +86,7 @@ public class ReplyTicket extends AppCompatActivity {
         SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
          email = sharedPrefManager.getEmail();
          password = sharedPrefManager.getPassword();
-         accessToken = sharedPrefManager.getAccessToken();
+         accessToken = AuthManager.getInstance(this).getToken();
         Log.d("CreateTicket", "Access Token: " + accessToken);
         Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
         Log.d("ToDoFragmentSharedPreff", "Email: "+email);
@@ -308,13 +309,15 @@ public class ReplyTicket extends AppCompatActivity {
     }
 
     private void sendReply(int ticketId, String replyText) {
+        Context context = getApplicationContext();
+
         SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
         Log.d("sendReply", "Retrieved User Data: ");
         Log.d("sendReply", "Email: "+email);
         Log.d("sendReply", "Password  : "+password);
-        ReplyTicketApiManager.replyToTicket(email,password,String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
+        ReplyTicketApiManager.replyToTicket(context,email,password,String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> Toast.makeText(ReplyTicket.this, "Reply sent successfully", Toast.LENGTH_SHORT).show());

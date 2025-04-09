@@ -2,7 +2,6 @@ package com.example.cq_mobile.SplashFolder;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,28 +13,28 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.FadeIn_N_Out_AnimManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
-import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 
 public class SplashActivity extends AppCompatActivity {
 
     ProgressBar progressBar;
-
+    ServerDataReconnect serverDataReconnect;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        serverDataReconnect = new ServerDataReconnect(getApplicationContext());
 
         SharedPreferences ClockIN = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
         boolean isClockedIn = ClockIN.getBoolean("ClockInSuccess", false);
         Log.d("SplashActivity", "isClockedIn: " + isClockedIn);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+       SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
+        boolean isLoggedIn = sharedPrefManager.getIsLoggedIn();
         Log.d("SplashActivity", "isLoggedIn: " + isLoggedIn);
 
         if (!isTaskRoot()) {
@@ -54,50 +53,25 @@ public class SplashActivity extends AppCompatActivity {
         splashManager.checkCreadentials(isClockedIn, isLoggedIn);
 
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
+            if (success) {
+                Log.d("SplashActivity", "Reconnected successfully.");
+                Log.d("SplashActivity", "Reconnected successfully");
+
+            } else {
+                Log.e("SplashActivity", "Reconnection failed. Redirecting to login.");
+                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Intent intent = new Intent(SplashActivity.this, Login.class);
+                    startActivity(intent);
+                    finish();
+                }, 500);
+            }
+        }));
 
     }
 }
-
-/*
-
-
-Login Checker
-        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
-        Log.d("SplashActivity", "isLoggedIn: " + isLoggedIn);
-
-
-ClockIN Checker
-      SharedPreferences ClockIN = getSharedPreferences("ClockPrefs", MODE_PRIVATE);
-        boolean isClockedIn = ClockIN.getBoolean("ClockInSuccess", false);
-        if (isClockedIn) {
-            Log.d("SplashActivity", "Navigate to Login");
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                Intent intent;
-                if (isLoggedIn) {
-                    intent = new Intent(SplashActivity.this, MainActivity.class);
-                } else {
-                    intent = new Intent(SplashActivity.this, Login.class);
-                }
-                startActivity(intent);
-                finish();
-            }, 500);
-
-        } else {
-            Log.d("SplashActivity", "User is not clocked in.");
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                Intent intent;
-                if (isLoggedIn) {
-                    intent = new Intent(SplashActivity.this, ClockActivity.class);
-                } else {
-                    intent = new Intent(SplashActivity.this, Login.class);
-                }
-                startActivity(intent);
-                finish();
-            }, 500);
-
-        }
-
-
-
- */

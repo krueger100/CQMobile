@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.RouteNewBuildFolder;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -187,36 +188,33 @@ public class RouteNewBuildManager {
 
 
     public void showAddressInputDialog(LatLng userLocation, LatLng taskLatLng) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Enter Destination Address");
+        if (!(context instanceof Activity) || ((Activity) context).isFinishing()) {
+            return;
+        }
 
-        // Set up the input field
-        final EditText input = new EditText(context);
-        input.setHint("Enter address or location");
-        builder.setView(input);
+        ((Activity) context).runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Enter Destination Address");
 
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+            final EditText input = new EditText(context);
+            input.setHint("Enter address or location");
+            builder.setView(input);
+
+            builder.setPositiveButton("OK", (dialog, which) -> {
                 String userInput = input.getText().toString();
                 if (!userInput.isEmpty()) {
-                    // Process the user input and geocode the address
-                    geocodeAddress(userLocation, userInput, taskLatLng); // Pass taskLatLng to keep the destination
+                    geocodeAddress(userLocation, userInput, taskLatLng);
                 } else {
                     Toast.makeText(context, "Please enter an address", Toast.LENGTH_SHORT).show();
                 }
-            }
-        });
+            });
 
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
-        builder.show();
+            builder.show();
+        });
     }
+
 
     private void geocodeAddress(LatLng userLocation, String address, LatLng taskLatLng) {
         Geocoder geocoder = new Geocoder(context);

@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefTaskADandJobID;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SpinnerFolder.SubTaskSpinnerAdapter;
 import com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.TaskActivity;
@@ -98,7 +99,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             Log.w("SubTaskAdapter", "taskId <- " + taskId);
 
             SharedPrefTaskADandJobID sharedPrefTaskADandJobID = new SharedPrefTaskADandJobID(context);
-            sharedPrefTaskADandJobID.saveUserjobANDtaskID(String.valueOf(taskId));
+            sharedPrefTaskADandJobID.saveIdAndJobId(String.valueOf(taskId));
 
             // Apply background and text color based on priority
             if (taskPriority != null && !taskPriority.isEmpty()) {
@@ -126,7 +127,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
             }
 
             SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-            String accessToken = sharedPrefManager.getAccessToken();
+            String accessToken = AuthManager.getInstance(context).getToken();
             int userId = sharedPrefManager.getUserId();
             String firstName = sharedPrefManager.getFirstName();
             String lastName = sharedPrefManager.getLastName();
@@ -213,6 +214,7 @@ public class SubTaskAdapter extends RecyclerView.Adapter<SubTaskAdapter.Secondar
                         intent.putExtra("taskId", taskId);
                         intent.putExtra("title", title);
                         intent.putExtra("description", description);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(intent);
                     } else {
 

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.Skipped;
 import com.example.cq_mobile.ui.home.HomeFolder.API_skipped.SkippedAdapter;
@@ -50,7 +51,7 @@ public class SkippedFragment extends Fragment {
         recyclerView.setAdapter(skippedAdapter);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(getContext()).getToken();
         int userID = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();

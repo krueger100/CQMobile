@@ -8,8 +8,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.ProgressBar;
 
-import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.LoginFolder.Login;
 import com.example.cq_mobile.MainActivity;
 
@@ -22,28 +22,6 @@ public class SplashManager {
         this.context = context;
         this.sharedPrefManager = new SharedPrefManager(context);
         this.progressBar = progressBar;
-    }
-
-    public void handleSplashNavigation(boolean isClockedIn, boolean isLoggedIn) {
-        if (isClockedIn) {
-            Log.d("SplashManager", "User is clocked in, Authentication Activated.");
-
-        } else {
-            Log.d("SplashManager", "User is NOT clocked in, handling auto clock-out.");
-        }
-
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            Intent intent;
-            if (isLoggedIn) {
-                intent = new Intent(context, isClockedIn ? MainActivity.class : ClockActivity.class);
-            } else {
-                intent = new Intent(context, Login.class);
-            }
-            context.startActivity(intent);
-            if (context instanceof Activity) {
-                ((Activity) context).finish();
-            }
-        }, 500);
     }
 
 
@@ -75,13 +53,13 @@ public class SplashManager {
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 Intent intent;
                 if (isLoggedIn) {
-                    intent = new Intent(context, ClockActivity.class);
+                    intent = new Intent(context, MainActivity.class);
                     Log.d("SplashManager", "User is LoggedIn , Navigate to Main Page.");
 
                 } else {
                     intent = new Intent(context, Login.class);
                     sharedPrefManager = new SharedPrefManager(context);
-                    String accessToken = sharedPrefManager.getAccessToken();
+                    String accessToken = AuthManager.getInstance(context).getToken();
                     int userId = sharedPrefManager.getUserId();
                     Log.d("SplashManager", "User is NOT LoggedIn , Navigate to Login Page.");
 

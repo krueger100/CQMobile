@@ -10,8 +10,9 @@ android {
         applicationId = "com.co.cq_mobile"
         minSdk = 33
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.2"
+        versionCode = 5
+        versionName = "1.5"
+        multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
@@ -24,8 +25,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true 
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -36,25 +37,21 @@ android {
 
 
     compileOptions {
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
-        }
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
-
     }
 
     buildFeatures {
         viewBinding = true
     }
 
-    // Correct Kotlin DSL for packaging options
+
     packaging {
         resources {
             excludes += "META-INF/DEPENDENCIES"
         }
     }
-
 
 
 }
@@ -125,5 +122,11 @@ dependencies {
     implementation ("androidx.camera:camera-camera2:1.3.0")
 
     implementation("androidx.compose.ui:ui-text-google-fonts:1.7.8")
+
+
+    implementation ("org.slf4j:slf4j-api:1.7.32")
+    implementation ("org.slf4j:slf4j-simple:1.7.32")
+
+    implementation ("androidx.security:security-crypto:1.0.0")
 
 }

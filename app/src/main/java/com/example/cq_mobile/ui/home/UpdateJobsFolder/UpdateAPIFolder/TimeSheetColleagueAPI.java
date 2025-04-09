@@ -15,6 +15,7 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 
 import com.example.cq_mobile.Clock.TimeSheetFolder.ApiTSCallback;
 import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApi;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.MainActivity;
 
 import java.io.IOException;
@@ -48,11 +49,8 @@ public class TimeSheetColleagueAPI {
             double longitude,
             int jobId,
             int taskId,
-            String ukDate,
-            String startTime,
-            String endTime,
             ProgressBar progressBar,
-            Context context,String ukEndTime,String ukStartTime,
+            Context context,
             ApiTimeSheetCallback callback) {
 
         if (accessToken == null || accessToken.isEmpty()) {
@@ -61,6 +59,13 @@ public class TimeSheetColleagueAPI {
             return;
         }
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        String Date = sharedPrefManager.getKeyDate();
+        String stopDate = sharedPrefManager.getKeyStopDate();
+        String startDate = sharedPrefManager.getKeyStartDate();
+        Log.d("TimeSheetColleagueAPI", "Date  "  +Date );
+        Log.d("TimeSheetColleagueAPI", "Start time  "  +startDate );
+        Log.d("TimeSheetColleagueAPI", "StopDate time  "  +stopDate );
         Log.d("TimeSheetColleagueAPI", "Sending TimeSheet Colleague Data...");
 
         try {
@@ -68,9 +73,9 @@ public class TimeSheetColleagueAPI {
             jsonPayload.put("user", userId);
             jsonPayload.put("lat", userLatitude);
             jsonPayload.put("long", userLongitude);
-            jsonPayload.put("date", ukDate);
-            jsonPayload.put("start", ukStartTime);
-            jsonPayload.put("end", ukEndTime);
+            jsonPayload.put("date", Date);
+            jsonPayload.put("start", startDate);
+            jsonPayload.put("end", stopDate);
             jsonPayload.put("clocked_out", 1);
             jsonPayload.put("remarks", JSONObject.NULL);
             jsonPayload.put("lat_out", latitude);
@@ -78,12 +83,12 @@ public class TimeSheetColleagueAPI {
 
             String jsonString = jsonPayload.toString();
 
-            sendJobColleagueData(jobId, jsonString, accessToken, userId, taskId, progressBar, context, startTime, new ApiTimeSheetCallback() {
+            sendJobColleagueData(jobId, jsonString, accessToken, userId, taskId, progressBar, context, new ApiTimeSheetCallback() {
                 @Override
                 public void onSuccess(String message) {
                     callback.onSuccess("TimeSheet Sent Successfully");
 
-                    StopJobApi.stopJobWithTimesheetColleague(accessToken, userId, progressBar, context, new ApiTSCallback() {
+                    StopJobApi.stopJobWithTimesheetColleague( userId, progressBar, context, new ApiTSCallback() {
                         @Override
                         public void onSuccess(String message) {
                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -93,7 +98,7 @@ public class TimeSheetColleagueAPI {
                                         " -> " + "Response:  -->> " + "\t" + message);
 
                                 progressBar.post(() -> progressBar.setVisibility(View.GONE));
-                                TimerManager timerManager = TimerManager.getInstance(context, startTime);
+                                TimerManager timerManager = TimerManager.getInstance(context);
                                 timerManager.resetTimer(context);
                             });
                         }
@@ -127,7 +132,6 @@ public class TimeSheetColleagueAPI {
             int taskId,
             ProgressBar progressBar,
             Context context,
-            String startTime,
             ApiTimeSheetCallback callback) {
 
         String url = BASE_URL_SEND_COLLEAGUE_DATA + userId;

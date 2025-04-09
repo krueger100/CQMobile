@@ -26,6 +26,8 @@ public class BackPressManager {
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.fragment.app.FragmentManager;
 
@@ -44,18 +46,20 @@ public class BackPressManager {
         if (context instanceof Activity) {
             Activity activity = (Activity) context;
             FragmentManager fragmentManager = ((androidx.fragment.app.FragmentActivity) activity).getSupportFragmentManager();
-            if (fragmentManager.getBackStackEntryCount() > 0) {
-                fragmentManager.popBackStack();
-            } else {
-                Intent intent = new Intent(context, activityClass);
-                context.startActivity(intent);
-                activity.finish();
-            }
+
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (fragmentManager.getBackStackEntryCount() > 0) {
+                    fragmentManager.popBackStack();
+                } else {
+                    Intent intent = new Intent(context, activityClass);
+                    context.startActivity(intent);
+                    activity.finish();
+                }
+            }, 200);
         }
     }
-
-
 }
+
 
 /*
                      // for bottom to top animation

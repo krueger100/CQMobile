@@ -1,13 +1,9 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_todo;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.List;
-
-import java.util.List;
 
 public class Todo {
     private int id;
     private int job_id;
+    private String job_title; // ✅ Added field
     private String name;
     private String description;
     private String status;
@@ -26,6 +22,9 @@ public class Todo {
 
     public int getJob_id() { return job_id; }
     public void setJob_id(int job_id) { this.job_id = job_id; }
+
+    public String getJob_title() { return job_title; }  // ✅ Getter
+    public void setJob_title(String job_title) { this.job_title = job_title; }  // ✅ Setter
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -60,7 +59,7 @@ public class Todo {
     public Coordinates getCoordinates() { return coordinates; }
     public void setCoordinates(Coordinates coordinates) { this.coordinates = coordinates; }
 
-    // Inner Classes for Client Details, Address, and Coordinates
+    // Inner Classes
     public static class ClientDetails {
         private String company;
         private String email;
@@ -134,3 +133,4 @@ public class Todo {
         public void setLongitude(String longitude) { this.longitude = longitude; }
     }
 }
+

@@ -28,6 +28,7 @@ import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.FilesFoler.CameraXActivity;
@@ -90,7 +91,7 @@ public class TaskActivity extends AppCompatActivity {
         String description_1 = intent.getStringExtra("description");
 
          sharedPrefManager = new SharedPrefManager(TaskActivity.this);
-         accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(this).getToken();
         int userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
@@ -354,24 +355,21 @@ public class TaskActivity extends AppCompatActivity {
                 }
         );
 
-        JobDetailsManager.fetchJob_Details(accessToken, progressBar, this, new JobDetailsManager.JobDetailsCallback() {
+        JobDetailsManager.fetchJobDetails(this, progressBar, new JobDetailsManager.JobDetailsCallback() {
             @Override
             public void onJobDetailsFetched() {
                 Log.d(TAG, "Job details successfully fetched!");
 
-                // ✅
                 SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(getApplicationContext());
                 List<Integer> savedJobIdsList = sharedPrefManager.getJobIds();
                 Map<Integer, List<Integer>> jobTaskData = sharedPrefManager.getJobTaskMap();
 
                 if (savedJobIdsList == null || savedJobIdsList.isEmpty()) {
                     Log.e(TAG, "Error: No saved job IDs found!");
-                    return; // ❌
+                    return;
                 }
 
                 String savedJobIds = TextUtils.join(",", savedJobIdsList);
-
-                // ✅
                 Set<String> jobScheduleIdSet = new HashSet<>(Arrays.asList(jobId.split(",")));
                 List<String> savedJobIdList = Arrays.asList(savedJobIds.split(","));
 
@@ -381,35 +379,29 @@ public class TaskActivity extends AppCompatActivity {
                         .orElse(null);
 
                 if (matchedJobId != null) {
-                    Log.d(TAG, "✅ Matched Job ID: " + matchedJobId);
+                    Log.d(TAG, "Matched Job ID: " + matchedJobId);
                 } else {
-                    Log.e(TAG, "❌ No matching Job ID found!");
-                    return; // ❌
+                    Log.e(TAG, "No matching Job ID found!");
+                    return; // Exit if no matching job ID found
                 }
 
-                // ✅
                 int matchedJobIdInt = Integer.parseInt(matchedJobId);
-                List<Integer> matchedTaskIds  = jobTaskData.getOrDefault(matchedJobIdInt, new ArrayList<>());
-
+                List<Integer> matchedTaskIds = jobTaskData.getOrDefault(matchedJobIdInt, new ArrayList<>());
                 Set<Integer> uniqueTaskIds = new LinkedHashSet<>(matchedTaskIds);
-               String taskIdsStr = TextUtils.join(",", uniqueTaskIds);
+
+                String taskIdsStr = TextUtils.join(",", uniqueTaskIds);
                 Log.d(TAG, "Matched Job ID: " + matchedJobIdInt + " -> Task IDs: " + taskIdsStr);
 
-               String  currentID_url = baseUrl + "/api/m/jobs/schedules/" + jobId + "/tasks/" + taskIdsStr + "/files?page=" + 1 + "&per_page=" + pageSize;
+                String currentIDUrl = baseUrl + "/api/m/jobs/schedules/" + matchedJobId + "/tasks/" + taskIdsStr + "/files?page=1&per_page=" + pageSize;
 
+                // Clear and update job-to-task mapping
                 jobToTaskMap.clear();
                 jobToTaskMap.put(matchedJobIdInt, new HashSet<>(matchedTaskIds));
-
-
-
             }
 
             @Override
             public void onError(String error) {
                 Log.e(TAG, "Error fetching job details: " + error);
-
-
-
             }
         });
 

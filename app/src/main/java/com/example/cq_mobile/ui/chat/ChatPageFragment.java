@@ -1,6 +1,8 @@
 package com.example.cq_mobile.ui.chat;
 
 import androidx.fragment.app.Fragment;
+
+import android.content.Context;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,8 +68,8 @@ public class ChatPageFragment extends Fragment {
         chatRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         chatManager = new ChatManager(getContext());
-
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
+        Context context = requireContext();
+        AccessTokenRequest tokenRequest = new AccessTokenRequest(context,email, password);
         getAccessTokenAndLoadChats(tokenRequest, progressBar, currentPage, pageSize);
 
         return view;

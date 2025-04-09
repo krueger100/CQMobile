@@ -15,8 +15,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.Done;
 import com.example.cq_mobile.ui.home.HomeFolder.API_done.DoneAdapter;
@@ -53,7 +54,7 @@ public class ViewListDoneFragment extends Fragment {
         recyclerView.setAdapter(doneAdapter);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(getContext()).getToken();
         int userId = Integer.parseInt(String.valueOf(sharedPrefManager.getUserId()));
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
@@ -89,7 +90,7 @@ public class ViewListDoneFragment extends Fragment {
 
         goback.setOnClickListener(v -> {
             if (getActivity() != null) {
-                Intent intent = new Intent(getActivity(), ClockActivity.class);
+                Intent intent = new Intent(getActivity(), MainActivity.class);
                 intent.putExtra("key", "value");
                 startActivity(intent);
                 getActivity().finish();

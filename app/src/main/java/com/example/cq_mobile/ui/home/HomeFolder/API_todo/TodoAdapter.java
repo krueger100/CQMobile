@@ -59,9 +59,6 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             TodoViewHolder todoHolder = (TodoViewHolder) holder;
             Todo todo = todoList.get(position);
 
-
-
-
             todoHolder.nameTextView.setText(todo.getName());
             todoHolder.stateDescription.setText(todo.getDescription());
             String id = String.valueOf(todo.getId());

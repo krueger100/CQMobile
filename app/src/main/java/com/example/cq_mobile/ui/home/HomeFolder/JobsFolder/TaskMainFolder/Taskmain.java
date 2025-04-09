@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder;
 
+import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.annotations.SerializedName;
 
@@ -140,6 +141,7 @@ public class Taskmain {
         public void setCountry(String country) { this.country = country; }
     }
 
+
     public static class Coordinates {
         @SerializedName("latitude")
         private String latitude;
@@ -147,16 +149,19 @@ public class Taskmain {
         @SerializedName("longitude")
         private String longitude;
 
+        // Default constructor
         public Coordinates() {
             this.latitude = "0.0";
             this.longitude = "0.0";
         }
 
+        // Constructor to initialize with lat and lon as doubles
         public Coordinates(double lat, double lon) {
             this.latitude = String.valueOf(lat);
             this.longitude = String.valueOf(lon);
         }
 
+        // Getters for latitude and longitude as doubles
         public double getLatitude() {
             if (latitude == null || latitude.isEmpty()) {
                 return 0.0;
@@ -177,6 +182,15 @@ public class Taskmain {
             } catch (NumberFormatException e) {
                 return 0.0;
             }
+        }
+
+        // Setters
+        public void setLatitude(String latitude) {
+            this.latitude = latitude;
+        }
+
+        public void setLongitude(String longitude) {
+            this.longitude = longitude;
         }
     }
 }

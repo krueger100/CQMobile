@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -25,10 +26,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
+import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
@@ -59,6 +62,7 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     String password;
     private ClockOutVisibilityHandler visibilityHandler;
 
+    private BackPressManager backPressManager;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -66,7 +70,7 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         View root = binding.getRoot();
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(context).getToken();
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
         Log.d("TicketFragment", "Access Token: " + accessToken);
@@ -74,7 +78,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         Log.d("TicketFragment", "Password  : "+password);
         context = getContext();
         ticketCategoryManager = new TicketCategoryManager(context, accessToken);
-
 
         setupBottomSheet();
         if (binding != null) {
@@ -229,7 +232,11 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
 
 
     private void loadCategoryTickets(String accessToken) {
-        if (isLoading) return; // Prevent multiple simultaneous loads
+        if (binding == null) {
+            Log.e("TicketFragment", "Fragment view is not active, loadCategoryTickets aborted");
+            isLoading = false;
+            return;
+        }
         isLoading = true;
         if (binding != null) {
             binding.progressBar.setVisibility(View.VISIBLE);
@@ -237,8 +244,14 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         ticketCategoryManager.loadCategoryTickets(currentPage, pageSize, new TicketCategoryManager.TicketsCallback() {
             @Override
             public void onTicketsLoaded(List<TicketAPICategoryItems> tickets) {
+
+                if (binding == null) {
+                    Log.e("TicketFragment", "Binding is null, ignoring response");
+                    isLoading = false;
+                    return;
+                }
+
                 binding.progressBar.setVisibility(View.GONE);
-                isLoading = false;
 
                 // Log the received ticket data
                 if (tickets != null && !tickets.isEmpty()) {
@@ -273,12 +286,14 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
 
 
     private void loadTickets() {
-        if (isLoading) return;
-        isLoading = true;
-
+        if (binding == null) {
+            Log.e("TicketFragment", "Binding is null, ignoring response");
+            isLoading = false;
+            return;
+        }
         setProgressBarVisibility(true);
 
-        AccessTokenRequest request = new AccessTokenRequest(email, password);
+        AccessTokenRequest request = new AccessTokenRequest(context,email, password);
 
         if (ticketManager == null) {
             ticketManager = new TicketManager(requireContext());
@@ -299,14 +314,28 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         });
     }
     private void loadTicketsWithToken(String token) {
+
+        if (!isAdded() || getActivity() == null) {
+            Log.e("TicketFragment", "Fragment is not attached, skipping loadTicketsWithToken");
+            return;
+        }
+
         if (currentPage == 0) {
             currentPage = 1;
         }
+
+
         ticketManager.loadTickets(currentPage, pageSize, new TicketManager.AllTicketsCallback() {
             @Override
             public void onAllTicketsLoaded(List<TicketAPIItem> tickets) {
                 setProgressBarVisibility(false);
                 isLoading = false;
+
+                if (binding == null) {
+                    Log.e("TicketFragment", "Binding is null, skipping displayTickets");
+                    return;
+                }
+
                 if (tickets != null && !tickets.isEmpty()) {
                     displayTickets(tickets, token);
                     currentPage++;
@@ -321,10 +350,16 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
 
             @Override
             public void onError(String errorMessage) {
-                setProgressBarVisibility(false);
-                isLoading = false;
-                binding.swipeRefreshLayout.setRefreshing(false);
-                Log.e("TicketFragment", "Ticket Loading Error: " + errorMessage);
+                if (binding == null) {
+                    setProgressBarVisibility(false);
+                    isLoading = false;
+                    binding.swipeRefreshLayout.setRefreshing(false);
+                    Log.e("TicketFragment", "Ticket Loading Error: " + errorMessage);
+
+                    Log.e("TicketFragment", "Binding is null, skipping displayTickets");
+                    return;
+                }
+
             }
         });
     }
@@ -454,14 +489,29 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     }
 
 
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof ClockOutVisibilityHandler) {
             visibilityHandler = (ClockOutVisibilityHandler) context;
+            backPressManager = new BackPressManager(context);
         } else {
             Log.d("MoreFragment", "Activity does not implement ClockOutVisibilityHandler");
         }
+
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (binding != null) {
+            binding.recyclerView.setAdapter(null);
+            binding = null;
+        }
+
+        Log.d("TicketFragment", "All processes stopped and fragment paused.");
     }
 
     @Override
@@ -470,13 +520,25 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         if (visibilityHandler != null) {
             visibilityHandler.setClockOutVisibility(false);
         }
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Handle the back press using your BackPressManager
+                if (backPressManager != null) {
+                    backPressManager.handleBackPress(MainActivity.class);
+                }
+            }
+        });
     }
 
+
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
         binding = null;
     }
+
+
 
 
 }

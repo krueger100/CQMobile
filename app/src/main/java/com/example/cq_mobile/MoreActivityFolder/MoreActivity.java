@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 
@@ -38,7 +39,7 @@ public class MoreActivity extends AppCompatActivity {
         account_setting = findViewById(R.id.account_setting);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(this).getToken();
         int userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
@@ -65,7 +66,7 @@ public class MoreActivity extends AppCompatActivity {
         name.setText(firstName +" "+lastName);
 
         SharedPreferences sharedPreferencesClockout = getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
-        ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
+        ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, sharedPrefManager);
         boolean jobSuccess = sharedPrefManager.isJobSuccessful();
 
         if (avatar != null && !avatar.isEmpty()) {

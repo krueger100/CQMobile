@@ -8,6 +8,8 @@ import android.util.Log;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.example.cq_mobile.HelperManagers.getAccessToken.GetUserInfoManager;
+
 public class GetUserInfoManager {
 
     private Context context;
@@ -22,13 +24,9 @@ public class GetUserInfoManager {
     }
 
     public void getAccessToken(AccessTokenRequest request, AccessTokenCallback callback) {
-        // Create an instance of the API service
         AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-
-        // Call the API
         Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
 
-        // Enqueue the call to execute asynchronously
         call.enqueue(new Callback<AccessTokenResponse>() {
             @Override
             public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
@@ -48,50 +46,54 @@ public class GetUserInfoManager {
     }
 }
 /*
-        getUserData(email,password,profile);
 
-    private void getUserData(String email, String password, ImageView image_profile) {
 
-        GetUserInfoManager getUserInfoManager = new GetUserInfoManager(this);
-        // Use the retrieved email and password
-        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(email, password);
 
-        // Step 3: Call the method with a callback implementation
-        getUserInfoManager.getAccessToken(accessTokenRequest, new GetUserInfoManager.AccessTokenCallback() {
+        Context context = getApplicationContext();
+        GetUserInfoManager getUserInfoManager = new GetUserInfoManager(context);
+        AccessTokenRequest request = new AccessTokenRequest(context, email, password);
+
+        getUserInfoManager.getAccessToken(request, new GetUserInfoManager.AccessTokenCallback() {
             @Override
             public void onSuccess(AccessTokenResponse response) {
-                // Handle the successful response
-                String firstName = response.getUser().getFirstName() ;
-                String lastName = response.getUser().getLastName() ;
-                String avatar = response.getUser().getAvatar() ;
+                if (response != null) {
+                    // Log the access token
+                    String token = response.getAccessToken();
+                    Log.d("AccessToken", "Token: " + token);
 
+                    // Log the user details
+                    AccessTokenResponse.User user = response.getUser();
+                    if (user != null) {
+                        int userId = user.getId();
+                        String firstName = user.getFirstName();
+                        String lastName = user.getLastName();
+                        String email = user.getEmail();
+                        String avatar = user.getAvatar();
 
-                String accessToken = response.getAccessToken();
-                Log.d("MoreAct", "Access Token: " + accessToken);
-                Log.d("MoreAct", "User Email: " + response.getUser().getEmail());
-                name.setText(firstName +" "+lastName);
-
-
-                if (avatar != null && !avatar.isEmpty()) {
-                    // Use Glide to load the avatar URL into image1
-                    Glide.with(MoreActivity.this)
-                            .load(avatar)
-                            .placeholder(R.drawable.baseline_circle)
-                            .error(R.drawable.emptyglide)
-                            .into(image_profile);
+                        Log.d("User Info", "User ID: " + userId);
+                        Log.d("User Info", "First Name: " + firstName);
+                        Log.d("User Info", "Last Name: " + lastName);
+                        Log.d("User Info", "Email: " + email);
+                        Log.d("User Info", "Avatar: " + avatar);
+                    } else {
+                        Log.e("AccessTokenError", "User data is null.");
+                    }
                 } else {
-                    Log.e("MoreActivity", "Avatar URL is null or empty");
-                    // Optionally, set a default image if avatar URL is missing
-                    image_profile.setImageResource(R.drawable.emptyglide);
+                    Log.e("AccessTokenError", "Received null response.");
                 }
             }
 
             @Override
             public void onFailure(String errorMessage) {
-                // Handle the failure
-                Log.e("MainActivity", "Error: " + errorMessage);
+                if (errorMessage != null && !errorMessage.isEmpty()) {
+                    Log.e("AccessTokenError", errorMessage);
+                } else {
+                    Log.e("AccessTokenError", "Unknown error occurred.");
+                }
             }
         });
-    }
+
+
+
 
  */

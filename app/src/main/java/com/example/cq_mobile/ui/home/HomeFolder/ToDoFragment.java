@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
@@ -26,20 +28,18 @@ import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ToDoFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private TodoAdapter todoAdapter;
     private List<Todo> joblist = new ArrayList<>();
     private ProgressBar progressBar;
-    private TextView clockout_btn;
     private boolean isLoading = false;
     private boolean isLastPage = false;
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
     private ClockOutVisibilityHandler visibilityHandler;
-    private static final String TAG = "Todo Data";
+    private static final String TAG = "TodoFragment";
 
     @Nullable
     @Override
@@ -48,41 +48,31 @@ public class ToDoFragment extends Fragment {
 
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(layoutManager);
         todoAdapter = new TodoAdapter(getContext(), joblist);
         recyclerView.setAdapter(todoAdapter);
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
-        String accessToken = sharedPrefManager.getAccessToken();
-        int userID = sharedPrefManager.getUserId();
-        int savedJobId = sharedPrefManager.getJobId();
-        int savedTaskId = sharedPrefManager.getTaskId();
-        String startDate = sharedPrefManager.getKeyStartDate();
-
-        loadMessages(accessToken);
+        String accessToken = AuthManager.getInstance(getContext()).getToken();
 
 
-        Log.d("ToDoFragment", "Retrieved Job ID: " + savedJobId + "Retrieved Task ID: " + savedTaskId);
-        Log.d("ToDoFragment", "Retrieved user ID: " + userID + "Retrieved startDate: " + startDate);
-
-
+        loadMessages();
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
 
-                if (!isLoading && !isLastPage) {
-                    int visibleItemCount = layoutManager.getChildCount();
-                    int totalItemCount = layoutManager.getItemCount();
-                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager == null) return;
 
-                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
-                        loadMessages(accessToken);
-                    }
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                if (!isLoading && !isLastPage &&
+                        (visibleItemCount + firstVisibleItemPosition >= totalItemCount) &&
+                        firstVisibleItemPosition >= 0) {
+                    loadMessages();
                 }
             }
         });
@@ -90,79 +80,38 @@ public class ToDoFragment extends Fragment {
         return view;
     }
 
+    private void loadMessages() {
+        if (isLoading || isLastPage) return;
 
-    private void loadMessages(String accessToken) {
-        if (isLoading) return;
+        Context context = getContext();
+        if (context == null) return;
+
+        AuthManager authManager = AuthManager.getInstance(context);
+        if (!authManager.isLoggedIn() || authManager.isTokenExpired()) {
+            Log.e(TAG, "Token missing or expired. Redirecting to login or showing error.");
+            // Optionally, redirect to login or show a dialog
+            return;
+        }
+
         isLoading = true;
-        progressBar.setVisibility(View.VISIBLE);
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
 
-        TodoApiManager.fetchApiDataPaginated(accessToken, currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
+        TodoApiManager.fetchApiDataPaginated(context, currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Todo> data) {
-                if (getActivity() == null) return;
+                if (!isAdded() || getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
                     isLoading = false;
 
                     if (data != null && !data.isEmpty()) {
-                        for (Todo todo : data) {
-                            Log.w(TAG, "**<- ToDoFragment ->**");
-                            Log.d(TAG, "ID: " + todo.getId());
-                            Log.d(TAG, "Job ID: " + todo.getJob_id());
-                            Log.d(TAG, "Title: " + todo.getName());
-                            Log.d(TAG, "Description: " + todo.getDescription());
-                            Log.d(TAG, "Status: " + todo.getStatus());
-                            Log.d(TAG, "Start Date: " + todo.getStart_date());
-                            Log.d(TAG, "End Date: " + todo.getEnd_date());
-                            Log.d(TAG, "Category: " + todo.getCategory());
-                            Log.d(TAG, "Category Color: " + todo.getCategory_color());
-                            Log.d(TAG, "Is Checked: " + todo.isChecked());
-
-                            // Logging Client Details
-                            if (todo.getClient_details() != null) {
-                                Todo.ClientDetails client = todo.getClient_details();
-                                Log.d(TAG + "Client Details", "Company: " + client.getCompany());
-                                Log.d("Client Details", "Email: " + client.getEmail());
-                                Log.d(TAG +"Client Details", "Title: " + client.getTitle());
-                                Log.d(TAG +"Client Details", "First Name: " + client.getFirst_name());
-                                Log.d(TAG +"Client Details", "Last Name: " + client.getLast_name());
-                                Log.d(TAG +"Client Details", "Suffix: " + client.getSuffix());
-                                Log.d(TAG +"Client Details", "Phone: " + client.getPhone());
-                                Log.d(TAG +"Client Details", "Mobile: " + client.getMobile());
-                            }
-
-                            // Logging Address Details
-                            if (todo.getAddress() != null) {
-                                Todo.Address address = todo.getAddress();
-                                Log.d(TAG +"Address", "Address: " + address.getAddress());
-                                Log.d(TAG +"Address", "Address1: " + address.getAddress1());
-                                Log.d(TAG +"Address", "City: " + address.getCity());
-                                Log.d(TAG +"Address", "County: " + address.getCounty());
-                                Log.d(TAG +"Address", "Postal Code: " + address.getPostal_code());
-                                Log.d(TAG +"Address", "Country: " + address.getCountry());
-                            }
-
-                            // Logging Coordinates
-                            if (todo.getCoordinates() != null) {
-                                Todo.Coordinates coordinates = todo.getCoordinates();
-                                Log.d(TAG +"Coordinates", "Latitude: " + coordinates.getLatitude());
-                                Log.d(TAG +"Coordinates", "Longitude: " + coordinates.getLongitude());
-                            }
-                        }
-
                         joblist.addAll(data);
                         todoAdapter.notifyDataSetChanged();
                         currentPage++;
 
-                        // Pagination logic
-                        if (joblist.size() >= 100 && currentPage == 1) {
-                            currentPage = 2;
-                            loadMessages(accessToken);
-                        } else {
-                            if (data.size() < PAGE_SIZE) {
-                                isLastPage = true;
-                            }
+                        if (data.size() < PAGE_SIZE) {
+                            isLastPage = true;
                         }
                     } else {
                         isLastPage = true;
@@ -172,12 +121,13 @@ public class ToDoFragment extends Fragment {
 
             @Override
             public void onError(String error) {
-                if (getActivity() == null) return;
+                if (!isAdded() || getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
                     isLoading = false;
-                    Log.d("Paginated Data", "Error loading data: " + error);
+                    Log.e(TAG, "Error loading data: " + error);
+                    Toast.makeText(context, "Failed to load jobs: " + error, Toast.LENGTH_SHORT).show();
                 });
             }
         });
@@ -189,10 +139,9 @@ public class ToDoFragment extends Fragment {
         if (context instanceof ClockOutVisibilityHandler) {
             visibilityHandler = (ClockOutVisibilityHandler) context;
         } else {
-            Log.d("TodoFragment", "Activity does not implement ClockOutVisibilityHandler");
+            Log.d(TAG, "Activity does not implement ClockOutVisibilityHandler");
         }
     }
-
 
     @Override
     public void onResume() {
@@ -201,11 +150,8 @@ public class ToDoFragment extends Fragment {
             visibilityHandler.setClockOutVisibility(true);
         }
     }
-
-
-
-
 }
+
 
 /*
  implements TimerManager.TimerListener

@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.myJobsFolder;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
@@ -35,6 +38,8 @@ public class myJobFragment  extends Fragment {
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
     TextView goback ;
+    private static final String TAG = "myJobFragment";
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -52,7 +57,8 @@ public class myJobFragment  extends Fragment {
         recyclerView.setAdapter(todoAdapter);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(getContext()).getToken();
+
         int userId = sharedPrefManager.getUserId();
 
         String firstName = sharedPrefManager.getFirstName();
@@ -78,14 +84,14 @@ public class myJobFragment  extends Fragment {
                     int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
                     if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0) {
-                        loadMessages(accessToken);
+                        loadMessages();
                     }
                 }
             }
         });
 
         // Load initial data
-        loadMessages(accessToken);
+        loadMessages();
 
         goback.setOnClickListener(v -> {
             if (getActivity() != null) {
@@ -99,18 +105,29 @@ public class myJobFragment  extends Fragment {
         return view;
     }
 
-    private void loadMessages(String accessToken) {
-        if (isLoading) return; // Prevent fetching while already loading data
-        isLoading = true;
-        progressBar.setVisibility(View.VISIBLE);
+    private void loadMessages() {
+        if (isLoading || isLastPage) return;
 
-        TodoApiManager.fetchApiDataPaginated(accessToken,currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
+        Context context = getContext();
+        if (context == null) return;
+
+        AuthManager authManager = AuthManager.getInstance(context);
+        if (!authManager.isLoggedIn() || authManager.isTokenExpired()) {
+            Log.e(TAG, "Token missing or expired. Redirecting to login or showing error.");
+            // Optionally, redirect to login or show a dialog
+            return;
+        }
+
+        isLoading = true;
+        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+
+        TodoApiManager.fetchApiDataPaginated(context, currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Todo> data) {
-                if (getActivity() == null) return;
+                if (!isAdded() || getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
                     isLoading = false;
 
                     if (data != null && !data.isEmpty()) {
@@ -118,31 +135,24 @@ public class myJobFragment  extends Fragment {
                         todoAdapter.notifyDataSetChanged();
                         currentPage++;
 
-                        // Check if total data count has reached 100
-                        if (joblist.size() >= 100 && currentPage == 1) {
-                            // If data reaches 100, skip to page 2 directly, if we are still on page 1
-                            currentPage = 1;
-                            loadMessages(accessToken); // Recurse to load data from page 2
-                        } else {
-                            // Check if this is the last page
-                            if (data.size() < PAGE_SIZE) {
-                                isLastPage = true;
-                            }
+                        if (data.size() < PAGE_SIZE) {
+                            isLastPage = true;
                         }
                     } else {
-                        isLastPage = true; // No more data to load
+                        isLastPage = true;
                     }
                 });
             }
 
             @Override
             public void onError(String error) {
-                if (getActivity() == null) return;
+                if (!isAdded() || getActivity() == null) return;
 
                 getActivity().runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
+                    if (progressBar != null) progressBar.setVisibility(View.GONE);
                     isLoading = false;
-                    Log.d("Paginated Data", "Error loading data: " + error);
+                    Log.e(TAG, "Error loading data: " + error);
+                    Toast.makeText(context, "Failed to load jobs: " + error, Toast.LENGTH_SHORT).show();
                 });
             }
         });

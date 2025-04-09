@@ -1,9 +1,7 @@
 package com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -23,10 +21,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.example.cq_mobile.Clock.ApiTimeSheetCallback;
-import com.example.cq_mobile.Clock.ClockActivity;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.HelperManagers.UKDateTime;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder.TimeSheetAPI;
@@ -40,18 +36,15 @@ public class ClockOutManager {
     private int savedJobId;
     private int savedTaskId;
     int userID;
-    String startDate;
-    private static final String USER_PREFS = "UserPrefs";
+
     private View rootView;
     TextView clockoutBtn;
 
-    public ClockOutManager(Context context, ProgressBar progressBar, int savedJobId, int savedTaskId, int userID, String startDate, SharedPrefManager sharedPrefManagerMain ) {
+    public ClockOutManager(Context context, ProgressBar progressBar, int savedJobId, int savedTaskId, int userID , SharedPrefManager sharedPrefManagerMain ) {
         this.context = context;
         this.progressBar = progressBar;
         this.savedJobId = savedJobId; // ✅
-        this.savedTaskId = savedTaskId;
         this.userID = userID;
-        this.startDate = startDate;
         this.clockoutBtn = clockoutBtn;
 
     }
@@ -70,9 +63,6 @@ public class ClockOutManager {
         double longitude = sharedPrefManager.getUserStartJobLongitude();
         String startedDate = sharedPrefManager.getKeyStartDate();
         String stopDate = sharedPrefManager.getKeyStopDate();
-        String ukDate = UKDateTime.getCurrentUKDate();
-        String uktimeEnd= sharedPrefManager.getUkStartTime();
-        String uktimeStart= sharedPrefManager.getUkStartTime();
         Log.w("ClockOutManager" ," Job Started ->  " +"startedJobID "  + jobId);
         Log.w("ClockOutManager" , " Job Started ->  " +"userLatitude "  +  userLatitude);
         Log.w("ClockOutManager" , " Job Started -> " +"userLongitude "  +  userLongitude);
@@ -80,9 +70,7 @@ public class ClockOutManager {
         Log.w("ClockOutManager" , " Job Started ->  " +"longitude "  +  longitude);
         Log.w("ClockOutManager" , " Job Started ->  " +"startedDate "  +  startedDate);
         Log.w("ClockOutManager" , " Job Started ->  " +"stopDate "  +  stopDate);
-        Log.w("ClockOutManager" , " Job Started ->  " +"ukDate "  +  ukDate);
-        Log.w("ClockOutManager" , " Job Started ->  " +"uktimeEnd "  +  uktimeEnd);
-        Log.w("ClockOutManager" , " Job Started ->  " +"uktimeStart "  +  uktimeStart);
+
 
         Log.w("JobTitle", "ClockOutManager" + "Calling: TimeSheetAPI from setupClockOutButtonFab");
 
@@ -93,8 +81,7 @@ public class ClockOutManager {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         new Thread(() -> {
-                            TimeSheetAPI.sendTimeSheetData(accessToken, userID, userLatitude, userLongitude, latitude, longitude, startedJobID, ukDate, startedDate, stopDate,progressBar,context,uktimeEnd,uktimeStart,
-                                    new ApiTimeSheetCallback() {
+                            TimeSheetAPI.sendTimeSheetData(accessToken,userID, userLatitude, userLongitude, latitude, longitude, savedTaskId, progressBar, context, new ApiTimeSheetCallback() {
                                         @Override
                                         public void onSuccess(String serverMessage) {
                                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -105,7 +92,7 @@ public class ClockOutManager {
                                                     progressBar.setVisibility(View.GONE);
                                                 }, 2000);
 
-                                                AutoClockOut(accessToken, jobId, savedTaskId, startDate);
+                                                AutoClockOut(accessToken, jobId, savedTaskId, startedDate);
                                             });
                                         }
 
@@ -142,9 +129,7 @@ public class ClockOutManager {
         double longitude = sharedPrefManagerWithTimeSheet.getUserStartJobLongitude();
         String startedDate = sharedPrefManagerWithTimeSheet.getKeyStartDate();
         String stopDate = sharedPrefManagerWithTimeSheet.getKeyStopDate();
-        String ukDate = UKDateTime.getCurrentUKDate();
-        String uktimeEnd = sharedPrefManagerWithTimeSheet.getUkEndTime();
-        String uktimeStart= sharedPrefManagerWithTimeSheet.getUkStartTime();
+
         int startedJobID_int = 0;
         if (startedJobID != null && !startedJobID.trim().isEmpty()) {
             try {
@@ -168,9 +153,7 @@ public class ClockOutManager {
         Log.w("ClockOutManager" , " No Job Started ->  " +"longitude "  +  longitude);
         Log.w("ClockOutManager" , " No Job Started ->  " +"startedDate "  +  startedDate);
         Log.w("ClockOutManager" , " No Job Started ->  " +"stopDate "  +  stopDate);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"ukDate "  +  ukDate);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"uktimeEnd "  +  uktimeEnd);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"uktimeStart "  +  uktimeStart);
+
 
         Log.w("JobTitle", "ClockOutManager" + "Calling: TimeSheetColleagueAPI : setupStopJobWithTimeSheetFab");
         int finalStartedJobID_int = startedJobID_int;
@@ -183,7 +166,7 @@ public class ClockOutManager {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         new Thread(() -> {
                             TimeSheetColleagueAPI.sendTimeSheetColleagueData(accessToken, userID, userLatitude, userLongitude, latitude, longitude
-                                    ,finalStartedJobID_int,taskId,ukDate, startedDate, stopDate,progressBar , context,uktimeEnd,uktimeEnd, new ApiTimeSheetCallback() {
+                                    ,finalStartedJobID_int,taskId,progressBar , context, new ApiTimeSheetCallback() {
                                         @Override
                                         public void onSuccess(String serverMessage) {
                                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -222,8 +205,8 @@ public class ClockOutManager {
     }
 
     public void setupClockOutButtonLogout(TextView clockOutBtnLogOut, String accessToken, int jobId) {
-        SpannableString spannable = new SpannableString("  Clock out");
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.outline_timer_24);
+        SpannableString spannable = new SpannableString("  Confirm Logout");
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.baseline_logout_24);
         Log.w("ClockOutManager", " AccessToken : "+"\n" +" -->>  "+ accessToken + "\n" + "savedJobId - " + savedJobId + " jobId - " + savedTaskId );
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
@@ -234,9 +217,6 @@ public class ClockOutManager {
         double longitude = sharedPrefManager.getUserStartJobLongitude();
         String startedDate = sharedPrefManager.getKeyStartDate();
         String stopDate = sharedPrefManager.getKeyStopDate();
-        String ukDate = UKDateTime.getCurrentUKDate();
-        String uktimeEnd = sharedPrefManager.getUkEndTime();
-        String uktimeStart= sharedPrefManager.getUkStartTime();
         Log.w("ClockOutManager" ," Job Started ->  " +"startedJobID "  + jobId);
         Log.w("ClockOutManager" , " Job Started ->  " +"userLatitude "  +  userLatitude);
         Log.w("ClockOutManager" , " Job Started -> " +"userLongitude "  +  userLongitude);
@@ -244,9 +224,26 @@ public class ClockOutManager {
         Log.w("ClockOutManager" , " Job Started ->  " +"longitude "  +  longitude);
         Log.w("ClockOutManager" , " Job Started ->  " +"startedDate "  +  startedDate);
         Log.w("ClockOutManager" , " Job Started ->  " +"stopDate "  +  stopDate);
-        Log.w("ClockOutManager" , " Job Started ->  " +"uktimeEnd "  +  uktimeEnd);
-        Log.w("ClockOutManager" , " Job Started ->  " +"uktimeStart "  +  uktimeStart);
         Log.w("JobTitle", "ClockOutManager" + "Calling: TimeSheetAPI ");
+        if (drawable != null) {
+            drawable = DrawableCompat.wrap(drawable);
+            DrawableCompat.setTint(drawable, ContextCompat.getColor(context, R.color.white));
+
+            int drawableSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, context.getResources().getDisplayMetrics());
+            drawable.setBounds(0, 0, drawableSize, drawableSize);
+
+            ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
+            spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+
+        }
+
+        Log.w("JobTitle", "ClockOutManager" + "Calling: TimeSheetAPI ");
+
+        spannable.setSpan(new android.text.style.RelativeSizeSpan(1.2f), 2, spannable.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        clockOutBtnLogOut.setText(spannable);
+        clockOutBtnLogOut.setGravity(Gravity.CENTER);
+        clockOutBtnLogOut.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+
 
         clockOutBtnLogOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -255,9 +252,7 @@ public class ClockOutManager {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         new Thread(() -> {
-                            TimeSheetAPI.sendTimeSheetData(accessToken, userID, userLatitude, userLongitude, latitude, longitude,
-                                    startedJobID, ukDate, startedDate, stopDate,progressBar,context,
-                                    uktimeEnd,uktimeStart, new ApiTimeSheetCallback() {
+                            TimeSheetAPI.sendTimeSheetData(accessToken,userID, userLatitude, userLongitude, latitude, longitude, savedTaskId, progressBar, context, new ApiTimeSheetCallback() {
                                         @Override
                                         public void onSuccess(String serverMessage) {
                                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -268,7 +263,7 @@ public class ClockOutManager {
                                                     progressBar.setVisibility(View.GONE);
                                                 }, 2000);
 
-                                                AutoClockOut(accessToken, jobId, savedTaskId, startDate);
+                                                AutoClockOut(accessToken, jobId, savedTaskId, startedDate);
                                             });
                                         }
 
@@ -305,9 +300,7 @@ public class ClockOutManager {
         double longitude = sharedPrefManagerWithTimeSheet.getUserStartJobLongitude();
         String startedDate = sharedPrefManagerWithTimeSheet.getKeyStartDate();
         String stopDate = sharedPrefManagerWithTimeSheet.getKeyStopDate();
-        String ukDate = UKDateTime.getCurrentUKDate();
-        String uktimeEnd = sharedPrefManagerWithTimeSheet.getUkEndTime();
-        String uktimeStart= sharedPrefManagerWithTimeSheet.getUkStartTime();
+
         int startedJobID_int = 0;
         if (startedJobID != null && !startedJobID.trim().isEmpty()) {
             try {
@@ -331,7 +324,6 @@ public class ClockOutManager {
         Log.w("ClockOutManager" , " No Job Started ->  " +"longitude "  +  longitude);
         Log.w("ClockOutManager" , " No Job Started ->  " +"startedDate "  +  startedDate);
         Log.w("ClockOutManager" , " No Job Started ->  " +"stopDate "  +  stopDate);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"ukDate "  +  ukDate);
 
         Log.w("JobTitle", "ClockOutManager" + "Calling: TimeSheetColleagueAPI ");
         int finalStartedJobID_int = startedJobID_int;
@@ -344,7 +336,7 @@ public class ClockOutManager {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         new Thread(() -> {
                             TimeSheetColleagueAPI.sendTimeSheetColleagueData(accessToken, userID, userLatitude, userLongitude, latitude, longitude
-                                    ,finalStartedJobID_int,taskId,ukDate, startedDate, stopDate,progressBar, context,uktimeEnd,uktimeStart , new ApiTimeSheetCallback() {
+                                    ,finalStartedJobID_int,taskId,progressBar , context, new ApiTimeSheetCallback(){
                                         @Override
                                         public void onSuccess(String serverMessage) {
                                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -398,9 +390,6 @@ public class ClockOutManager {
         double longitude = sharedPrefManager.getUserStartJobLongitude();
         String startedDate = sharedPrefManager.getKeyStartDate();
         String stopDate = sharedPrefManager.getKeyStopDate();
-        String ukDate = UKDateTime.getCurrentUKDate();
-        String uktimeEnd = sharedPrefManager.getUkEndTime();
-        String uktimeStart= sharedPrefManager.getUkStartTime();
 
         Log.w("ClockOutManager" ," Job Started ->  " +"startedJobID "  + jobId);
         Log.w("ClockOutManager" , " Job Started ->  " +"userLatitude "  +  userLatitude);
@@ -409,9 +398,7 @@ public class ClockOutManager {
         Log.w("ClockOutManager" , " Job Started ->  " +"longitude "  +  longitude);
         Log.w("ClockOutManager" , " Job Started ->  " +"startedDate "  +  startedDate);
         Log.w("ClockOutManager" , " Job Started ->  " +"stopDate "  +  stopDate);
-        Log.w("ClockOutManager" , " Job Started ->  " +"ukDate "  +  ukDate);
-        Log.w("ClockOutManager" , " Job Started ->  " +"uktimeEnd "  +  uktimeEnd);
-        Log.w("ClockOutManager" , " Job Started ->  " +"uktimeStart "  +  uktimeStart);
+
 
         if (drawable != null) {
             drawable = DrawableCompat.wrap(drawable);
@@ -439,8 +426,7 @@ public class ClockOutManager {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         new Thread(() -> {
-                            TimeSheetAPI.sendTimeSheetData(accessToken, userID, userLatitude, userLongitude, latitude, longitude, startedJobID, ukDate, startedDate, stopDate,progressBar,context,uktimeEnd,uktimeStart,
-                                    new ApiTimeSheetCallback() {
+                            TimeSheetAPI.sendTimeSheetData(accessToken,userID, userLatitude, userLongitude, latitude, longitude, savedTaskId, progressBar, context, new ApiTimeSheetCallback() {
                                         @Override
                                         public void onSuccess(String serverMessage) {
                                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -451,7 +437,7 @@ public class ClockOutManager {
                                                     progressBar.setVisibility(View.GONE);
                                                 }, 2000);
 
-                                                AutoClockOut(accessToken, jobId, savedTaskId, startDate);
+                                                AutoClockOut(accessToken, jobId, savedTaskId, startedDate);
                                             });
                                         }
 
@@ -477,7 +463,7 @@ public class ClockOutManager {
 
     }
     public void AutoClockOut(String accessToken, int jobId, int savedTaskId, String startDate) {
-        initiateClockOut(accessToken, jobId, this.savedTaskId, this.startDate);
+        initiateClockOut(accessToken, jobId, this.savedTaskId, startDate);
     }
     private void initiateClockOut(String accessToken, int jobId, int taskId, String startDate) {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
@@ -518,9 +504,6 @@ public class ClockOutManager {
         double longitude = sharedPrefManagerWithTimeSheet.getUserStartJobLongitude();
         String startedDate = sharedPrefManagerWithTimeSheet.getKeyStartDate();
         String stopDate = sharedPrefManagerWithTimeSheet.getKeyStopDate();
-        String ukDate = UKDateTime.getCurrentUKDate();
-        String uktimeStart= sharedPrefManagerWithTimeSheet.getUkStartTime();
-        String uktimeEnd= sharedPrefManagerWithTimeSheet.getUkEndTime();
         int startedJobID_int = 0;
         if (startedJobID != null && !startedJobID.trim().isEmpty()) {
             try {
@@ -544,9 +527,6 @@ public class ClockOutManager {
         Log.w("ClockOutManager" , " No Job Started ->  " +"longitude "  +  longitude);
         Log.w("ClockOutManager" , " No Job Started ->  " +"startedDate "  +  startedDate);
         Log.w("ClockOutManager" , " No Job Started ->  " +"stopDate "  +  stopDate);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"ukDate "  +  ukDate);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"uktimeEnd "  +  uktimeEnd);
-        Log.w("ClockOutManager" , " No Job Started ->  " +"uktimeStart "  +  uktimeStart);
 
 
         if (drawable != null) {
@@ -579,8 +559,7 @@ public class ClockOutManager {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         new Thread(() -> {
-                            TimeSheetColleagueAPI.sendTimeSheetColleagueData(accessToken, userID, userLatitude, userLongitude, latitude, longitude
-                                    ,finalStartedJobID_int,taskId,ukDate, startedDate, stopDate,progressBar , context,uktimeEnd,uktimeStart, new ApiTimeSheetCallback() {
+                            TimeSheetColleagueAPI.sendTimeSheetColleagueData(accessToken, userID, userLatitude, userLongitude, latitude, longitude,finalStartedJobID_int,taskId,progressBar , context, new ApiTimeSheetCallback() {
                                         @Override
                                         public void onSuccess(String serverMessage) {
                                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -624,26 +603,17 @@ public class ClockOutManager {
         if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
         new Handler(Looper.getMainLooper()).post(() -> {
             if (progressBar != null) progressBar.setVisibility(View.GONE);
-            clearStopTimeSheetColleagueAPI(ClockOutManager.this.startDate);
+            clearStopTimeSheetColleagueAPI(startDate);
         });
 
     }
+
+
     private void clearStopTimeSheetColleagueAPI(String startDate) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         sharedPreferences.edit().clear().apply();
         Log.w("ClockOutManager", "<<<< TimerManager >>>> "+"\n" +" -->>  "+ startDate );
 
-        SharedPreferences USER_PREFS_Preferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = USER_PREFS_Preferences.edit();
-        editor.clear();
-        editor.apply();
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        sharedPrefManager.clearEmail();
-        sharedPrefManager.clearPassword();
-
-
-
     }
 
 
@@ -651,54 +621,6 @@ public class ClockOutManager {
 
 
 
-    ///Auto ClockOut Without Logout
-    public void AutoClockOutWithoutLogout(String accessToken, int jobId) {
-        initiateClockOutWithoutLogout(accessToken, jobId, savedTaskId,startDate);
-    }
-    private void initiateClockOutWithoutLogout(String accessToken, int jobId, int taskId, String startDate) {
-
-        if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
-        int ticketMessageId = 0;
-        ClockOUTApiManager.clockOUT(jobId, taskId, ticketMessageId, progressBar, accessToken, userID, new ClockOUTApiManager.ApiCallback() {
-            @Override
-            public void onSuccess() {
-                Log.d("ClockOutManager", "Clock Out Successful");
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-
-                    // ✅
-                    clearClockPrefs(startDate);
-
-                    // ✅
-                    Intent intent = new Intent(context, ClockActivity.class);
-                    intent.putExtra("key", "value");
-                    context.startActivity(intent);
-
-                    if (context instanceof Activity) {
-                        ((Activity) context).finish();
-                    }
-                });
-            }
-
-            @Override
-            public void onFailure(String error) {
-                Log.e("ClockOutManager", "Clock Out Failed: " + error);
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (progressBar != null) progressBar.setVisibility(View.GONE);
-                    Toast.makeText(context, "Failed to clock out: " + error, Toast.LENGTH_LONG).show();
-                });
-            }
-        });
-
-    }
-    private void clearClockPrefs(String startDate) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
-        sharedPreferences.edit().clear().apply();
-        Log.w("ClockOutManager", "<<<< TimerManager >>>> "+"\n" +" -->>  "+ startDate );
-
-
-
-    }
 }
 
 

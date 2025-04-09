@@ -33,7 +33,7 @@ public class TicketSearchManager {
     public void getAccessToken(String email, String password, final AccessTokenCallback callback) {
         AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
 
-        AccessTokenRequest request = new AccessTokenRequest(email, password);
+        AccessTokenRequest request = new AccessTokenRequest(context,email, password);
         accessTokenCall = apiService.AccessTokenUser(request);
         accessTokenCall.enqueue(new Callback<AccessTokenResponse>() {
             @Override

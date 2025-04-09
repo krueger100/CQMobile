@@ -11,18 +11,16 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TicketCategoryManager {
-    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";  // Base URL
-    private final String accessToken;  // Store the access token
+    private final String baseUrl = "https://cqbms.app";
+    private final String accessToken;
     private final Context context;
     private Call<TicketAPICategoryResponse> currentCall;
-    // Updated constructor to accept accessToken
     public TicketCategoryManager(Context context, String accessToken) {
         this.context = context;
         this.accessToken = accessToken;
     }
 
     public void loadCategoryTickets(int page, int pageSize, final TicketsCallback callback) {
-        // Construct the proper URL with the provided parameters
         String url = baseUrl + "api/m/tickets/categories?page=" + page + "&per_page=" + pageSize;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -32,7 +30,6 @@ public class TicketCategoryManager {
 
         TicketCategoryApi ticketCategoryApi = retrofit.create(TicketCategoryApi.class);
 
-        // Making the API call with additional parameters
         currentCall = ticketCategoryApi.getTickets(page, pageSize, accessToken, "Bearer " + accessToken);
 
         currentCall.enqueue(new Callback<TicketAPICategoryResponse>() {

@@ -10,7 +10,6 @@ public class AccessTokenResponse {
     @SerializedName("user")
     private User user;
 
-    // Getter and Setter methods for accessToken
     public String getAccessToken() {
         return accessToken;
     }
@@ -19,7 +18,6 @@ public class AccessTokenResponse {
         this.accessToken = accessToken;
     }
 
-    // Getter and Setter methods for user
     public User getUser() {
         return user;
     }
@@ -28,7 +26,6 @@ public class AccessTokenResponse {
         this.user = user;
     }
 
-    // Nested User class with annotations for proper mapping
     public static class User {
         @SerializedName("id")
         private int id;
@@ -42,10 +39,9 @@ public class AccessTokenResponse {
         @SerializedName("email")
         private String email;
 
-        @SerializedName("avatar")  // Assuming the avatar is provided via a URL
-        private String avatar;  // Avatar field added
+        @SerializedName("avatar")
+        private String avatar;
 
-        // Getter and Setter methods for user fields
         public int getId() {
             return id;
         }

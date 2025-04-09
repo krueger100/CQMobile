@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
@@ -60,7 +61,7 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
     public void onBindViewHolder(@NonNull ColleagueViewHolder holder, int position) {
         CombinedItem item = combinedList.get(position);
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(context).getToken();
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
         int id_user = sharedPrefManager.getUserId();

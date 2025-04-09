@@ -8,7 +8,6 @@ import android.view.View;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
-import com.example.cq_mobile.HelperManagers.getAccessToken.GetUserInfoManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
 
 import java.util.List;

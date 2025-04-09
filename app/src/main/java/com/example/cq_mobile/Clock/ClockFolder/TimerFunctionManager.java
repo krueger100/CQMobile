@@ -20,14 +20,14 @@ public class TimerFunctionManager implements TimerManager.TimerListener {
                                 LinearLayout timerLayout ) {
         this.rootView = rootView;
         this.clockoutBtn = clockoutBtn;
-        this.timerManager = TimerManager.getInstance(rootView.getContext(), startDate);
+        this.timerManager = TimerManager.getInstance(rootView.getContext());
         this.timerUIManager = new TimerUIManager(rootView, startDate, jobId, taskId,
                 userId, progressBar, clockOutManager, this, clockoutBtn , timerLayout);
         this.timerManager.setListener(this);
     }
 
     public void startTimer() {
-        timerManager.startTimer();
+        timerManager.startTimer(clockoutBtn.getContext());
     }
 
     public void stopTimer(Context context) {

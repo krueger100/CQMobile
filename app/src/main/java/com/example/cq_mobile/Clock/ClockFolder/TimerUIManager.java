@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -95,8 +96,7 @@ public class TimerUIManager {
             if (context instanceof MainActivity) {
                 MainActivity activity = (MainActivity) context;
                 // .getTimerManager().resetTimer(context);
-
-                String accessToken = sharedPrefManager.getAccessToken();
+                String accessToken = AuthManager.getInstance(context).getToken();
                 int userID = sharedPrefManager.getUserId();
                 int savedJobId = sharedPrefManager.getJobId();
                 int savedTaskId = sharedPrefManager.getTaskId();

@@ -19,7 +19,6 @@ import java.util.Set;
 
 public class SharedPrefManager {
     private static final String PREF_NAME = "UserPreferences";
-    private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_USERNAME = "user_name";
     private static final String KEY_FIRST_NAME = "first_name";
@@ -38,7 +37,7 @@ public class SharedPrefManager {
     private static final String KEY_START_DATE = "start_date";
     private static final String KEY_STOP_DATE = "stop_date";
 
-
+    private static final String KEY_DATE = "date";
     private static final String KEY_JOBSTARTED_TITTLE = "job_started";
     private static final String KEY_JOBSTARTED_MESSAGE = "job_started_message";
     private static final String KEY_JOBSTARTED_DESCRIPTION = "job_started_description";
@@ -54,8 +53,8 @@ public class SharedPrefManager {
     private static final String KEY_JOB_STARTED_JOBID = "StartJobID";
     private static final String KEY_JOB_STARTED_JOBID_INNERTASK = "StartTaskID";
     private static final String KEY_JOB_SUCCESS = "job_success";
-    private static final String KEY_UK_START_TIME = "ukStartTime";
-    private static final String KEY_UK_END_TIME = "ukEndTime";
+    private static final String KEY_USER_ISLOGGEDIN = "loggin_success";
+
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private static SharedPrefManager instance;
@@ -73,19 +72,21 @@ public class SharedPrefManager {
         return instance;
     }
 
-
-
-
-    public void saveUkStartTime(String UkStartTime) {
-        editor.putString(KEY_UK_START_TIME, UkStartTime).apply();
-        Log.w("SharedPrefManager", "KEY_JOBSTARTED_TITTLE   -->> " + UkStartTime);
+    public void saveIsLoggedIn(boolean isloggedIn) {
+        editor.putBoolean(KEY_USER_ISLOGGEDIN, isloggedIn);
+        Log.w("SharedPrefManager", "KEY_USER_ISLOGGEDIN   -->> " + isloggedIn);
+        editor.apply();
     }
 
-    public void saveUkEndTime(String UkEndTime) {
-        editor.putString(KEY_UK_END_TIME, UkEndTime).apply();
-        Log.w("SharedPrefManager", "KEY_JOBSTARTED_TITTLE   -->> " + UkEndTime);
+
+    public boolean getIsLoggedIn() {
+        return sharedPreferences.getBoolean(KEY_USER_ISLOGGEDIN, false);
     }
 
+    public void clearIsLoggedIn() {
+        editor.remove(KEY_USER_ISLOGGEDIN);
+        editor.apply();
+    }
 
 
     public void saveJobSuccess(boolean success) {
@@ -106,6 +107,8 @@ public class SharedPrefManager {
         editor.remove(KEY_JOB_SUCCESS);
         editor.apply();
     }
+
+
 
 /*
 * Start Job DATA  --->>
@@ -233,10 +236,6 @@ public class SharedPrefManager {
         Log.w("SharedPrefManager", "NOTIFTOKEN   -->> Updated");
     }
 
-    public void saveAccessToken(String accessToken) {
-        editor.putString(KEY_ACCESS_TOKEN, accessToken).apply();
-        Log.w("SharedPrefManager", "KEY_ACCESS_TOKEN   -->> Updated");
-    }
 
     public void saveUserName(String username) {
         editor.putString(KEY_USERNAME, username).apply();
@@ -285,8 +284,11 @@ public class SharedPrefManager {
         Log.w("SharedPrefManager", "KEY_ADDRESS   -->> Updated");
     }
 
-
     public void saveCoordinatesList(List<Taskmain.Coordinates> coordinatesList) {
+        if (coordinatesList == null || coordinatesList.isEmpty()) {
+            Log.w("SharedPrefManager", "Coordinates list is empty, nothing to save.");
+            return;
+        }
         Gson gson = new Gson();
         String json = gson.toJson(coordinatesList);
         editor.putString(KEY_COORDINATES_LIST, json).apply();
@@ -294,15 +296,29 @@ public class SharedPrefManager {
     }
 
     public List<Taskmain.Coordinates> getCoordinatesList() {
+        // Retrieve the stored JSON string from SharedPreferences
         String json = sharedPreferences.getString(KEY_COORDINATES_LIST, null);
-        if (json == null) return new ArrayList<>();
 
+        // If the JSON is null, return an empty list
+        if (json == null || json.isEmpty()) {
+            Log.d("SharedPrefManager", "No coordinates found in SharedPreferences.");
+            return new ArrayList<>();
+        }
+
+        // Deserialize the JSON string back into a list of Coordinates objects
         Gson gson = new Gson();
-        Type type = new TypeToken<List<Taskmain.Coordinates>>() {
-        }.getType();
+        Type type = new TypeToken<List<Taskmain.Coordinates>>(){}.getType();
         return gson.fromJson(json, type);
     }
 
+
+    public void saveClockinDate(String Date) {
+        if (Date == null || Date.isEmpty()) {
+            Log.e("SharedPrefManager", "Attempted to save empty Date!");
+            return;
+        }    editor.putString(KEY_DATE, Date).apply();
+        Log.w("SharedPrefManager", "KEY_DATE -> Updated -->> "  + Date);
+    }
 
     public void saveClockinStartDate(String startDate) {
         if (startDate == null || startDate.isEmpty()) {
@@ -310,24 +326,23 @@ public class SharedPrefManager {
             return;
         }
         editor.putString(KEY_START_DATE, startDate).apply();
-        Log.w("SharedPrefManager", "KEY_START_DATE saved as: " + startDate);
+        Log.w("SharedPrefManager", "KEY_START_DATE -> Updated -->> "  + startDate);
     }
 
 
     public void saveClockinStopDate(String stopTime) {
+        if (stopTime == null || stopTime.isEmpty()) {
+            Log.e("SharedPrefManager", "Attempted to save empty stopTime!");
+            return;
+        }
         editor.putString(KEY_STOP_DATE, stopTime).apply();
-        Log.w("SharedPrefManager", "KEY_STOP_DATE   -->> Updated");
+        Log.w("SharedPrefManager", "KEY_STOP_DATE -> Updated -->> "  +  stopTime);
     }
 
 
     public void saveCurrentUserIsChatSeen(String iscurrentuser_seen) {
         editor.putString(KEY_CHAT_CURRENTUSER_SEEN, iscurrentuser_seen).apply();
         Log.w("SharedPrefManager", "KEY_CHAT_CURRENTUSER_SEEN   -->> Updated");
-    }
-
-    // Retrieve methods (Getters)
-    public String getAccessToken() {
-        return sharedPreferences.getString(KEY_ACCESS_TOKEN, null);
     }
 
     public int getUserId() {
@@ -343,13 +358,6 @@ public class SharedPrefManager {
         }
 
 
-    }
-
-    public String getUkStartTime() {
-        return sharedPreferences.getString(KEY_UK_START_TIME, null);
-    }
-    public String getUkEndTime() {
-        return sharedPreferences.getString(KEY_UK_END_TIME, null);
     }
 
 
@@ -489,6 +497,9 @@ public class SharedPrefManager {
         return Double.parseDouble(sharedPreferences.getString(KEY_LONGITUDE, "0"));
     }
 
+    public String getKeyDate() {
+        return sharedPreferences.getString(KEY_DATE, null);
+    }
 
     public String getKeyStartDate() {
         return sharedPreferences.getString(KEY_START_DATE, null);
@@ -522,15 +533,6 @@ public class SharedPrefManager {
 
 
     /// -------->>CLEAR DATA
-    public void clearUkStartTime() {
-        editor.remove(KEY_UK_START_TIME).apply();
-        Log.w("SharedPrefManager", "KEY_UK_START_TIME Cleared");
-    }
-
-    public void clearUkEndTime() {
-        editor.remove(KEY_UK_END_TIME).apply();
-        Log.w("SharedPrefManager", "KEY_UK_END_TIME Cleared");
-    }
     public void clearTaskIds() {
         editor.remove(KEY_TASK_IDS_PREFIX).apply();
         Log.w("SharedPrefManager", "All Task IDs Cleared");
@@ -562,11 +564,7 @@ public class SharedPrefManager {
         Log.w("SharedPrefManager", "All user data cleared!");
     }
 
-    // Clear individual data methods
-    public void clearAccessToken() {
-        editor.remove(KEY_ACCESS_TOKEN).apply();
-        Log.w("SharedPrefManager", "Access Token Cleared");
-    }
+
 
     public void clearUserId() {
         editor.remove(KEY_USER_ID).apply();

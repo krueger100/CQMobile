@@ -36,11 +36,6 @@ public class FirebaseDataManager {
     }
 
 
-    public void saveUserJobTime() {
-        Map<String, Object> userData = new HashMap<>();
-
-    }
-
 
     public void retrieveUserData(UserDataCallback callback) {
         valueEventListener = userRef.addValueEventListener(new ValueEventListener() {

@@ -80,6 +80,22 @@ public class FirebaseDatabaseManager {
     }
 }
 
+/*
+    FirebaseDatabaseManager firebaseDatabaseManager = new FirebaseDatabaseManager();
+                                firebaseDatabaseManager.getUserData(userId, new FirebaseDatabaseManager.UserDataCallback() {
+                                    @Override
+                                    public void onSuccess(FirebaseDatabaseManager.User user) {
+                                        Log.d("MainActivity", "User Retrieved: " + user.firstName + " " + user.lastName);
+
+                                    }
+
+                                    @Override
+                                    public void onFailure(String error) {
+                                        Log.e("MainActivity", "Failed to retrieve user: " + error);
+                                    }
+                                });
+ */
+
 
 /*
 

@@ -5,6 +5,7 @@ import android.util.Log;
 
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -14,11 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-
 public class ClockINApiManager {
 
     private static final String TAG = "ClockINApiManager";
@@ -28,9 +29,15 @@ public class ClockINApiManager {
         void onFailure(String error);
     }
 
-    public static void clockIN(int jobScheduleId, int taskId, String accessToken, int userId, Context context, ApiCallback callback) {
+    public static void clockIN(int jobScheduleId, int taskId, int userId, Context context, ApiCallback callback) {
+        String accessToken = AuthManager.getInstance(context).getToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            callback.onFailure("Access token is missing or invalid.");
+            return;
+        }
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiClockINTask(jobScheduleId, taskId, accessToken, userId,context, callback));
+        executorService.execute(new ApiClockINTask(jobScheduleId, taskId, accessToken, userId, context, callback));
     }
 
     private static class ApiClockINTask implements Runnable {
@@ -41,6 +48,7 @@ public class ClockINApiManager {
         private final ApiCallback callback;
         private final int userId; // ✅ Ensure userId is correctly assigned
         Context context;
+
         public ApiClockINTask(int jobScheduleId, int taskId, String accessToken, int userId, Context context, ApiCallback callback) {
             this.jobScheduleId = jobScheduleId;
             this.taskId = taskId;
@@ -49,11 +57,11 @@ public class ClockINApiManager {
             this.context = context;
             this.callback = callback;
         }
+
         @Override
         public void run() {
             String baseUrl = "https://cqbms.app";
 
-            // ✅ Ensure userId is formatted correctly
             if (userId <= 0) {
                 Log.e(TAG, "Invalid userId: " + userId);
                 callback.onFailure("Invalid user ID");
@@ -72,7 +80,7 @@ public class ClockINApiManager {
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            String jsonBody = "{}"; // ✅ Ensure jsonBody is properly defined
+            String jsonBody = "{}";
             RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
 
             Request request = new Request.Builder()
@@ -84,39 +92,40 @@ public class ClockINApiManager {
                     .post(body)
                     .build();
 
+            // ✅ Log request headers
+            Headers requestHeaders = request.headers();
+            for (int i = 0; i < requestHeaders.size(); i++) {
+                Log.d(TAG, "Request Header: " + requestHeaders.name(i) + ": " + requestHeaders.value(i));
+            }
+
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
                 public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
                     String responseBody = response.body() != null ? response.body().string() : null;
+
+                    Log.d(TAG, "Response Code: " + response.code());
+
+                    Headers responseHeaders = response.headers();
+                    for (int i = 0; i < responseHeaders.size(); i++) {
+                        Log.d(TAG, "Response Header: " + responseHeaders.name(i) + ": " + responseHeaders.value(i));
+                    }
+
                     if (response.isSuccessful()) {
                         Log.d(TAG, "Work started successfully. Response: " + responseBody);
 
-                        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-
-                        // Parse response using Gson
                         Gson gson = new Gson();
                         try {
                             JsonObject jsonObject = gson.fromJson(responseBody, JsonObject.class);
                             JsonObject dataObject = jsonObject.getAsJsonObject("data");
 
-                            if (dataObject != null && dataObject.has("start_time")) {
-                                String startTime = dataObject.get("start_time").getAsString();
-                                sharedPrefManager.saveClockinStartDate(startTime); // Save start time
-
-
-                            } else {
-                                Log.e(TAG, "start_time not found in response");
-                            }
                         } catch (JsonSyntaxException e) {
                             Log.e(TAG, "Failed to parse JSON response", e);
                         }
-
 
                         callback.onSuccess();
                     } else {
                         Log.e(TAG, "Request Failed: " + response.code() + " - " + response.message());
                         Log.e(TAG, "Error Body: " + responseBody);
-
                         callback.onFailure("Failed to start work: " + responseBody);
                     }
                 }
@@ -130,6 +139,7 @@ public class ClockINApiManager {
         }
     }
 }
+
 
 
 /*

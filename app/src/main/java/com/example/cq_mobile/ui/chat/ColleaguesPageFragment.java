@@ -70,7 +70,8 @@ public class ColleaguesPageFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
 
         if (email != null && password != null) {
-            AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
+            Context context = requireContext();
+            AccessTokenRequest tokenRequest = new AccessTokenRequest(context,email, password);
             getAccessTokenAndLoadColleagues(tokenRequest, progressBar, email, password, currentUserName);
         } else {
             progressBar.setVisibility(View.GONE);

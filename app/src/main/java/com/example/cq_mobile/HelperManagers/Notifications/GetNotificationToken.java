@@ -12,6 +12,7 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -116,6 +117,9 @@ public class GetNotificationToken extends FirebaseMessagingService {
             }
         }
     }
+
+
+
 }
 
 

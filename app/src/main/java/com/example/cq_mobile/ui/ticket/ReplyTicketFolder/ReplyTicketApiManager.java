@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.ticket.ReplyTicketFolder;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
@@ -28,9 +29,9 @@ public class ReplyTicketApiManager {
         void onFailure(String error);
     }
 
-    public static void replyToTicket(String email, String password, String ticketId, String replyBody, ApiCallback callback) {
+    public static void replyToTicket(Context context, String email, String password, String ticketId, String replyBody, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiReplyTicketTask(email,password,ticketId, replyBody, callback));
+        executorService.execute(new ApiReplyTicketTask(context,email,password,ticketId, replyBody, callback));
     }
 
     private static class ApiReplyTicketTask implements Runnable {
@@ -40,11 +41,14 @@ public class ReplyTicketApiManager {
         private final ApiCallback callback;
         String email;
         String password;
-        public ApiReplyTicketTask(String email, String password, String ticketId, String replyBody, ApiCallback callback) {
+        Context context;
+
+        public ApiReplyTicketTask(Context context, String email, String password, String ticketId, String replyBody, ApiCallback callback) {
             this.email = email;
             this.password = password;
             this.ticketId = ticketId;
             this.replyBody = replyBody;
+            this.context = context;
             this.callback = callback;
         }
 
@@ -59,7 +63,7 @@ public class ReplyTicketApiManager {
 
 
             // Start a new thread to get the access token
-            AccessTokenRequest request1 = new AccessTokenRequest(email, password);
+            AccessTokenRequest request1 = new AccessTokenRequest(context,email, password);
             AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
             Call<AccessTokenResponse> call = apiService.AccessTokenUser(request1);
 

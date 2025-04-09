@@ -23,6 +23,7 @@ import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LogoutFolder.LogoutManager;
 import com.example.cq_mobile.MainActivity;
+import com.example.cq_mobile.MoreActivityFolder.MoreActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.MoreInFragment.AboutActivity;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
@@ -117,11 +118,9 @@ public class NavigationManager {
            //     activity.finish();
 
             } else if (id == R.id.nav_item_three) {
-                // Handle logout using LogoutManager
-                SharedPrefManager sharedPrefManager = new SharedPrefManager(activity);
-                ClockOutManager clockOutManager = new ClockOutManager(activity, progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
-                clockOutManager.AutoClockOutWithoutLogout(accessToken, jobId);
-
+                Intent intent3 = new Intent(activity, MoreActivity.class);
+                intent3.putExtra("job_id", jobId);
+                activity.startActivity(intent3);
             } else {
                 return false;
             }

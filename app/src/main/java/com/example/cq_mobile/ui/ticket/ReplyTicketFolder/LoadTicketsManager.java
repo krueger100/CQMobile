@@ -24,7 +24,7 @@ public class LoadTicketsManager {
         this.ticketManager = new TicketManager(context);
         this.isLoading = false;
     }
-
+/*
     public void loadTickets(int currentPage, int pageSize, String email, String password, TicketsLoadedCallback callback) {
         if (isLoading) return; // Prevent multiple loads
         isLoading = true;
@@ -47,6 +47,8 @@ public class LoadTicketsManager {
         });
     }
 
+
+ */
     private void loadTicketsWithToken(String token, int currentPage, int pageSize, TicketsLoadedCallback callback) {
         ticketManager.loadTickets(currentPage, pageSize, new TicketManager.AllTicketsCallback() {
             @Override

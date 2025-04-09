@@ -4,14 +4,9 @@ import android.os.Looper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.Locale;
+import com.example.cq_mobile.HelperManagers.DateAndTimeManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 
 public class TimerManager {
     private static TimerManager instance;
@@ -39,37 +34,33 @@ public class TimerManager {
 
 
 
-    public static synchronized TimerManager getInstance(Context context, String startDate) {
+    public static synchronized TimerManager getInstance(Context context ) {
         if (instance == null) {
             instance = new TimerManager();
             instance.sharedPrefManager = new SharedPrefManager(context);
-            instance.sharedPrefManager.saveClockinStartDate(startDate);
         }
         return instance;
     }
 
-    public void startTimer() {
+    public void startTimer(Context context) {
         if (!running) {
             running = true;
             startTimeMillis = System.currentTimeMillis() - (seconds * 1000L);
  //---> Device Time -->>
-            handler.post(runnableUk);
+            handler.post(runnable);
             Log.d(TAG, "Timer started.");
         }
     }
+
+
 
     public void stopTimer(Context context) {
         running = false;
         isTimerVisible = false;
         Log.d(TAG, "Timer stopped.");
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        String stopTime = new SimpleDateFormat("HH:mm", Locale.ENGLISH).format(new Date());
-        sharedPrefManager.saveClockinStopDate(stopTime);
         sharedPrefManager.clearStartJob();
         sharedPrefManager.clearStartJobMessage();
 
-        Log.d(TAG, "Stop time saved: " + stopTime);
     }
 
     public void resetTimer(Context context) {
@@ -104,21 +95,6 @@ public class TimerManager {
         }
     };
 
-    private final Runnable runnableUk = new Runnable() {
-        @Override
-        public void run() {
-            if (running) {
-                ZonedDateTime currentTime = Instant.now().atZone(ZoneId.of("Europe/London"));
-                long currentTimeMillis = currentTime.toInstant().toEpochMilli();
-                seconds = (int) ((currentTimeMillis - startTimeMillis) / 1000);
-
-                if (listener != null) {
-                    listener.onTimerUpdate(formatTime(seconds));
-                }
-                handler.postDelayed(this, 1000);
-            }
-        }
-    };
 
     public void saveTimeState(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -155,7 +131,7 @@ public class TimerManager {
     // 🚀
     public void resumeTimerAfterReopen(Context context) {
         restoreSavedTime(context);
-        startTimer();
+        startTimer(context);
         Log.d(TAG, "Timer resumed from saved state: " + formatTime(seconds));
     }
 

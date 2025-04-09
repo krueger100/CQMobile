@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -32,8 +33,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.Clock.ApiTimeSheetCallback;
 import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
-import com.example.cq_mobile.Clock.ClockFolder.TimerFunctionManager;
-import com.example.cq_mobile.Clock.ClockFolder.TimerUIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobAPIManager;
 import com.example.cq_mobile.Clock.StartAndStopJobsFolder.StartJobResponse;
 
@@ -42,11 +41,11 @@ import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.HelperManagers.UKDateTime;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.HelperManagers.DateAndTimeManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.RetrieveDataFromAPIMangers.SetupTaskRecyclerViewManager;
@@ -70,12 +69,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
+
 import java.lang.ref.WeakReference;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 
 public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
@@ -123,45 +120,48 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     ProgressBar progressbar;
     Double latOut;
     Double longOut;
-    String jobTitle,jobTitleMessage;
-    String Start_date,End_date;
+    String jobTitle;
+    String Start_date_time,End_date_time,currentDate,currentTime;
     private WeakReference<Activity> activityRef;
-    String startedDate,stopDate ;
     private Double lat = null;
     private Double lon = null;
     String startTime;
     private View view;
     @SuppressLint("SetTextI18n")
-    String ukDate,uktimeEndCurrent;
     int jobId_int;
     int taskId_int;
     private View rootView;
-
-
-    private TimerUIManager timerUIManager;
-    private TimerManager timerManager;
-    private ProgressBar progressBar;
+    Context context;
+    boolean jobSuccess;
     private LinearLayout timerLayout;
-    private TextView clockoutBtn;
     private ClockOutManager clockOutManager;
-    private TimerFunctionManager timerFunctionManager;
-    private String startDate;
+    Intent intent;
+    String jobId_files, taskId_files;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newbuild);
         activityRef = new WeakReference<>(activity);
+    runOnUiThread(() -> {
+         context = getApplicationContext();
+        AuthManager authManager = AuthManager.getInstance(this);
+        accessToken = authManager.getToken();
+        userId = authManager.getUserId();
 
         view = findViewById(R.id.view);
         jobId = getIntent().getStringExtra("job_id");
         taskId = getIntent().getStringExtra("task_id");
-        sharedPrefManager = new SharedPrefManager(NewBuild.this);
+        sharedPrefManager = new SharedPrefManager(context);
 
         Log.d(TAG, "Task ID: <-" + taskId);
         Log.d(TAG, "Job ID: <-" + jobId);
+        Log.d(TAG, "User ID: " + userId);
 
-         accessToken = sharedPrefManager.getAccessToken();
-         userId = sharedPrefManager.getUserId();
+
+        jobId_files = jobId.trim().toString();
+        taskId_files = taskId.trim().toString();
+
+
          firstName = sharedPrefManager.getFirstName();
          lastName = sharedPrefManager.getLastName();
          email = sharedPrefManager.getEmail();
@@ -173,7 +173,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         timerLayout = findViewById(R.id.timer_layout);
 
 
-        Log.d(TAG, "User ID: " + userId);
         Log.d("start_Job", "latOut: " + latOut);
         Log.d("start_Job", "longOut: " + longOut);
 
@@ -188,6 +187,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         progress_circular_2 = findViewById(R.id.progress_circular_2);
         statusImageView = findViewById(R.id.statusImageView);
         start_job = findViewById(R.id.start_job);
+
          recycler_view = findViewById(R.id.recycler_view);
          task_title = findViewById(R.id.task_title);
          task_location = findViewById(R.id.task_location);
@@ -201,8 +201,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
          progressbar= findViewById(R.id.progressbar);
         rootView = findViewById(android.R.id.content);
 
-
-        boolean jobSuccess = sharedPrefManager.isJobSuccessful();
+         jobSuccess = sharedPrefManager.isJobSuccessful();
 
         String jobTitle = sharedPrefManager.getStartJob();
         Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
@@ -210,10 +209,10 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         if (jobSuccess) {
             start_job.setText("Stop Job");
-            start_job.setBackground(ContextCompat.getDrawable(NewBuild.this, R.drawable.clock_out_btn));
+            start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.clock_out_btn));
         }else {
             start_job.setText("Start Job");
-            start_job.setBackground(ContextCompat.getDrawable(NewBuild.this, R.drawable.check_in_btn));
+            start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.check_in_btn));
 
         }
 
@@ -221,52 +220,54 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         newBuildButtonManager = new NewBuildButtonManager(notes, folder);
 
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }else {
-               recreate();
-        }
-       routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            if (mapFragment != null) {
+                mapFragment.getMapAsync(this);
+            }else {
+                recreate();
+            }
 
-        String jobTitle_started = sharedPrefManager.getStartJob();
-        String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
-        double userLatitude = sharedPrefManager.getUserStartJobLatitude();
-        double userLongitude = sharedPrefManager.getUserStartJobLongitude();
-        Log.d(TAG, "jobTitle_started: " + jobTitle_started);
-        Log.d(TAG, "jobTitle_started_message: " + jobTitle_started_message);
-        startedDate = sharedPrefManager.getKeyStartDate();
-         stopDate = sharedPrefManager.getKeyStopDate();
-        jobId_int = (jobId != null && !jobId.isEmpty()) ? Integer.parseInt(jobId) : 0;
-        taskId_int = (taskId != null && !taskId.isEmpty()) ? Integer.parseInt(taskId) : 0;
+            routeNewBuildManager = new RouteNewBuildManager(googleMap, this,userLocation);
 
-        fetchData();
-         ukDate = UKDateTime.getCurrentUKDate();
-        clockOutManager = new ClockOutManager(NewBuild.this, progressbar, jobId_int, taskId_int, userId, startDate, sharedPrefManager);
 
-         sharedPrefManager = new SharedPrefManager(this);
-        startDate = sharedPrefManager.getKeyStartDate();
-        jobId_int = sharedPrefManager.getJobId();
-        taskId_int = sharedPrefManager.getTaskId();
-        userId = sharedPrefManager.getUserId();
+            String jobTitle_started = sharedPrefManager.getStartJob();
+            String jobTitle_started_message = sharedPrefManager.getStartJobMessage();
+            double userLatitude = sharedPrefManager.getUserStartJobLatitude();
+            double userLongitude = sharedPrefManager.getUserStartJobLongitude();
+            Log.d(TAG, "jobTitle_started: " + jobTitle_started);
+            Log.d(TAG, "jobTitle_started_message: " + jobTitle_started_message);
+
+            jobId_int = (jobId != null && !jobId.isEmpty()) ? Integer.parseInt(jobId) : 0;
+            taskId_int = (taskId != null && !taskId.isEmpty()) ? Integer.parseInt(taskId) : 0;
+
+            fetchData(context);
+            clockOutManager = new ClockOutManager(context, progressbar, jobId_int, taskId_int, userId, sharedPrefManager);
+
+            sharedPrefManager = new SharedPrefManager(this);
+
+            jobId_int = sharedPrefManager.getJobId();
+            taskId_int = sharedPrefManager.getTaskId();
+
+
+        });
 
 
     }
 
-    private void fetchData() {
-        NewBuildApiManager.fetchNewBuiltApiData(jobId, accessToken, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
+    private void fetchData(Context context) {
+        NewBuildApiManager.fetchNewBuiltApiData(context, jobId, new NewBuildApiManager.ApiResponseCallback<Taskmain>() {
             @Override
             public void onDataFetched(List<Taskmain> data) {
                 runOnUiThread(() -> {
                     if (data == null || data.isEmpty()) {
-                        Toast.makeText(NewBuild.this, "No data found.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "No data found.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     Taskmain task = data.get(0);
                     if (task == null) {
-                        Toast.makeText(NewBuild.this, "Task data is missing.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Task data is missing.", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -284,26 +285,9 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     task_description.setText(task.getDescription() != null ? task.getDescription() : "No Description Available");
                     category_todo.setText(task.getCategory() != null ? task.getCategory() : "No Category");
                     jobTitle= task.getName() != null ? task.getName() : "No Name Available";
-                     Start_date = task.getStart_date() != null ? task.getStart_date() : "No Start_date";
-                      End_date = task.getEnd_date() != null ? task.getEnd_date() : "No End_date";
-                    SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-                    try {
-                        Start_date = task.getStart_date() != null ? outputFormat.format(inputFormat.parse(task.getStart_date())) : "No Start_date";
-                        End_date = task.getEnd_date() != null ? outputFormat.format(inputFormat.parse(task.getEnd_date())) : "No End_date";
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                        Start_date = "Invalid Start_date";
-                        End_date = "Invalid End_date";
-                    }
 
-                    sharedPrefManager.saveClockinStartDate(Start_date);
-                    sharedPrefManager.saveClockinStopDate(End_date);
 
-                    Log.w(TAG, "Start_date: -> " + Start_date + " End_date: -> " + End_date);
-
-                    Log.w(TAG, "jobTitle: -> " + jobTitle + " task_title: -> " + task_title);
 
                     String city = (task.getAddress() != null && task.getAddress().getCity() != null) ? task.getAddress().getCity() : "";
                     String country = (task.getAddress() != null && task.getAddress().getCountry() != null) ? task.getAddress().getCountry() : "";
@@ -330,7 +314,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
                     Log.d("CoordinatesNewBuild", "LAT: -> " + lat + " LON: -> " + lon);
                     if (lat != null && lon != null) {
-                        enableUserLocation(ukDate, uktimeEndCurrent);
+                        enableUserLocation(context,userId,jobId,currentDate);
                     } else {
                         Log.e("CoordinatesNewBuild", "lat or lon is null, cannot enable location.");
 
@@ -341,7 +325,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     List<String> statusList = Arrays.asList("Todo", "Skipped", "Done");
 
                     SetupMainTaskSpinnerAdapter adapter = new SetupMainTaskSpinnerAdapter(
-                            NewBuild.this,
+                            context,
                             R.layout.task_spinner_item,
                             statusList,
                             jobId,
@@ -384,24 +368,25 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     });
 
                     fetchSubTasks();
+
                 });
             }
 
             @Override
             public void onError(String error) {
-                runOnUiThread(() -> Toast.makeText(NewBuild.this, "Error: " + error, Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(context, "Error: " + error, Toast.LENGTH_SHORT).show());
             }
         });
     }
 
     private void fetchSubTasks() {
-        NewBuildApiManager.fetchSecondaryApiData(jobId, page, pageSize, accessToken, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
+        NewBuildApiManager.fetchSecondaryApiData(this,jobId, page, pageSize, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
             @Override
             public void onDataFetched(List<SubTask> data) {
                 runOnUiThread(() -> {
                     if (data == null || data.isEmpty()) {
                         Log.d("SubTask", "No subtasks found.");
-                        Toast.makeText(NewBuild.this, "No tasks found.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "No tasks found.", Toast.LENGTH_SHORT).show();
                         emptyTask.setVisibility(View.VISIBLE);
                         progress_circular_2.setVisibility(View.GONE);
                         return;
@@ -425,7 +410,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     }
 
                     Log.w("SubTaskAdapter", "taskId <- -> " + taskId);
-                    setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(NewBuild.this, recycler_view,progressbar,progress_text,taskId);
+                    setupTaskRecyclerViewManager = new SetupTaskRecyclerViewManager(context, recycler_view,progressbar,progress_text,taskId);
                     setupTaskRecyclerViewManager.setupRecyclerView(jobId, isChecked, accessToken, taskId);
                     progress_circular_2.setVisibility(View.GONE);
                 });
@@ -435,7 +420,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
             public void onError(String error) {
                 runOnUiThread(() -> {
                     Log.e("SubTask", "Error fetching subtasks: " + error);
-                    Toast.makeText(NewBuild.this, "Error fetching subtasks: " + error, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Error fetching subtasks: " + error, Toast.LENGTH_SHORT).show();
                     emptyTask.setVisibility(View.VISIBLE);
                     progress_circular_2.setVisibility(View.GONE);
                 });
@@ -449,7 +434,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            enableUserLocation(ukDate,uktimeEndCurrent);
+            enableUserLocation(context, userId, jobId, currentDate);
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         }
@@ -458,17 +443,37 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
         googleMap.setOnMapLoadedCallback(() -> {
             Log.d("MapLoad", "Google Map has fully loaded");
+
+            newBuildButtonManager.setButtonsVisibility(true);
+            newBuildButtonManager.setButtonClickListener(view -> {
+                ClickAnimationManager.applyClickAnimation(view);
+                if (view == notes) {
+                    intent = new Intent(context, NotesActivity.class);
+                    intent.putExtra("job_id", jobId);
+                    this.startActivity(intent);
+                } else if (view == folder) {
+                    if (jobId != null) {
+                        intent = new Intent(context, FilesActivity.class);
+                        intent.putExtra("job_id", jobId_files);
+                        intent.putExtra("task_id", taskId_files);
+                        intent.putExtra("accessToken", accessToken);
+                        startActivity(intent);
+                    }
+                }
+            });
+
+
             navigationInitialization();
         });
     }
 
-    private void enableUserLocation(String ukDate, String ukTime) {
+    private void enableUserLocation(Context context, int userId, String jobId, String date) {
         if (googleMap == null) {
             Log.e("enableUserLocation", "GoogleMap is null. Cannot enable user location.");
             return;
         }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             Log.e("enableUserLocation", "Location permission not granted.");
             Toast.makeText(this, "Permission not granted to access location", Toast.LENGTH_SHORT).show();
@@ -494,52 +499,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                 Log.d("enableUserLocation", "Retrieved coordinates list: " + coordinatesList.size() + " entries found.");
                 MarkerManager markerManager = new MarkerManager();
                 BitmapDescriptor taskMarkerIcon = markerManager.getCustomCircleMarkerIcon(this);
-                String startJobTimeDate = sharedPrefManager.getKeyStartDate();
 
                 UserPositionMarkerManager userPositionMarkerManager = new UserPositionMarkerManager();
                 BitmapDescriptor userPositionMarkerIcon = userPositionMarkerManager.getCustomCircleMarkerIcon(this);
                 Log.d("enableUserLocation", "API coordinate: Lat=" + lat + ", Lon=" + lon);
 
-/*
-                if (lat != null && lon != null && !lat.isNaN() && !lon.isNaN()) {
-                    Taskmain.Coordinates firstCoordinate = coordinatesList.get(0);
-                    taskLatLng = new LatLng(lat, lon);
-                    Log.d("enableUserLocation", "First saved coordinate: Lat=" + firstCoordinate.getLatitude() + ", Lon=" + firstCoordinate.getLongitude());
-                    start_jobBranch(lat, lon,userLatitude,userLongitude,ukDate,ukTime,startJobTimeDate);
-
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        sharedPrefManager.saveStartJobLocation(lat, lon);
-
-
-                        Double userStartLat = sharedPrefManager.getUserStartJobLatitude();
-                        Double userStartLon = sharedPrefManager.getUserStartJobLongitude();
-                        Double StartLat = sharedPrefManager.getStartJobLatitude();
-                        Double StartLon = sharedPrefManager.getUserStartJobLongitude();
-
-                        Log.w(TAG, "KEY_USER_START_JOB_LAT Updated:"+"\n"+ "Lat=" + userStartLat +"\n"+ ", Lon=" + userStartLon);
-                        Log.w(TAG, "KEY_START_JOB_LAT Updated: Lat=" +"\n"+ "Lat=" + StartLat +"\n"+ ", Lon=" + StartLon);
-
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        start_jobBranch(lat, lon, userLatitude, userLongitude, ukDate, ukTime,startJobTimeDate);
-                    }, 2000);
-
-                    }, 1000);
-
-
-                } else {
-                    Log.e("enableUserLocation", "No valid coordinates found. lat=" + lat + ", lon=" + lon);
-
-                    if (!coordinatesList.isEmpty()) {
-                        Taskmain.Coordinates firstCoordinate = coordinatesList.get(0);
-                        taskLatLng = new LatLng(firstCoordinate.getLatitude(), firstCoordinate.getLongitude());
-
-                    } else {
-                        Log.e("enableUserLocation", "No saved coordinates found.");
-                    }
-                    return;
-                }
-
- */
 
                 if (lat != null && lon != null && !lat.isNaN() && !lon.isNaN()) {
 
@@ -551,8 +515,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                     } else {
                         Log.e("enableUserLocation", "Coordinates list is empty or null. Skipping first coordinate access.");
                     }
-
-                    start_jobBranch(lat, lon, userLatitude, userLongitude, ukDate, ukTime, startJobTimeDate);
+                    start_jobBranch(this.userId,lat, lon, userLatitude, userLongitude);
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         sharedPrefManager.saveStartJobLocation(lat, lon);
@@ -566,7 +529,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                         Log.w(TAG, "KEY_START_JOB_LAT Updated: Lat=" + "\n" + "Lat=" + StartLat + "\n" + ", Lon=" + StartLon);
 
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            start_jobBranch(lat, lon, userLatitude, userLongitude, ukDate, ukTime, startJobTimeDate);
+                            start_jobBranch(this.userId, lat, lon, userLatitude, userLongitude);
                         }, 2000);
 
                     }, 1000);
@@ -616,165 +579,204 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         });
     }
 
-    private void start_jobBranch(double latitude, double longitude, Double userLatitude, Double userLongitude, String ukDate, String ukTime, String startJobTimeDate) {
-
+    private void start_jobBranch(int userId, double latitude, double longitude, Double userLatitude, Double userLongitude) {
         start_job.setEnabled(true);
         start_job.setAlpha(1.0f);
+        String startJob = sharedPrefManager.getKeyDate();
+        if (jobSuccess) {
+            start_job.setOnClickListener(v -> {
+                String startedDate = sharedPrefManager.getKeyStartDate();
+                String stopDate = sharedPrefManager.getKeyStopDate();
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (this.accessToken != null && !this.accessToken.isEmpty()) {
+                        new Thread(() -> {
+                            TimeSheetAPI.sendTimeSheetData(this.accessToken, this.userId, userLatitude, userLongitude, latitude, longitude, Integer.parseInt(this.taskId), progress_circular, context, new ApiTimeSheetCallback() {
+                                @Override
+                                public void onSuccess(String serverMessage) {
+                                    Log.d("TimeSheetManager", "sendTimeSheetData: " + serverMessage);
+                                    new Handler(Looper.getMainLooper()).post(() -> {
+                                        Log.w("StartJob", "TimeSheetManager: sendTimeSheetData -- >> " + serverMessage);
+                                        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+                                        sharedPrefManager.clearStartJob();
+                                        sharedPrefManager.clearStartJobMessage();
+                                        sharedPrefManager.clearStartJobDescription();
+                                        sharedPrefManager.saveJobSuccessAsFalse(false);
 
-        start_job.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AccessTokenRequest request = new AccessTokenRequest(email, password);
-                StartJobAPIManager startJobAPIManager = new StartJobAPIManager();
-                Gson gson = new Gson();
-                ClickAnimationManager.applyClickAnimation(v);
-                progress_circular.setVisibility(View.VISIBLE);
-                Log.d("start_Job", "Access Token: " + accessToken);
-                Log.d("start_Job", "userId: " + userId);
-                Log.d("start_Job", "jobId: " + taskId);
-                Log.d("start_Job", "email: " + email);
-                Log.d("start_Job", "latOut: " + latitude);
-                Log.d("start_Job", "longOut: " + longitude);
+                                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                            start_job.setText("Start Job");
+                                            start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.check_in_btn));
+                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                TimerManager timerManager = TimerManager.getInstance(context);
+                                                timerManager.resetTimer(context);
+                                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                    TimerManager timerManager2 = TimerManager.getInstance(context);
+                                                    timerManager2.startTimer(context);
+                                                }, 2000);
+                                            }, 1000);
+                                            Intent intent = new Intent(context, MainActivity.class);
+                                            startActivity(intent);
+                                            finish();
+                                        }, 3000);
 
-          startJobAPIManager.startJobWithToken(userId, taskId, latitude, longitude, request, new StartJobAPIManager.ApiCallback() {
-                    @Override
-                    public void onSuccess(String response) {
-                        Log.d("StartJob", "Job started successfully. Response: " + response);
-                        StartJobResponse startJobResponse = gson.fromJson(response, StartJobResponse.class);
-                        if (startJobResponse == null) {
-                            Log.e("StartJob", "Response parsing failed.");
-                            runOnUiThread(() -> progress_circular.setVisibility(View.GONE));
-                            return;
-                        }
-                        boolean success = startJobResponse.isSuccess();
-                        String serverMessage = startJobResponse.getMessage();
-                        String serverAdditionalMessage = startJobResponse.getData().getMessage2();
-                        StartJobResponse.Data data = startJobResponse.getData();
-
-                        Log.d("StartJob", "Success: " + success);
-                        Log.d("StartJob", "Server Message: " + serverMessage);
-                        Log.d("StartJob", "Server Message2: " + serverAdditionalMessage);
-
-                        if (data != null) {
-                            String status = data.getStatus();
-                            String event = data.getEvent();
-                            String message2 = data.getMessage2();
-
-                            Log.d("StartJob", "Status: " + status);
-                            Log.d("StartJob", "Event: " + event);
-                            Log.d("StartJob", "Additional Message: " + (message2 != null ? message2 : "N/A"));
-
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                Log.w("StartJob", " -- >> "+success+  "\n" + "Server Message: " +serverMessage+  "\n" + "Server Additional Message: " +serverAdditionalMessage);
-
-                                runOnUiThread(() -> {
-                                    progress_circular.setVisibility(View.GONE);
-                                    sharedPrefManager.saveStartedJobMessage(serverMessage);
-                                    String ukTimeStart = UKDateTime.getCurrentUKTimeStart(NewBuild.this);
-                                    Log.d("StartJob", "ukTimeStart: " + ukTimeStart);
-                                    if (success) {
-                                        sharedPrefManager.saveJobSuccess(true);
-                                        sharedPrefManager.saveUkStartTime(ukTimeStart);
-                                        start_job.setText("Stop Job");
-                                        start_job.setBackground(ContextCompat.getDrawable(NewBuild.this, R.drawable.clock_out_btn));
-
-                                    }
-
-                                    showAlertDialog(NewBuild.this, success, serverMessage, accessToken, userId, progress_circular, jobId, taskId,startJobTimeDate);
-                                });
-                            });
-
-
-                            StartJobResponse.Data.Work work = data.getWork();
-                            if (work != null) {
-                                int workId = work.getId();
-                                int organizationId = work.getOrganization_id();
-                                int workUserId = work.getUser_id();
-                                int jobId = work.getJob_id();
-                                startTime = work.getStart_time();
-
-                                Log.d("StartJob", "Work ID: " + workId);
-                                Log.d("StartJob", "Organization ID: " + organizationId);
-                                Log.d("StartJob", "User ID: " + workUserId);
-                                Log.w("StartJob", "Job ID: " + jobId);
-                                Log.d("StartJob", "Start Time: " + startTime);
-
-                                sharedPrefManager.saveJobId(jobId);
-
-
-
-                                StartJobResponse.Data.Work.Remarks remarks = work.getRemarks();
-                                if (remarks != null) {
-                                    double latitude = remarks.getLat();
-                                    double longitude = remarks.getLongitude();
-
-                                    Log.d("StartJob", "Latitude: " + latitude);
-                                    Log.d("StartJob", "Longitude: " + longitude);
-                                }
-
-                                StartJobResponse.Data.Work.Job job = work.getJob();
-                                if (job != null) {
-                                    runOnUiThread(() -> {
-                                        String jobTitle = job.getTitle();
-                                        String job_description = job.getDescription();
-                                        int jobStatus = job.getJob_status();
-                                        sharedPrefManager.saveStartedJob(jobTitle);
-                                        Log.w("StartJob", "Job Title: " + jobTitle);
-                                        Log.d("StartJob", "Job Description: " + job_description);
-                                        Log.d("StartJob", "Job Status: " + jobStatus);
+                                        progress_circular.setVisibility(View.GONE);
+                                        Toast.makeText(context, serverMessage, Toast.LENGTH_SHORT).show();
                                     });
-
-
                                 }
-                            }
-                        }
-                    }
 
-                    @Override
-                    public void onFailure(String error) {
-                        Log.e("StartJob", "Failed to start job: " + error);
+                                @Override
+                                public void onFailure(String error) {
+                                    Log.e("ClockOutManager", "Failed to send TimeSheet Data: " + error);
+                                    new Handler(Looper.getMainLooper()).post(() ->
+                                            Toast.makeText(context, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show()
+                                    );
+                                }
+                            });
+                        }).start();
                     }
                 });
 
-            }
-        });
+
+            });
+        }else {
+            start_job.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Context context = getApplicationContext();
+                    StartJobAPIManager startJobAPIManager = new StartJobAPIManager();
+                    Gson gson = new Gson();
+                    ClickAnimationManager.applyClickAnimation(v);
+                    progress_circular.setVisibility(View.VISIBLE);
+                    Log.d("start_Job", "userId: " + userId);
+                    Log.d("start_Job", "jobId: " + taskId);
+                    Log.d("start_Job", "latOut:-> " + latitude);
+                    Log.d("start_Job", "longOut:-> " + longitude);
+
+
+                    startJobAPIManager.startJob(context,userId, taskId, latitude, longitude,accessToken, new StartJobAPIManager.ApiCallback() {
+                        @Override
+                        public void onSuccess(String response) {
+                            Log.d("StartJob", "Job started successfully. Response: " + response);
+                            StartJobResponse startJobResponse = gson.fromJson(response, StartJobResponse.class);
+                            if (startJobResponse == null) {
+                                Log.e("StartJob", "Response parsing failed.");
+                                runOnUiThread(() -> progress_circular.setVisibility(View.GONE));
+                                return;
+                            }
+                            boolean success = startJobResponse.isSuccess();
+                            String serverMessage = startJobResponse.getMessage();
+                            String serverAdditionalMessage = startJobResponse.getData().getMessage2();
+                            StartJobResponse.Data data = startJobResponse.getData();
+
+                            Log.d("StartJob", "Success: " + success);
+                            Log.d("StartJob", "Server Message: " + serverMessage);
+                            Log.d("StartJob", "Server Message2: " + serverAdditionalMessage);
+
+                            if (data != null) {
+                                String status = data.getStatus();
+                                String event = data.getEvent();
+                                String message2 = data.getMessage2();
+
+                                Log.d("StartJob", "Status: " + status);
+                                Log.d("StartJob", "Event: " + event);
+                                Log.d("StartJob", "Additional Message: " + (message2 != null ? message2 : "N/A"));
+
+                                new Handler(Looper.getMainLooper()).post(() -> {
+                                    Log.d("StartJob", " -- >> "+success+  "\n" + "Server Message: " +serverMessage+  "\n" + "Server Additional Message: " +serverAdditionalMessage);
+
+                                    runOnUiThread(() -> {
+                                        progress_circular.setVisibility(View.GONE);
+                                        sharedPrefManager.saveStartedJobMessage(serverMessage);
+                                        String currentDate = DateAndTimeManager.getCurrentDate(context);
+                                        Start_date_time = DateAndTimeManager.getCurrentTime(context);
+                                        Log.w("StartJob", "currentTime Start Time:  --->>>  " + Start_date_time);
+                                        if (success) {
+                                            sharedPrefManager.saveJobSuccess(true);
+                                            sharedPrefManager.saveClockinStartDate(Start_date_time);
+                                            sharedPrefManager.saveClockinDate(currentDate);
+                                            start_job.setText("Stop Job");
+                                            start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.clock_out_btn));
+
+                                        }
+
+                                    });
+                                });
+
+
+                                StartJobResponse.Data.Work work = data.getWork();
+                                if (work != null) {
+                                    int workId = work.getId();
+                                    int organizationId = work.getOrganization_id();
+                                    int workUserId = work.getUser_id();
+                                    int jobId = work.getJob_id();
+                                    startTime = work.getStart_time();
+
+                                    Log.d("StartJob", "Work ID: " + workId);
+                                    Log.d("StartJob", "Organization ID: " + organizationId);
+                                    Log.d("StartJob", "User ID: " + workUserId);
+                                    Log.w("StartJob", "Job ID: " + jobId);
+                                    Log.d("StartJob", "Start Time: " + startTime);
+
+                                    sharedPrefManager.saveJobId(jobId);
+
+
+
+                                    StartJobResponse.Data.Work.Remarks remarks = work.getRemarks();
+                                    if (remarks != null) {
+                                        double latitude = remarks.getLat();
+                                        double longitude = remarks.getLongitude();
+
+                                        Log.d("StartJob", "Latitude: " + latitude);
+                                        Log.d("StartJob", "Longitude: " + longitude);
+                                    }
+
+                                    StartJobResponse.Data.Work.Job job = work.getJob();
+                                    if (job != null) {
+                                        runOnUiThread(() -> {
+                                            String jobTitle = job.getTitle();
+                                            String job_description = job.getDescription();
+                                            int jobStatus = job.getJob_status();
+                                            sharedPrefManager.saveStartedJob(jobTitle);
+                                            Log.w("StartJob", "Job Title: " + jobTitle);
+                                            Log.d("StartJob", "Job Description: " + job_description);
+                                            Log.d("StartJob", "Job Status: " + jobStatus);
+                                        });
+
+
+                                    }
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            Log.e("StartJob", "Failed to start job: " + error);
+                        }
+                    });
+                }
+            });
+        }
+
 
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableUserLocation(ukDate, uktimeEndCurrent);
+                enableUserLocation(context, userId, jobId, currentDate);
             } else {
-                Toast.makeText(this, "Location permission is required to display your position", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Location permission is required to display your position", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
 
 
+
+
     private void navigationInitialization() {
-
-        newBuildButtonManager.setButtonsVisibility(true);
-        newBuildButtonManager.setButtonClickListener(view -> {
-            ClickAnimationManager.applyClickAnimation(view);
-            if (view == notes) {
-                Intent intent = new Intent(this, NotesActivity.class);
-                intent.putExtra("job_id", jobId);
-                this.startActivity(intent);
-            } else if (view == folder) {
-                if (jobId != null) {
-                    Intent intent = new Intent(NewBuild.this, FilesActivity.class);
-                    intent.putExtra("job_id", jobId);
-                    intent.putExtra("task_id", taskId);
-                    startActivity(intent);
-                }
-            }
-        });
-
-
         View bottomSheet = findViewById(R.id.new_built_bottom_sheet);
         BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
         bottomSheet.post(() -> bottomSheetBehavior.setPeekHeight(bottomSheet.getHeight() / 3));
@@ -805,118 +807,6 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         });
     }
 
-    private void showAlertDialog(NewBuild newBuild, boolean success, String serverMessage, String accessToken, int userId, ProgressBar progress_circular, String jobId, String taskId, String startJobTimeDate) {
-        if (newBuild == null) {
-
-            return;
-        }
-
-        Log.d("AlertDialog", "\t"+" jobId: " + jobId +" taskId: "+ "\t" + taskId);
-        TimerManager timerManager = TimerManager.getInstance(NewBuild.this,startJobTimeDate);
-        timerManager.resetTimer(NewBuild.this);
-        String ukTime = UKDateTime.getCurrentUKTime(this);
-        sharedPrefManager.saveUkStartTime(ukTime);
-        LayoutInflater inflater = LayoutInflater.from(newBuild);
-        View dialogView = inflater.inflate(R.layout.dialog_start_jobs, null);
-
-    AlertDialog dialog = new AlertDialog.Builder(newBuild)
-            .setTitle(serverMessage)
-            .setMessage("Choose from the options")
-            .setView(dialogView)
-            .setCancelable(false)
-             .create();
-
-        TextView btnStopJob = dialogView.findViewById(R.id.btnStopJob);
-        TextView btnContinue = dialogView.findViewById(R.id.btnContinue);
-        String jobTitle = sharedPrefManager.getStartJob();
-        Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
-
-        btnStopJob.setOnClickListener(v -> {
-            double userLatitude =  sharedPrefManager.getUserStartJobLatitude();
-            double userLongitude =sharedPrefManager.getUserStartJobLongitude();
-            double latitude = sharedPrefManager.getStartJobLatitude();
-            double longitude = sharedPrefManager.getUserStartJobLongitude();
-            String startedDate = sharedPrefManager.getKeyStartDate();
-            String stopDate = sharedPrefManager.getKeyStopDate();
-            String ukDate = UKDateTime.getCurrentUKDate();
-
-            String uktimeStart= sharedPrefManager.getUkStartTime();
-            String uktimeEnd= sharedPrefManager.getUkEndTime();
-            new Handler(Looper.getMainLooper()).post(() -> {
-                if (this.accessToken != null && !this.accessToken.isEmpty()) {
-                    new Thread(() -> {
-                        TimeSheetAPI.sendTimeSheetData(accessToken,userId, userLatitude, userLongitude, latitude, longitude,
-                                Integer.parseInt(taskId), ukDate, startedDate, stopDate, progress_circular,NewBuild.this,uktimeEnd,uktimeStart,
-                                new ApiTimeSheetCallback() {
-                                    @Override
-                                    public void onSuccess(String serverMessage) {
-                                        Log.d("TimeSheetManager", "sendTimeSheetData: " + serverMessage);
-                                        new Handler(Looper.getMainLooper()).post(() -> {
-                                            Log.w("StartJob", "TimeSheetManager: sendTimeSheetData -- >> " + serverMessage);
-                                            SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
-                                            sharedPrefManager.clearStartJob();
-                                            sharedPrefManager.clearStartJobMessage();
-                                            sharedPrefManager.clearStartJobDescription();
-                                            sharedPrefManager.saveJobSuccessAsFalse(false);
-                                            Log.w("StartJob", "uktimeEnd: "  +uktimeEnd);
-
-
-                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                                start_job.setText("Start Job");
-                                                start_job.setBackground(ContextCompat.getDrawable(NewBuild.this, R.drawable.check_in_btn));
-                                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                                TimerManager timerManager = TimerManager.getInstance(NewBuild.this, startTime);
-                                                timerManager.resetTimer(NewBuild.this);
-
-
-                                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                                    TimerManager  timerManager2 = TimerManager.getInstance(NewBuild.this,startedDate);
-                                                      timerManager2.startTimer();
-
-                                                }, 2000);
-                                            }, 1000);
-                                                Intent intent = new Intent(NewBuild.this, MainActivity.class);
-                                                NewBuild.this.startActivity(intent);
-                                                NewBuild.this.finish();
-                                            }, 3000);
-
-
-
-                                            NewBuild.this.progress_circular.setVisibility(View.GONE);
-
-                                            Toast.makeText(NewBuild.this, serverMessage, Toast.LENGTH_SHORT).show();
-
-                                        });
-
-                                    }
-
-                                    @Override
-                                    public void onFailure(String error) {
-                                        Log.e("ClockOutManager", "Failed to send TimeSheet Data: " + error);
-                                        new Handler(Looper.getMainLooper()).post(() ->
-                                                Toast.makeText(NewBuild.this, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show()
-                                        );
-                                    }
-                                }
-                        );
-                    }).start();
-                    dialog.dismiss();
-                } else {
-                    Log.d("ClockOutManager", "Access token is missing!");
-                    Toast.makeText(NewBuild.this, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
-                }
-            });
-
-
-        });
-
-        btnContinue.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
-
-
-    }
 
 
     public void switchFragment(Fragment fragment) {
@@ -930,5 +820,119 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
 }
 
+/*
 
 
+ */
+
+/*
+    runOnUiThread(() -> {
+                                btnStopJob.setOnClickListener(v -> {
+                                    double userLatitude =  sharedPrefManager.getUserStartJobLatitude();
+                                    double userLongitude =sharedPrefManager.getUserStartJobLongitude();
+                                    double latitude = sharedPrefManager.getStartJobLatitude();
+                                    double longitude = sharedPrefManager.getUserStartJobLongitude();
+
+
+                                    new Handler(Looper.getMainLooper()).post(() -> {
+                                        if (this.accessToken != null && !this.accessToken.isEmpty()) {
+                                            new Thread(() -> {
+                                                TimeSheetAPI.sendTimeSheetData(accessToken,userId, userLatitude, userLongitude, latitude, longitude,
+                                                        Integer.parseInt(taskId), this.progress_circular,NewBuild.this,
+                                                        new ApiTimeSheetCallback() {
+                                                            @Override
+                                                            public void onSuccess(String serverMessage) {
+                                                                Log.d("TimeSheetManager", "sendTimeSheetData: " + serverMessage);
+                                                                new Handler(Looper.getMainLooper()).post(() -> {
+                                                                    Log.w("StartJob", "TimeSheetManager: sendTimeSheetData -- >> " + serverMessage);
+                                                                    SharedPrefManager sharedPrefManager = new SharedPrefManager(NewBuild.this);
+
+                                                                    sharedPrefManager.clearStartJobMessage();
+                                                                    sharedPrefManager.clearStartJobDescription();
+                                                                    sharedPrefManager.saveJobSuccessAsFalse(false);
+                                                                    End_date_time = DateAndTimeManager.getCurrentTime(NewBuild.this);
+                                                                    sharedPrefManager.saveClockinStopDate(End_date_time);
+                                                                    Log.w("StartJob", "End Date and Time  "  +End_date_time);
+
+                                                                    Log.w(TAG, "Stop_date: ->  " + End_date_time);
+                                                                    Log.w(TAG, "jobTitle: -> " + jobTitle + " task_title: -> " + task_title);
+
+                                                                    End_date_time = DateAndTimeManager.getCurrentTime(NewBuild.this);
+
+                                                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                                        start_job.setText("Start Job");
+                                                                        start_job.setBackground(ContextCompat.getDrawable(NewBuild.this, R.drawable.check_in_btn));
+                                                                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                                            TimerManager timerManager = TimerManager.getInstance(NewBuild.this);
+                                                                            timerManager.resetTimer(NewBuild.this);
+
+
+                                                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                                                TimerManager  timerManager2 = TimerManager.getInstance(NewBuild.this);
+                                                                                timerManager2.startTimer(NewBuild.this);
+
+                                                                            }, 2000);
+                                                                        }, 1000);
+                                                                        Intent intent = new Intent(NewBuild.this, MainActivity.class);
+                                                                        NewBuild.this.startActivity(intent);
+                                                                        NewBuild.this.finish();
+                                                                    }, 3000);
+
+
+
+                                                                    NewBuild.this.progress_circular.setVisibility(View.GONE);
+
+                                                                    Toast.makeText(NewBuild.this, serverMessage, Toast.LENGTH_SHORT).show();
+
+                                                                });
+
+                                                            }
+
+                                                            @Override
+                                                            public void onFailure(String error) {
+                                                                Log.e("ClockOutManager", "Failed to send TimeSheet Data: " + error);
+                                                                new Handler(Looper.getMainLooper()).post(() ->
+                                                                        Toast.makeText(NewBuild.this, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show()
+                                                                );
+                                                            }
+                                                        }
+                                                );
+                                            }).start();
+                                            dialog.dismiss();
+                                        } else {
+                                            Log.d("ClockOutManager", "Access token is missing!");
+                                            Toast.makeText(NewBuild.this, "Unable to Create Time Sheet", Toast.LENGTH_SHORT).show();
+                                            dialog.dismiss();
+                                        }
+                                    });
+
+
+                                });
+
+                            });
+ */
+
+/*
+ new Handler(Looper.getMainLooper()).post(() -> {
+                                Log.d("StartJob", " -- >> "+success+  "\n" + "Server Message: " +serverMessage+  "\n" + "Server Additional Message: " +serverAdditionalMessage);
+
+                                runOnUiThread(() -> {
+                                    progress_circular.setVisibility(View.GONE);
+                                    sharedPrefManager.saveStartedJobMessage(serverMessage);
+                                    String currentDate = DateAndTimeManager.getCurrentDate(NewBuild.this);
+                                    Start_date_time = DateAndTimeManager.getCurrentTime(NewBuild.this);
+                                    Log.w("StartJob", "currentTime Start Time:  --->>>  " + Start_date_time);
+                                    if (success) {
+                                        sharedPrefManager.saveJobSuccess(true);
+                                        sharedPrefManager.saveClockinStartDate(Start_date_time);
+                                        sharedPrefManager.saveClockinDate(currentDate);
+                                        start_job.setText("Stop Job");
+                                        start_job.setBackground(ContextCompat.getDrawable(NewBuild.this, R.drawable.clock_out_btn));
+
+                                    }
+
+                                    showAlertDialog(NewBuild.this, success, serverMessage, accessToken, userId, progress_circular, jobId, taskId);
+                                });
+                            });
+
+ */

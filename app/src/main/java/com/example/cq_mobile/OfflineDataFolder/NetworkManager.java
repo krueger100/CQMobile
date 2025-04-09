@@ -9,6 +9,12 @@ import android.net.NetworkCapabilities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.util.Log;
+
+import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.LoginFolder.Login;
+import com.example.cq_mobile.LoginFolder.ReauthenticationManager;
+import com.google.gson.Gson;
 
 public class NetworkManager {
     private Context context;
@@ -125,12 +131,12 @@ public class NetworkManager {
             builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
+
                     dialog.dismiss();
                 }
             });
         }
     }
-
     public void loginAPINullUserDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Authetication Failed");

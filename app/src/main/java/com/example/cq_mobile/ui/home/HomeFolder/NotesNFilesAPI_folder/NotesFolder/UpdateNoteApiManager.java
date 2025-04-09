@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFolder;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
@@ -28,9 +29,9 @@ public class UpdateNoteApiManager {
         void onFailure(String error);
     }
 
-    public static void updateNote(String email, String password, String scheduleId, String note, ApiCallback callback) {
+    public static void updateNote(Context context, String email, String password, String scheduleId, String note, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateNoteTask(email, password, scheduleId, note, callback));
+        executorService.execute(new ApiUpdateNoteTask(context,email, password, scheduleId, note, callback));
     }
 
     private static class ApiUpdateNoteTask implements Runnable {
@@ -39,12 +40,13 @@ public class UpdateNoteApiManager {
         private final ApiCallback callback;
         private final String email;
         private final String password;
-
-        public ApiUpdateNoteTask(String email, String password, String scheduleId, String note, ApiCallback callback) {
+        Context context;
+        public ApiUpdateNoteTask(Context context, String email, String password, String scheduleId, String note, ApiCallback callback) {
             this.email = email;
             this.password = password;
             this.scheduleId = scheduleId;
             this.note = note;
+            this.context = context;
             this.callback = callback;
         }
 
@@ -55,8 +57,7 @@ public class UpdateNoteApiManager {
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
             String jsonBody = String.format("{\"note\": \"%s\"}", note);
-
-            AccessTokenRequest request1 = new AccessTokenRequest(email, password);
+            AccessTokenRequest request1 = new AccessTokenRequest(context,email, password);
             AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
             Call<AccessTokenResponse> call = apiService.AccessTokenUser(request1);
 

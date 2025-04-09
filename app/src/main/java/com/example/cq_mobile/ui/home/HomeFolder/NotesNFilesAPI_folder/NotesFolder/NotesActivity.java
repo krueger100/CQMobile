@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.NotesNFilesAPI_folder.NotesFolder;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +22,7 @@ import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForTask;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 
@@ -75,7 +77,7 @@ public class NotesActivity extends AppCompatActivity {
 
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(NotesActivity.this);
-        token = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(this).getToken();
         username = sharedPrefManager.getUserName();
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
@@ -165,7 +167,8 @@ public class NotesActivity extends AppCompatActivity {
     }
 
     private void addNOTES(String noteText) {
-        UpdateNoteApiManager.updateNote(email, password, String.valueOf(jobScheduleId), noteText, new UpdateNoteApiManager.ApiCallback() {
+        Context context = getApplicationContext();
+        UpdateNoteApiManager.updateNote(context,email, password, String.valueOf(jobScheduleId), noteText, new UpdateNoteApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
                 Log.d("UpdateNote", "Note updated successfully!");

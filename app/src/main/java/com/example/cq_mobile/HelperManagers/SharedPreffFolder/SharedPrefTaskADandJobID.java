@@ -15,7 +15,7 @@ public class SharedPrefTaskADandJobID {
     }
 
     // Save user data
-    public void saveUserjobANDtaskID(String taskId) {
+    public void saveIdAndJobId(String taskId) {
         editor.putString(TASK_ID, taskId);
         editor.apply();
     }

@@ -1,11 +1,9 @@
 package com.example.cq_mobile.Clock.StartAndStopJobsFolder;
 
+import android.content.Context;
 import android.util.Log;
 
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
-import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -16,70 +14,25 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
 public class StartJobAPIManager {
 
     private static final String TAG = "StartJobAPIManager";
+    private static final String BASE_URL = "https://cqbms.app";
+    private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
+    private static final int CONNECT_TIMEOUT = 30; // Seconds
+    private static final int READ_TIMEOUT = 30; // Seconds
 
     public interface ApiCallback {
         void onSuccess(String response);
         void onFailure(String error);
     }
 
-    public interface AccessTokenCallback {
-        void onAccessTokenReceived(String accessToken);
-        void onError(String error);
-    }
-
-    public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-        Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
-
-        call.enqueue(new Callback<AccessTokenResponse>() {
-            @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String accessToken = response.body().getAccessToken();
-                    if (accessToken != null) {
-                        Log.d(TAG, "Access Token: " + accessToken);
-                        callback.onAccessTokenReceived(accessToken);
-                    } else {
-                        callback.onError("Access token not received.");
-                    }
-                } else {
-                    callback.onError("Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                callback.onError("Failure: " + t.getMessage());
-            }
-        });
-    }
-
-    public void startJobWithToken(int userId, String jobId, double latitude, double longitude, AccessTokenRequest tokenRequest, ApiCallback callback) {
-        getAccessToken(tokenRequest, new AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String accessToken) {
-                startJob(userId, jobId, latitude, longitude, accessToken, callback);
-            }
-            @Override
-            public void onError(String error) {
-                callback.onFailure("Failed to get access token: " + error);
-            }
-        });
-    }
-
-    public static void startJob(int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
+    public static void startJob(Context context, int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiStartJobTask(userId, jobId, latitude, longitude, accessToken, callback));
+        executorService.execute(new ApiStartJobTask(context, userId, jobId, latitude, longitude, accessToken, callback, executorService));
     }
 
     private static class ApiStartJobTask implements Runnable {
@@ -89,66 +42,63 @@ public class StartJobAPIManager {
         private final double latitude;
         private final double longitude;
         private final String accessToken;
-
         private final ApiCallback callback;
-        public ApiStartJobTask(int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback) {
+        private final ExecutorService executorService;
+        private Context context;
+
+        public ApiStartJobTask(Context context, int userId, String jobId, double latitude, double longitude, String accessToken, ApiCallback callback, ExecutorService executorService) {
+            this.context = context;
             this.userId = userId;
             this.jobId = jobId;
             this.latitude = latitude;
             this.longitude = longitude;
             this.accessToken = accessToken;
             this.callback = callback;
-
+            this.executorService = executorService;
         }
 
         @Override
         public void run() {
-            String baseUrl = "https://cqbms.app";
-            String endpoint = "/api/m/jobs/work-status/start";
-            String jsonBody = createJsonBody(userId, jobId, latitude, longitude);
-
-            postStartJob(baseUrl, endpoint, accessToken, jsonBody);
-
+            String endpoint = "/api/m/jobs/work-status/start/" + userId;
+            String jsonBody = createJsonBody(jobId, latitude, longitude);
+            Log.d(TAG, "Payload: " + jsonBody);
+            postStartJob(BASE_URL, endpoint, jsonBody, accessToken);
         }
 
-        private String createJsonBody(int userId, String jobId, double latitude, double longitude) {
+        private String createJsonBody(String jobId, double latitude, double longitude) {
             JSONObject jsonObject = new JSONObject();
             try {
+                jsonObject.put("e", "jobs");  // Event type
                 jsonObject.put("status", "start");
                 jsonObject.put("job", jobId);
                 jsonObject.put("custom_job", JSONObject.NULL);
                 jsonObject.put("lat_out", latitude);
                 jsonObject.put("long_out", longitude);
-                jsonObject.put("user_id", userId);
 
-                Log.d(TAG, ": " + "userID: " + userId +  "/n"  +"jobID: "+ jobId   );
-
-
+                Log.d(TAG, "Created JSON: " + jsonObject.toString());
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error creating JSON body", e);
             }
             return jsonObject.toString();
         }
 
-        private void postStartJob(String baseUrl, String endpoint, String accessToken, String jsonBody) {
+        private void postStartJob(String baseUrl, String endpoint, String jsonBody, String accessToken) {
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
+                    .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                    .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
                     .build();
 
             RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
-            String url = baseUrl + endpoint + "/" + userId;
+            String url = baseUrl + endpoint;
 
             Request request = new Request.Builder()
                     .url(url)
                     .addHeader("Authorization", "Bearer " + accessToken)
-                    .addHeader("x-api-key", "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2")
+                    .addHeader("x-api-key", API_KEY)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("Accept", "application/json")
                     .put(body)
                     .build();
-
-
 
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
@@ -162,18 +112,25 @@ public class StartJobAPIManager {
                         Log.e(TAG, "Error Body: " + responseBody);
                         callback.onFailure("Failed to start job: " + responseBody);
                     }
+                    shutdownExecutor();
                 }
 
                 @Override
                 public void onFailure(okhttp3.Call call, IOException e) {
                     Log.e(TAG, "Error starting job: " + e.getMessage(), e);
                     callback.onFailure("Error starting job: " + e.getMessage());
+                    shutdownExecutor();
+                }
+
+                private void shutdownExecutor() {
+                    if (executorService != null && !executorService.isShutdown()) {
+                        executorService.shutdown();
+                    }
                 }
             });
         }
     }
 }
-
 
 
 

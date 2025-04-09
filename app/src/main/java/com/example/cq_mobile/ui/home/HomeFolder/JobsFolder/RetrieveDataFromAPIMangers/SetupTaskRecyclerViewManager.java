@@ -82,7 +82,6 @@ public class SetupTaskRecyclerViewManager {
         isLoading = true;
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        String accessToken = sharedPrefManager.getAccessToken();
         int userId = sharedPrefManager.getUserId();
         String firstName = sharedPrefManager.getFirstName();
         String lastName = sharedPrefManager.getLastName();
@@ -95,7 +94,7 @@ public class SetupTaskRecyclerViewManager {
         Log.d("SetupRecyclerViewManagerrSharedPreff", "Last Name: " + lastName);
         Log.d("SetupRecyclerViewManagerrSharedPreff", "Email: " + email);
 
-        NewBuildApiManager.fetchSecondaryApiData(jobId, page, pageSize,accessToken, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
+        NewBuildApiManager.fetchSecondaryApiData(context,jobId, page, pageSize, new NewBuildApiManager.ApiResponseCallback<SubTask>() {
             @Override
             public void onDataFetched(List<SubTask> secondaryData) {
                 new Handler(Looper.getMainLooper()).post(() -> {

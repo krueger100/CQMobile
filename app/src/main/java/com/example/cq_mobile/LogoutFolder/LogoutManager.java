@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.Login;
 
@@ -18,14 +19,9 @@ import okhttp3.Response;
 
 public class LogoutManager {
 
-    private static final String USER_PREFS = "UserPrefs";
 
 
     public static void logoutUser(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(USER_PREFS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
         sharedPrefManager.clearUserId();
@@ -62,14 +58,19 @@ public class LogoutManager {
                 if (response.isSuccessful()) {
                     Log.d("LogoutManager", "User logged out successfully.");
 
+                    ServerDataReconnect serverDataReconnect = new ServerDataReconnect(context);
+                    serverDataReconnect.clearData();
+
+                    // ✅  500ms delay
+                    Thread.sleep(500);
+
                     // ✅ Navigate to Login
                     Intent intent = new Intent(context, Login.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the back stack
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     context.startActivity(intent);
                     if (context instanceof Activity) {
                         ((Activity) context).finish();
                     }
-
 
                 } else {
                     Log.e("LogoutManager", "Logout failed: " + response.message());

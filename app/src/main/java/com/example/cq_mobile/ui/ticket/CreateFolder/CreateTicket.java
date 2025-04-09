@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.CreateFolder.TicketCreateFolder.TicketCreateApiManager;
@@ -49,7 +50,7 @@ public class CreateTicket extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar); // Assuming you have a ProgressBar in your layout
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(this).getToken();
         Log.d("CreateTicket", "Access Token: " + accessToken);
 
         ticketCategoryManager = new TicketCategoryManager(this, accessToken);

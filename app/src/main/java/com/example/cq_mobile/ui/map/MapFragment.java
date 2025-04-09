@@ -21,6 +21,7 @@ import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibi
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentMapBinding;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
@@ -80,7 +81,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
-         accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(getContext()).getToken();
+
         int userId = sharedPrefManager.getUserId();
         jobId = sharedPrefManager.getJobId();
         String firstName = sharedPrefManager.getFirstName();

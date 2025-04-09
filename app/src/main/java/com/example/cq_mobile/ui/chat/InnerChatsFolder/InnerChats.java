@@ -1,6 +1,7 @@
 package com.example.cq_mobile.ui.chat.InnerChatsFolder;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -341,8 +342,8 @@ public class InnerChats extends AppCompatActivity {
 
 
         }
-
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
+        Context context = getApplicationContext();
+        AccessTokenRequest tokenRequest = new AccessTokenRequest(context,email, password);
         getAccessTokenAndLoadChats(tokenRequest, progressBar, senderMemberId, channel, membersList, receiverMemberId, currentUser,username, String.valueOf(currentUserID),avatar_receiver,hhtpAvatar_url,firebaseRetrieveDataManager);
 
 

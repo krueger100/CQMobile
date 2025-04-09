@@ -12,6 +12,7 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 
 import com.example.cq_mobile.Clock.TimeSheetFolder.ApiTSCallback;
 import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApi;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -26,32 +27,34 @@ import java.util.concurrent.TimeUnit;
 public class TimeSheetAPI {
     private static final String BASE_URL_SEND_JOB_DATA = "https://cqbms.app/api/m/time-sheet/store/";
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-    ProgressBar progressBar;
-    Context context;
     private static final OkHttpClient client = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build();
 
-    public static void sendTimeSheetData(String accessToken, int userId, double userLatitude, double userLongitude, double latitude,
-                                         double longitude,
-                                         int jobId,
-                                         String ukDate,
-                                         String startTime,
-                                         String endTime,
-                                         ProgressBar progressBar,
-                                         Context context,
-                                         String uktimeEnd,String uktimeStart, ApiTimeSheetCallback callback) {
+    public static void sendTimeSheetData(String accessToken, int userId,
+      double userLatitude, double userLongitude, double latitude, double longitude, int jobId,
+       ProgressBar progressBar, Context context, ApiTimeSheetCallback callback) {
 
         if (accessToken == null || accessToken.isEmpty()) {
             Log.e("TimeSheetAPI", "Access token is required.");
             callback.onFailure("Access token is missing");
             return;
         }
+        new Handler(Looper.getMainLooper()).post(() -> {
+        }); // <-
 
+        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
+        String startDate = sharedPrefManager.getKeyDate();
+        String stopTime = "00:00";
+        String startTime = "00:00";
+
+        Log.d("TimeSheetAPI", "startDate  " + startDate);
+        Log.d("TimeSheetAPI", "startTime " + startTime);
+        Log.d("TimeSheetAPI", "stopTime  " + stopTime);
         Log.d("TimeSheetAPI", "Sending TimeSheet Data...");
-        Log.d("TimeSheetAPI", "jobId" );
+        Log.d("TimeSheetAPI", "jobId" + jobId);
 
         try {
             JSONObject jsonPayload = new JSONObject();
@@ -59,9 +62,9 @@ public class TimeSheetAPI {
             jsonPayload.put("lat", userLatitude);
             jsonPayload.put("long", userLongitude);
             jsonPayload.put("job", jobId);
-            jsonPayload.put("date", ukDate);
-            jsonPayload.put("start", uktimeStart);
-            jsonPayload.put("end", uktimeEnd);
+            jsonPayload.put("date", startDate);
+            jsonPayload.put("start", startTime);
+            jsonPayload.put("end", stopTime);
             jsonPayload.put("remarks", JSONObject.NULL);
             jsonPayload.put("lat_out", latitude);
             jsonPayload.put("long_out", longitude);
@@ -70,26 +73,20 @@ public class TimeSheetAPI {
             String jsonString = jsonPayload.toString();
 
 
-
-
-            sendJobData(jobId, jsonString, accessToken,userId,progressBar,context,startTime, new ApiTimeSheetCallback() {
+            sendJobData(jobId, jsonString, accessToken, userId, progressBar, context, startTime, new ApiTimeSheetCallback() {
                 @Override
                 public void onSuccess(String message) {
                     callback.onSuccess("TimeSheet Sent Successfully");
 
-                    StopJobApi.stopJobWithTimesheet(accessToken, userId, progressBar, context, new ApiTSCallback() {
+                    StopJobApi.stopJobWithTimesheet(userId, progressBar, context, new ApiTSCallback() {
                         @Override
                         public void onSuccess(String message) {
                             new Handler(Looper.getMainLooper()).post(() -> {
-                                Log.w("TimeSheetAPI", "StopJob Api Without Logout" + "\n -> " +
-                                        "\n" + BASE_URL_SEND_JOB_DATA + "\t" +
-                                        " -> " + "https://cqbms.app/api/m/jobs/work-status/stop/" + "\t" +
-                                        " -> " + "Response:  -->> " + "\t" + message);
+                                Log.w("StopJobApi", "message" + "\n -> " + message);
 
-                                Log.w("TimeSheetAPI", "PayLoad" + "\n -> " + jsonString  +"\n"+ jobId) ;
 
                                 progressBar.post(() -> progressBar.setVisibility(View.GONE));
-                                TimerManager timerManager = TimerManager.getInstance(context, startTime);
+                                TimerManager timerManager = TimerManager.getInstance(context);
                                 timerManager.resetTimer(context);
                             });
                         }
@@ -113,8 +110,9 @@ public class TimeSheetAPI {
             Log.e("TimeSheetAPI", "JSON Exception: " + e.getMessage());
             callback.onFailure("Failed to create JSON payload");
         }
-    }
 
+
+}
 
     public static void sendJobData(int jobId, String jsonPayload, String accessToken, int userId, ProgressBar progressBar,
                                    Context context, String startTime, ApiTimeSheetCallback callback) {

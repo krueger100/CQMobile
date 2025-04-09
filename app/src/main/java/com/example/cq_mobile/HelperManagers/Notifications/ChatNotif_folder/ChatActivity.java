@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
@@ -68,7 +69,7 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
-        accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(this).getToken();
         email = sharedPrefManager.getEmail();
         password = sharedPrefManager.getPassword();
 
@@ -83,7 +84,7 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(email, password);
+        AccessTokenRequest tokenRequest = new AccessTokenRequest(ChatActivity.this,email, password);
         getAccessTokenAndLoadChats(tokenRequest, progressBar, currentPage, pageSize);
 
     }

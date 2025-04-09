@@ -16,6 +16,7 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.MoreActivityFolder.AccountSettingManager;
 import com.example.cq_mobile.R;
@@ -40,7 +41,7 @@ public class MoreFragment extends Fragment {
         sharedPrefManager = new SharedPrefManager(requireContext());
 
         // Retrieve user data
-        String accessToken = sharedPrefManager.getAccessToken();
+        String accessToken = AuthManager.getInstance(context).getToken();
         int userId = sharedPrefManager.getUserId();
         String userName = sharedPrefManager.getUserName();
         String email = sharedPrefManager.getEmail();
@@ -66,7 +67,7 @@ public class MoreFragment extends Fragment {
         context = getContext();
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        ClockOutManager clockOutManager = new ClockOutManager(context, binding.progressBar, jobId, taskId, userId, startDate, sharedPrefManager);
+        ClockOutManager clockOutManager = new ClockOutManager(context, binding.progressBar, jobId, taskId, userId, sharedPrefManager);
         boolean jobSuccess = sharedPrefManager.isJobSuccessful();
 
 

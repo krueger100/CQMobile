@@ -1,9 +1,11 @@
 package com.example.cq_mobile.ui.home.HomeFolder.JobsFolder;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTaskResponse;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
@@ -27,13 +29,21 @@ public class NewBuildApiManager {
         void onError(String error);
     }
 
-    public static void fetchNewBuiltApiData(String jobId, String accessToken, ApiResponseCallback<Taskmain> callback) {
+    public static void fetchNewBuiltApiData(Context context, String jobId, ApiResponseCallback<Taskmain> callback) {
         String baseUrl = "https://cqbms.app";
         String endpoint = String.format("/api/m/jobs/schedules/%s", jobId);
-        String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
         String url = String.format("%s%s?page=1&per_page=100&status=todo", baseUrl, endpoint);
         String TAG = "NewBuildApiManager";
+
+        // Get the token from AuthManager
+        String token = AuthManager.getInstance(context).getToken();
+
+        if (token == null) {
+            // Handle case when token is null
+            callback.onError("Token is missing.");
+            return;
+        }
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -45,24 +55,24 @@ public class NewBuildApiManager {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                // Use the main thread to update the UI after the failure
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError(e.getMessage()));
             }
 
-                    @Override
-                    public void onResponse(Call call, Response response) throws IOException {
-                        if (response.isSuccessful()) {
-                            String jsonResponse = response.body().string();
-                            Log.d(TAG, String.format("API_RESPONSE: %s", jsonResponse));
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String jsonResponse = response.body().string();
+                    Log.d(TAG, String.format("API_RESPONSE: %s", jsonResponse));
 
+                    Gson gson = new Gson();
+                    TaskmainResponse taskmainResponse = gson.fromJson(jsonResponse, TaskmainResponse.class);
 
-                            Gson gson = new Gson();
-                            TaskmainResponse taskmainResponse = gson.fromJson(jsonResponse, TaskmainResponse.class);
-
-
-                            if (taskmainResponse != null && taskmainResponse.getData() != null) {
+                    if (taskmainResponse != null && taskmainResponse.getData() != null) {
                         List<Taskmain> taskmainList = new ArrayList<>();
                         taskmainList.add(taskmainResponse.getData());
 
+                        // Run on the main thread to update the UI
                         new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(taskmainList));
                     } else {
                         new Handler(Looper.getMainLooper()).post(() -> callback.onError("No data found."));
@@ -71,21 +81,25 @@ public class NewBuildApiManager {
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Request Failed: " + response.code()));
                 }
             }
-
-
         });
     }
 
-    public static void fetchSecondaryApiData(String jobId, int page, int pageSize, String accessToken, ApiResponseCallback<SubTask> callback) {
+    public static void fetchSecondaryApiData(Context context,String jobId, int page, int pageSize, ApiResponseCallback<SubTask> callback) {
         String baseUrl = "https://cqbms.app";
         String endpoint = String.format("/api/m/jobs/schedules/%s/tasks", jobId);
-        String token =accessToken;
         String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-
-        // Add page and pageSize parameters to the endpoint URL
         String url = baseUrl + endpoint + "?page=" + page + "&per_page=" + pageSize;
         Log.d("ApiRequest", "Request URL: " + url); // Log the request URL
+
+        // Get the token from AuthManager
+        String token = AuthManager.getInstance(context).getToken();
+
+        if (token == null) {
+            // Handle case when token is null
+            callback.onError("Token is missing.");
+            return;
+        }
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -114,6 +128,7 @@ public class NewBuildApiManager {
 
                         if (secondaryResponse != null && secondaryResponse.getData() != null) {
                             Log.d("ApiRequest", "Data fetched successfully."); // Log success
+                            // Run on the main thread to update the UI
                             new Handler(Looper.getMainLooper()).post(() -> callback.onDataFetched(secondaryResponse.getData()));
 
                             // Check if there is more data (pagination logic)
@@ -124,7 +139,7 @@ public class NewBuildApiManager {
                                 if (currentPage < lastPage) {
                                     // More pages exist, request the next page
                                     Log.d("ApiRequest", "More pages available. Current page: " + currentPage);
-                                    fetchSecondaryApiData(jobId, currentPage + 1, pageSize, accessToken, callback); // Recursive call for the next page
+                                    fetchSecondaryApiData(context,jobId, currentPage + 1, pageSize, callback); // Recursive call for the next page
                                 } else {
                                     Log.d("ApiRequest", "All data loaded.");
                                 }
@@ -149,6 +164,4 @@ public class NewBuildApiManager {
             }
         });
     }
-
-
 }

@@ -1,8 +1,8 @@
 package com.example.cq_mobile.LoginFolder;
-
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
@@ -12,172 +12,220 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.cq_mobile.Clock.ClockActivity;
+import com.example.cq_mobile.FirebaseUserData.FirebaseDataManager;
+import com.example.cq_mobile.FirebaseUserData.FirebaseDatabaseManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
-import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.R;
+import com.google.firebase.messaging.FirebaseMessaging;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+
 
 public class Login extends AppCompatActivity {
+    static final String TAG = "ClockFragment";
+    private static final String LOGIN_URL = "https://cqbms.app/api/m/login";
+    private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private EditText emailField, passwordField;
     private TextView loginButton;
     private ProgressBar progressBar;
+    private ImageView showPasswordToggle;
+    private NetworkManager networkManager;
     String email;
     String password;
-    private static final String BASE_URL = "https://cqbms.app";
-    private NetworkManager networkManager;
-
+    String responseBody;
+    String token;
+    SharedPrefManager sharedPrefManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
-
-        // -->>> Check Network Status
         networkManager = new NetworkManager(this);
         if (!networkManager.isConnected()) {
             networkManager.showNoConnectionDialog();
-        } else {
-
+            return;
         }
-        // <<<-- Check Network Status
 
-
-        // Initialize UI components for the login screen
         emailField = findViewById(R.id.emailInput);
         passwordField = findViewById(R.id.passwordInput);
         loginButton = findViewById(R.id.loginButton);
         progressBar = findViewById(R.id.progressBar);
+        showPasswordToggle = findViewById(R.id.showPasswordToggle);
 
-        EditText passwordInput = findViewById(R.id.passwordInput);
-        ImageView showPasswordToggle = findViewById(R.id.showPasswordToggle);
+        sharedPrefManager = new SharedPrefManager(Login.this);
+
         showPasswordToggle.setOnClickListener(v -> {
-            if (passwordInput.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
-                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                showPasswordToggle.setImageResource(R.drawable.baseline_visibility_24); // Eye open icon
+            if (passwordField.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                showPasswordToggle.setImageResource(R.drawable.baseline_visibility_24);
             } else {
-                passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                 showPasswordToggle.setImageResource(R.drawable.baseline_visibility_off_24);
             }
-            passwordInput.setSelection(passwordInput.getText().length());
+            passwordField.setSelection(passwordField.getText().length());
         });
 
-
-
-        // Set login button click listener
         loginButton.setOnClickListener(v -> {
             ClickAnimationManager.applyClickAnimation(v);
+            emailField.setError(null);
+            passwordField.setError(null);
             email = emailField.getText().toString().trim();
-             password = passwordField.getText().toString().trim();
-            AccessTokenRequest request = new AccessTokenRequest(email, password);
-            progressBar.setVisibility(View.VISIBLE);
-            if (validateInputs(email, password)) {
-                getAccessToken(request);
+            password = passwordField.getText().toString().trim();
 
+            if (email.isEmpty()) {
+                emailField.setError("Email is required");
+                return;
             }
+            if (password.isEmpty()) {
+                passwordField.setError("Password is required");
+                return;
+            }
+
+            performLogin(email, password);
         });
 
 
 
     }
 
-    private void getAccessToken(AccessTokenRequest request) {
-        // Create an instance of the API service
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
+    private void performLogin(String email, String password) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("email", email);
+            jsonObject.put("password", password);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;  // Return early if JSON creation fails
+        }
 
-        // Call the API
-        Call<AccessTokenResponse> call = apiService.AccessTokenUser(request);
+        Log.d("Login", "Request Payload: " + jsonObject.toString());
 
-        // Enqueue the call to execute asynchronously
-        call.enqueue(new Callback<AccessTokenResponse>() {
+        OkHttpClient client = new OkHttpClient();
+        RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.parse("application/json"));
+
+        Request request = new Request.Builder()
+                .url(LOGIN_URL)
+                .addHeader("x-api-key", API_KEY)
+                .post(body)
+                .build();
+
+        Log.d("Login", "Request Headers: " + request.headers());
+
+        client.newCall(request).enqueue(new Callback() {
             @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    AccessTokenResponse accessTokenResponse = response.body();
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e("Login", "Network Error: " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(Login.this, "Network Error", Toast.LENGTH_SHORT).show());
+            }
 
-                    String accessToken = accessTokenResponse.getAccessToken() != null
-                            ? accessTokenResponse.getAccessToken()
-                            : "N/A";
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body() != null ? response.body().string() : "No Response Body";
+                Log.d("Login", "Response Code: " + response.code());
+                Log.d("Login", "Response Headers: " + response.headers());
+                Log.d("Login", "Response Body: " + responseBody);
 
-                    if (accessTokenResponse.getUser() != null) {
-                        int userId = accessTokenResponse.getUser().getId();
-                        String firstName = accessTokenResponse.getUser().getFirstName() != null
-                                ? accessTokenResponse.getUser().getFirstName()
-                                : "N/A";
-                        String lastName = accessTokenResponse.getUser().getLastName() != null
-                                ? accessTokenResponse.getUser().getLastName()
-                                : "N/A";
-                        String email = accessTokenResponse.getUser().getEmail() != null
-                                ? accessTokenResponse.getUser().getEmail()
-                                : "N/A";
+                if (response.isSuccessful()) {
+                    runOnUiThread(() -> {
+                        if (validateInputs(email, password)) {
+                            try {
+                                JSONObject jsonResponse = new JSONObject(responseBody);
+                                String accessToken = jsonResponse.optString("access_token");
+                                JSONObject userObject = jsonResponse.optJSONObject("user");
+                                String userId = userObject != null ? userObject.optString("id") : null;
+                                String firstName = userObject != null ? userObject.optString("first_name") : null;
+                                String lastName = userObject != null ? userObject.optString("last_name") : null;
+                                String avatar = userObject != null ? userObject.optString("avatar") : null;
 
-                        String avatar = accessTokenResponse.getUser().getAvatar() != null
-                                ? accessTokenResponse.getUser().getAvatar()
-                                : "N/A";
+                                Log.w("Login", "accessToken: " + accessToken);
+                                Log.w("Login", "userId: " + userId);
+                                Log.w("Login", "firstName: " + firstName);
+                                Log.w("Login", "lastName: " + lastName);
+                                Log.w("Login", "avatar: " + avatar);
 
-                        if (userId > 0) {
-                            Log.d("Login", "Access Token: " + accessToken);
-                            Log.d("Login", "User ID: " + userId);
-                            Log.d("Login", "User First Name: " + firstName);
-                            Log.d("Login", "User Last Name: " + lastName);
-                            Log.d("Login", "User Email: " + email);
-                            Log.d("Login", "User Password: " + password);
-                            Log.d("Login", "Avatar: " + avatar);
+                                // Save credentials using AuthManager
+                                AuthManager authManager = AuthManager.getInstance(Login.this);
 
+                                ServerDataReconnect serverDataReconnect = new ServerDataReconnect(getApplicationContext());
+                                serverDataReconnect.saveLoginData(email, password);
 
-                            // Save user data to SharedPreferences
-                            SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putBoolean("isLoggedIn", true);
-                            editor.putString("accessToken", accessToken);
-                            editor.putString("userId", String.valueOf(userId));
-                            editor.putString("firstName", firstName);
-                            editor.putString("lastName", lastName);
-                            editor.putString("email", email);
-                            editor.putString("password", password);
-                            editor.putString("avatar", avatar);
-                            editor.putBoolean("isLoggedIn", true);
-                            editor.apply();
+                                // Set expiration time as part of token save
+                                long expirationTime = System.currentTimeMillis() + 3600000;
+                                authManager.saveToken(accessToken, Integer.parseInt(userId), firstName, lastName, email, avatar, expirationTime);
 
-                            navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar,avatar);  // Pass data here
-                        } else {
-                            Log.e("Login", "Invalid user ID: --->>> " + userId);
-                            networkManager.loginAPINullUserDialog();
-                            progressBar.setVisibility(View.GONE);
+                                progressBar.setVisibility(View.VISIBLE);
+
+                                    Toast.makeText(Login.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                                    sharedPrefManager.saveIsLoggedIn(true);
+
+                                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                        Intent intent = new Intent(Login.this, MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }, 1000);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                runOnUiThread(() -> Toast.makeText(Login.this, "Failed to parse response", Toast.LENGTH_SHORT).show());
+                            }
                         }
-                    } else {
-                        Log.e("Login", "User data is null");
-                       networkManager.loginAPINullUserDialog();
-                        progressBar.setVisibility(View.GONE);
-                    }
+                    });
+
                 } else {
-                    Log.e("Login", "Error:  --->>> " + response.message());
-                    networkManager.loginAPINoConnectionDialog(response.message());
-                    progressBar.setVisibility(View.GONE);
+                    String errorBody = response.body() != null ? response.body().string() : "No Response Body";
+                    Log.e("Login", "Login Failed: " + response.message());
+                    Log.e("Login", "Error Response Body: " + errorBody);
+
+                    if (response.code() == 422) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(Login.this, "Invalid credentials, please try again.", Toast.LENGTH_SHORT).show();
+                            sharedPrefManager.clearUserId();
+                            sharedPrefManager.clearUserName();
+                            sharedPrefManager.clearAddress();
+                            sharedPrefManager.clearAvatarUrl();
+                            sharedPrefManager.clearEmail();
+                            sharedPrefManager.clearPassword();
+                            sharedPrefManager.clearCoordinates();
+                            sharedPrefManager.clearStartJob();
+                            sharedPrefManager.clearStartJobMessage();
+                            sharedPrefManager.clearJobTrackingData();
+                            sharedPrefManager.clearStartDate();
+                            sharedPrefManager.clearStopDate();
+                            networkManager.loginAPIUnauthenticatedDialog(Login.this);
+                        });
+
+                    } else {
+                        runOnUiThread(() -> networkManager.loginAPINoConnectionDialog(response.message()));
+                    }
                 }
             }
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                // Log the failure (e.g., network error)
-                Log.e("Login", "Failure: --->>> " + t.getMessage());
-                networkManager.loginAPIFailedDialog(t.getMessage());
-            }
         });
-
-
     }
 
 
@@ -193,17 +241,155 @@ public class Login extends AppCompatActivity {
         return true;
     }
 
-    private void navigateToHome(String accessToken, int userId, String firstName, String lastName, String email, String password, ProgressBar progressBar, String avatar) {
-        progressBar.setVisibility(View.GONE);
-        Intent intent = new Intent(this, ClockActivity.class);
-        intent.putExtra("accessToken", accessToken);
-        intent.putExtra("userId", userId);
-        intent.putExtra("firstName", firstName);
-        intent.putExtra("lastName", lastName);
-        intent.putExtra("email", email);
-        intent.putExtra("password", password);
-        intent.putExtra("avatar", avatar);
-        startActivity(intent);
-        finish();
-    }
+
+
 }
+
+
+/*
+      FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+                                    if (!task.isSuccessful()) {
+                                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                                        return;
+                                    }
+                                     token = task.getResult();
+                                    sharedPrefManager.saveNewNotificationToken(token);
+                                    Log.d(TAG, "FCM Token: " + token + ": saved -->");
+                                });
+
+
+
+                                FirebaseDataManager firebaseDataManager = new FirebaseDataManager(userId);
+                                    firebaseDataManager.saveUserData(
+                                            accessToken != null ? accessToken : "",
+                                            userId,
+                                            avatar != null ? avatar : "",
+                                            firstName != null ? firstName : "",
+                                            lastName != null ? lastName : "",
+                                            token);
+
+
+ */
+
+/*
+        IDsManager.fetchJobIdPaginated(accessToken, new IDsManager.ApiResponseCallback<Taskmain>() {
+            @Override
+            public void onDataFetched(List<Taskmain> data) {
+                if (data != null && !data.isEmpty()) {
+
+                    for (Taskmain task : data) {
+                        Log.w("Login", ">>>>>> UseDetails_JobID <<<<<<< " );
+                        Log.w("Login", ">>>>>> ID_Job <<<<<<< " + task.getId());
+                        Log.w("Login", ">>>>>> jobID <<<<<<< " + task.getJobId());
+                        Log.w("Login", ">>>>>> Name <<<<<<< " + task.getName());
+                        Log.w("Login", ">>>>>> Category <<<<<<< " + task.getCategory());
+                        Log.w("Login", ">>>>>> Status <<<<<<< " + task.getStatus());
+                        Log.w("Login", ">>>>>> Start_date <<<<<<< " + task.getStart_date());
+                        Log.w("Login", ">>>>>> End_date <<<<<<< " + task.getEnd_date());
+
+                        String userName =  firstName + " " + lastName;
+                        sharedPrefManager.saveAccessToken(accessToken);
+                        sharedPrefManager.saveUserId(userId);
+                        sharedPrefManager.saveUserName(userName);
+                        sharedPrefManager.saveFirstName(firstName);
+                        sharedPrefManager.saveLastName(lastName);
+                        sharedPrefManager.saveCredentials(email, password);
+
+                        sharedPrefManager.saveJobId(task.getJobId());
+
+
+                        if (task.getAddress() != null) {
+                            Taskmain.Address addr = task.getAddress();
+                            Log.w("Login", "  >>>>>>  Address  <<<<<<< " + addr.getAddress() + ", " + addr.getCity() + ", " + addr.getCountry());
+                            String AddressData = addr.getAddress() + ", " + addr.getCity() + ", " + addr.getCountry();
+                            sharedPrefManager.saveAddress(AddressData);
+
+
+                        }
+
+                        // Client details
+                        if (task.getClient_details() != null) {
+                            Taskmain.ClientDetails client = task.getClient_details();
+
+                            Log.w("Login", "  >>>>>>  User Name  <<<<<<<  " + client.getFirst_name() + " " + client.getLast_name() + " (" + client.getCompany() + ")");
+                        }
+
+                        // Coordinates
+                        List<Taskmain.Coordinates> coordinatesList = new ArrayList<>();
+
+                        for (Taskmain taskmain : data) {
+                            if (taskmain.getCoordinates() != null) {
+                                Taskmain.Coordinates coords = taskmain.getCoordinates();
+
+                                Log.w("Login", "  >>>>>>  Coordinates object  <<<<<<<  " + coords);
+                                Log.w("Login", "  >>>>>>  Coordinates Latitude  <<<<<<< " + coords.getLatitude());
+                                Log.w("Login", "  >>>>>>  Coordinates Longitude  <<<<<<< " + coords.getLongitude());
+
+                                double latitude = coords.getLatitude();
+                                double longitude = coords.getLongitude();
+
+                                if (!Double.isNaN(latitude) && !Double.isNaN(longitude)) {
+                                    Log.d("Login", "Coordinates: Lat=" + latitude + ", Lon=" + longitude);
+
+                                    // Add to the list
+                                    coordinatesList.add(new Taskmain.Coordinates(latitude, longitude));
+                                } else {
+                                    Log.e("Login", "Error: Latitude or Longitude is NaN. Skipping this entry.");
+                                }
+                            } else {
+                                Log.e("Login", "Error: task.getCoordinates() is null! Skipping this entry.");
+                            }
+                        }
+
+                        sharedPrefManager.saveCoordinatesList(coordinatesList);
+
+
+
+                        IDsManager.fetchTaskIdDataPaginated(String.valueOf(task.getId()), 1, 10, accessToken, new IDsManager.ApiResponseCallback<SubTask>() {
+                            @Override
+                            public void onDataFetched(List<SubTask> data) {
+                                if (data != null && !data.isEmpty()) {
+
+                                    for (SubTask subTask : data) {
+                                        navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar,avatar,task.getId(),subTask.getId());
+                                        sharedPrefManager.saveTaskId(subTask.getId());
+
+                                    }
+                                    progressBar.setVisibility(View.GONE);
+                                    Log.d("Login", "Check Data: >> IDsManager <<  -> " + data);
+                                } else {
+
+                                    Log.e("Login", "Error: >> IDsManager.fetchTaskIdDataPaginated <<  -> " + userId);
+                                    navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar,avatar,task.getId(),-1);
+                                    progressBar.setVisibility(View.GONE);
+                                }
+
+
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                Log.w("Login", "Error: -> " + userId +" <-  "+  error);
+                                progressBar.setVisibility(View.GONE);
+                                navigateToHome(accessToken, userId, firstName, lastName, email,password,progressBar,avatar,task.getId(),-1);
+
+
+                            }
+                        });
+
+
+                    }
+                }
+            }
+
+
+            @Override
+            public void onError(String error) {
+                Log.d("ClockActivity", "Handling Null data: " + error);
+
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+
+ */
+

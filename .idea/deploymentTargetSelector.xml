@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-03-18T08:58:29.588963700Z">
+        <DropdownSelection timestamp="2025-04-04T09:10:50.888972400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\carlo\.android\avd\Galaxy_S25_Ultra.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\carlo\.android\avd\Galaxy_S25_Ultra_2.avd" />
             </handle>
           </Target>
         </DropdownSelection>

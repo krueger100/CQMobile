@@ -60,8 +60,7 @@ public class FilesActivity extends AppCompatActivity {
     private final int pageSize = 10;
     private String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
     private String baseUrl = "https://cqbms.app";
-    private int jobScheduleId, taskId;
-    private String accessToken, jobId;
+    private String accessToken;
     private NavigationManagerForTask navigationManager;
     private int lastLoadedPage = -1;
     private static final String TAG = "FilesActivity";
@@ -75,23 +74,19 @@ public class FilesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_files);
 
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
         Intent intent = getIntent();
-         jobScheduleIdStr = intent.getStringExtra("job_id");
+        jobScheduleIdStr = intent.getStringExtra("job_id");
         taskIdStr = intent.getStringExtra("task_id");
+        accessToken = intent.getStringExtra("accessToken");
 
-        accessToken = sharedPrefManager.getAccessToken();
-        jobScheduleId = (jobScheduleIdStr != null && !jobScheduleIdStr.isEmpty()) ? Integer.parseInt(jobScheduleIdStr) : sharedPrefManager.getJobId();
-        jobId = String.valueOf(jobScheduleId);
-        taskId = (sharedPrefManager.getTaskId());
+        Log.d(TAG, "Task ID: ->> " + taskIdStr);
+        Log.d(TAG, "Job ID: ->> " + jobScheduleIdStr);
+
         progressBar = findViewById(R.id.progressBar);
-
         initActivityResultLaunchers();
         initViews();
-        setupNavigation();
         setupRecyclerView();
         loadFiles(currentPage, accessToken);
-
 
     }
 
@@ -125,18 +120,7 @@ public class FilesActivity extends AppCompatActivity {
             }
         });
     }
-    private void setupNavigation() {
-        files_back.setOnClickListener(v -> navigateBack());
-        files_back2.setOnClickListener(v -> navigateBack());
-
-        Notes_Files_Docs_Sheets_nav bottomNavView = findViewById(R.id.nfds_bottom);
-        navigationManager = new NavigationManagerForTask(this);
-        navigationManager.setUpNavigation(bottomNavView, files_back2);
-    }
-
     private void initViews() {
-
-
         files_back = findViewById(R.id.files_back);
         files_back2 = findViewById(R.id.files_back2);
         add_files = findViewById(R.id.add_files);
@@ -145,27 +129,26 @@ public class FilesActivity extends AppCompatActivity {
 
 
         Log.d(TAG, "Access Token: " + accessToken);
-        Log.d(TAG, "taskId: " + taskId);
+        Log.d(TAG, "taskId: " + taskIdStr);
         // Bottom navigation setup
         Notes_Files_Docs_Sheets_nav bottomNavView = findViewById(R.id.nfds_bottom);
         navigationManager = new NavigationManagerForTask(this);
         navigationManager.setUpNavigation(bottomNavView, files_back2);
 
-        jobId = String.valueOf(jobScheduleId);
-
-
 
         // Back button setup
         files_back.setOnClickListener(v -> {
             Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);
-            backIntent.putExtra("job_id", jobId);
-            backIntent.putExtra("task_id", taskId);
+            backIntent.putExtra("job_id", jobScheduleIdStr);
+            backIntent.putExtra("task_id", taskIdStr);
+            Log.d(TAG, "Invistigating Error: Files 1  " + jobScheduleIdStr +" - "+ taskIdStr);
             startActivity(backIntent);
         });
         files_back2.setOnClickListener(v -> {
             Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);
-            backIntent.putExtra("job_id", jobId);
-            backIntent.putExtra("task_id", taskId);
+            backIntent.putExtra("job_id", jobScheduleIdStr);
+            backIntent.putExtra("task_id", taskIdStr);
+            Log.d(TAG, "Invistigating Error: Files 2  " + jobScheduleIdStr +" - "+ taskIdStr);
             startActivity(backIntent);
         });
 
@@ -330,8 +313,8 @@ public class FilesActivity extends AppCompatActivity {
 
     private void navigateBack() {
         Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);
-        backIntent.putExtra("job_id", jobId);
-        backIntent.putExtra("task_id", taskId);
+        backIntent.putExtra("job_id", jobScheduleIdStr);
+        backIntent.putExtra("task_id", taskIdStr);
         startActivity(backIntent);
     }
 

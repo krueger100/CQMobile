@@ -3,6 +3,8 @@ package com.example.cq_mobile.Clock.StartAndStopJobsFolder;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
+
+
 public class StartJobResponse {
     private boolean success;
     private String message;

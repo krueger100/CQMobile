@@ -1,12 +1,15 @@
 package com.example.cq_mobile.ui.home.HomeFolder.TaskFolder.JobDetailsManagerFolder;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
 import com.example.cq_mobile.HelperManagers.IDSfolder.IDsManager;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.SubTasks.SubTask;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.TaskMainFolder.Taskmain;
 
@@ -21,7 +24,16 @@ public class JobDetailsManager {
         void onError(String error);
     }
 
-    public static void fetchJob_Details(String accessToken, ProgressBar progressBar, Context context, JobDetailsCallback callback) {
+    public static void fetchJobDetails(Context context, ProgressBar progressBar, JobDetailsCallback callback) {
+        AuthManager authManager = AuthManager.getInstance(context);
+        String accessToken = authManager.getToken();
+
+        if (accessToken == null) {
+            handleFetchError("Access token is missing", progressBar, callback);
+            return;
+        }
+
+        // Fetch job IDs
         IDsManager.fetchJobIdPaginated(accessToken, new IDsManager.ApiResponseCallback<Taskmain>() {
             @Override
             public void onDataFetched(List<Taskmain> data) {
@@ -31,25 +43,25 @@ public class JobDetailsManager {
                 if (data != null && !data.isEmpty()) {
                     for (Taskmain task : data) {
                         newJobIds.add(task.getId());
-                        fetchSub_Tasks(context, accessToken, task, progressBar, callback);
+                        fetchSubTasks(context, accessToken, task, progressBar, callback);
                     }
 
-                    // ✅ Store all jobs at once
+                    // Store all jobs at once
                     sharedPrefManager.saveJobIds(newJobIds);
                     Log.w("JobDetailsManager", "Saved Job IDs: " + newJobIds);
                 } else {
-                    handleFetchError("No job data found", accessToken, progressBar, callback);
+                    handleFetchError("No job data found", progressBar, callback);
                 }
             }
 
             @Override
             public void onError(String error) {
-                handleFetchError(error, accessToken, progressBar, callback);
+                handleFetchError(error, progressBar, callback);
             }
         });
     }
 
-    private static void fetchSub_Tasks(Context context, String accessToken, Taskmain task, ProgressBar progressBar, JobDetailsCallback callback) {
+    private static void fetchSubTasks(Context context, String accessToken, Taskmain task, ProgressBar progressBar, JobDetailsCallback callback) {
         IDsManager.fetchTaskIdDataPaginated(String.valueOf(task.getId()), 1, 10, accessToken, new IDsManager.ApiResponseCallback<SubTask>() {
             @Override
             public void onDataFetched(List<SubTask> data) {
@@ -61,28 +73,45 @@ public class JobDetailsManager {
                         newTaskIds.add(subTask.getId());
                     }
 
-                    // ✅ Store tasks correctly under their job ID
+                    // Store tasks correctly under their job ID
                     sharedPrefManager.saveTaskIds(task.getId(), newTaskIds);
                     Log.w("JobDetailsManager", "Saved Task IDs for Job ID " + task.getId() + ": " + newTaskIds);
                 }
 
-                progressBar.setVisibility(View.GONE);
+                // Hide progress bar and notify the callback
+                updateProgressBarVisibility(progressBar, false);
                 callback.onJobDetailsFetched();
             }
 
             @Override
             public void onError(String error) {
-                progressBar.setVisibility(View.GONE);
+                // Hide progress bar and notify the callback on error
+                updateProgressBarVisibility(progressBar, false);
                 callback.onError(error);
             }
         });
     }
 
-    private static void handleFetchError(String error, String accessToken, ProgressBar progressBar, JobDetailsCallback callback) {
+    private static void handleFetchError(String error, ProgressBar progressBar, JobDetailsCallback callback) {
         Log.e("JobDetailsManager", "Error fetching job details: " + error);
+
+        // Hide progress bar and notify the callback with error
+        updateProgressBarVisibility(progressBar, false);
         callback.onError(error);
     }
+
+    private static void updateProgressBarVisibility(ProgressBar progressBar, boolean isVisible) {
+        // Ensure UI updates happen on the main thread
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (isVisible) {
+                progressBar.setVisibility(View.VISIBLE);
+            } else {
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
 }
+
 
 
 /*
