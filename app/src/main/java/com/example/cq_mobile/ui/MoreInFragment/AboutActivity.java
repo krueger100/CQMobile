@@ -1,6 +1,7 @@
 package com.example.cq_mobile.ui.MoreInFragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -10,6 +11,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.R;
 
 public class AboutActivity extends AppCompatActivity {
@@ -24,6 +27,7 @@ ProgressBar progressBar;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
+        ThreadManager.runOnMainThread(() -> {
 
         cardView = findViewById(R.id.cardView4);
         cardView5 = findViewById(R.id.cardView5);
@@ -72,5 +76,9 @@ ProgressBar progressBar;
                 }
             }
         });
+        });
+
     }
+
+
 }

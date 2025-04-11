@@ -35,12 +35,13 @@ import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.StatusBarManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.LoginFolder.Login;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.OfflineDataFolder.NetworkManager;
 import com.example.cq_mobile.databinding.ActivityMainBinding;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.FirebaseApp;
-import java.util.List;
+import java.util.List;   ///window.statusBarColor
 
 public class MainActivity extends AppCompatActivity implements ClockOutVisibilityHandler {
     private ActivityMainBinding binding;
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     private TimerFunctionManager timerFunctionManager;
     int userId;
     String email, password, avatar, startDate;
-    ServerDataReconnect serverDataReconnect;
+   ServerDataReconnect serverDataReconnect;
     private BackPressManager backPressManager;
     private ViewPager2 viewPager;
     private ProgressBar progressBar;
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
          saveJobDataManager = new SaveJobDataManager(this);
 
 
-        serverDataReconnect = new ServerDataReconnect(getApplicationContext());
+       serverDataReconnect = new ServerDataReconnect(getApplicationContext());
         AuthManager authManager = AuthManager.getInstance(this);
         if (authManager != null && authManager.isLoggedIn()) {
             if (authManager.isTokenExpired()) {
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                 Log.d("MainActivity", "Email: ----->>>> " + email);
 
 
-                // Proceed with the rest of the logic
+                // Proceed with the rest of the logic n
                 viewPager = findViewById(R.id.viewPager);
                 progressBar = findViewById(R.id.progressBar);
                 tabLayout = findViewById(R.id.tabLayout);
@@ -182,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                         .replace(R.id.fragment_container, new ClockFragment())
                         .addToBackStack(null)
                         .commit();
+
             }
 
         }else {
@@ -234,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                 boolean jobSuccess = sharedPrefManager.isJobSuccessful();
 
                 if (jobSuccess) {
-                    clockOutManager.setupClockOutButton(binding.clockoutBtn, accessToken, jobDetails.getId());
+                    clockOutManager.setupClockOutButton(binding.clockoutBtn, jobDetails.getId());
                     binding.jobTitle.setText(jobTitle);
                     binding.timerLayout.setVisibility(View.VISIBLE);
                     binding.progressBarTimer.setVisibility(View.VISIBLE);
@@ -257,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
                         }, 150);
                     });
                 } else {
-                    clockOutManager.setupStopJobWithTimeSheet(binding.clockoutBtn, accessToken,jobDetails.getId(), jobDetails.getJobId(), sharedPrefManager, binding.progressBar);
+                    clockOutManager.setupStopJobWithTimeSheet(binding.clockoutBtn,jobDetails.getId(), jobDetails.getJobId(), sharedPrefManager, binding.progressBar);
                     binding.jobTitle.setText(jobTitle);
                 }
 
@@ -292,8 +294,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
 
     }
 
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -312,12 +312,6 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
             }
         }
     }
-
-
-
-
-
-
     @Override
     public boolean onSupportNavigateUp() {
         return navigationManager.onSupportNavigateUp();
@@ -327,42 +321,36 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     @Override
     protected void onResume() {
         super.onResume();
-        serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
-            if (success) {
-                Log.d("MainActivity", "Reconnected successfully.");
-                Log.d(TAG, "Reconnected successfully");
-                if (timerFunctionManager != null) {
-                    timerFunctionManager.resumeTimerAfterReopen(this);
-                    Log.d(TAG, "resumeTimerAfterReopen called in MainActivity");
-                }
-            } else {
-                Log.e("MainActivity", "Reconnection failed. Redirecting to login.");
-                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    Intent intent = new Intent(MainActivity.this, Login.class);
-                    startActivity(intent);
-                    finish();
-                }, 500);
+        ThreadManager.runOnMainThread(() -> {
+            if (timerFunctionManager != null) {
+                timerFunctionManager.resumeTimerAfterReopen(this);
+                Log.d(TAG, "resumeTimerAfterReopen called in MainActivity");
             }
-        }));
+        });
 
     }
-
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (timerFunctionManager != null) {
-            timerFunctionManager.getTimerManager().saveTimeState(this);
-            Log.d(TAG, "Timer state saved in onPause()");
-        }
+        ThreadManager.runOnBackgroundThread(() -> {
+            if (timerFunctionManager != null) {
+                timerFunctionManager.getTimerManager().saveTimeState(this);
+                Log.d(TAG, "Timer state saved in onPause()");
+            }
+        });
+
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        ThreadManager.runOnBackgroundThread(() -> {
         if (timerFunctionManager != null) {
             timerFunctionManager.cleanup();
         }
-    }
+    });
+
+}
 
     public void hideClockFragment() {
         ClockFragment clockFragment = (ClockFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
@@ -374,6 +362,7 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
         }
     }
 
+
     @Override
     public void setClockOutVisibility(boolean isVisible) {
         if (binding.clockoutBtn != null) {
@@ -382,11 +371,3 @@ public class MainActivity extends AppCompatActivity implements ClockOutVisibilit
     }
 
 }
-
-
-
-
-/*
-   boolean isLoggedIn = loginSavedData.getIsLoggedIn();
-                                Log.d("Login", "Is Logged In: " + isLoggedIn);
- */

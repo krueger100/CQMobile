@@ -18,9 +18,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class LogoutManager {
-
-
-
     public static void logoutUser(Context context) {
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(context);

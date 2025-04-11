@@ -16,6 +16,7 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.TimeSheetFolder.ApiTSCallback;
 import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApi;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
 
 import java.io.IOException;
@@ -41,8 +42,6 @@ public class TimeSheetColleagueAPI {
             .build();
 
     public static void sendTimeSheetColleagueData(
-            String accessToken,
-            int userId,
             double userLatitude,
             double userLongitude,
             double latitude,
@@ -52,6 +51,11 @@ public class TimeSheetColleagueAPI {
             ProgressBar progressBar,
             Context context,
             ApiTimeSheetCallback callback) {
+
+
+        AuthManager authManager = AuthManager.getInstance(context);
+        String accessToken = authManager.getToken();
+        int userId = authManager.getUserId();
 
         if (accessToken == null || accessToken.isEmpty()) {
             Log.e("TimeSheetColleagueAPI", "Access token is required.");
@@ -68,20 +72,21 @@ public class TimeSheetColleagueAPI {
         Log.d("TimeSheetColleagueAPI", "StopDate time  "  +stopDate );
         Log.d("TimeSheetColleagueAPI", "Sending TimeSheet Colleague Data...");
 
+        JSONObject payload = new JSONObject();
         try {
-            JSONObject jsonPayload = new JSONObject();
-            jsonPayload.put("user", userId);
-            jsonPayload.put("lat", userLatitude);
-            jsonPayload.put("long", userLongitude);
-            jsonPayload.put("date", Date);
-            jsonPayload.put("start", startDate);
-            jsonPayload.put("end", stopDate);
-            jsonPayload.put("clocked_out", 1);
-            jsonPayload.put("remarks", JSONObject.NULL);
-            jsonPayload.put("lat_out", latitude);
-            jsonPayload.put("long_out", longitude);
+            payload.put("user", userId);
+            payload.put("lat", 0.0);
+            payload.put("long", 0.0);
+            payload.put("date", "2025-04-01");
+            payload.put("start", "18:57");
+            payload.put("end", "19:10");
+            payload.put("clocked_out", 1);
+            payload.put("remarks", JSONObject.NULL);
+            payload.put("lat_out", 0.0);
+            payload.put("long_out", 0.0);
+            payload.put("manual", 1);
 
-            String jsonString = jsonPayload.toString();
+            String jsonString = payload.toString();
 
             sendJobColleagueData(jobId, jsonString, accessToken, userId, taskId, progressBar, context, new ApiTimeSheetCallback() {
                 @Override
@@ -96,6 +101,9 @@ public class TimeSheetColleagueAPI {
                                         "\n" + BASE_URL_SEND_COLLEAGUE_DATA + "\t" +
                                         " -> " + "https://cqbms.app/api/m/jobs/work-status/stop/" + "\t" +
                                         " -> " + "Response:  -->> " + "\t" + message);
+
+
+
 
                                 progressBar.post(() -> progressBar.setVisibility(View.GONE));
                                 TimerManager timerManager = TimerManager.getInstance(context);
@@ -135,6 +143,7 @@ public class TimeSheetColleagueAPI {
             ApiTimeSheetCallback callback) {
 
         String url = BASE_URL_SEND_COLLEAGUE_DATA + userId;
+
 
         Log.d("TimeSheetColleagueAPI", "Sending Job Colleague Data to URL: " + url);
         Log.d("TimeSheetColleagueAPI", "Payload: " + jsonPayload);

@@ -24,29 +24,23 @@ public class HomeFragment extends Fragment {
     private FragmentHomeBinding binding;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Initialize ViewModel and ViewBinding
         HomeViewModel homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // Setup ViewPager2 and TabLayout
         ViewPager2 viewPager = root.findViewById(R.id.viewPager);
         TabLayout tabLayout = root.findViewById(R.id.tabLayout);
 
         tabLayout.setBackgroundColor(getResources().getColor(android.R.color.white, null));
 
-        // Set up the PagerAdapter for ViewPager2
         HomePagerAdapter homePagerAdapter = new HomePagerAdapter(this);
         viewPager.setAdapter(homePagerAdapter);
 
-        // Link TabLayout with ViewPager2 and customize tab layout
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
-            // Inflate custom tab layout
             View tabView = LayoutInflater.from(getContext()).inflate(R.layout.home_tab_item, null);
             TextView tabText = tabView.findViewById(R.id.tabText);
             ImageView tabIcon = tabView.findViewById(R.id.tabIcon);
 
-            // Set the text and icon for each tab
             if (position == 0) {
                 tabText.setText("To do");
                 tabIcon.setImageResource(R.drawable.nav_todo);
@@ -56,12 +50,10 @@ public class HomeFragment extends Fragment {
             } else if (position == 1) {
                 tabText.setText("Skipped");
                 tabIcon.setImageResource(R.drawable.nav_todo);
-                // Set the text color for each tab to change based on selection state
                 tabText.setTextColor(getResources().getColorStateList(R.color.tab_text_color, null));
             } else {
                 tabText.setText("Done");
                 tabIcon.setImageResource(R.drawable.nav_todo);
-                // Set the text color for each tab to change based on selection state
                 tabText.setTextColor(getResources().getColorStateList(R.color.tab_text_color, null));
             }
 
@@ -71,17 +63,13 @@ public class HomeFragment extends Fragment {
 
         }).attach();
 
-        // Set the background and text/icon colors on start
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 View customView = tab.getCustomView();
                 if (customView != null) {
-                    // Apply background to fill the tab
                     Drawable selectedBackground = ContextCompat.getDrawable(getContext(), R.drawable.selected_tab_bg);
                     customView.setBackground(selectedBackground);
-
-                    // Change text and icon color to white
                     TextView tabText = customView.findViewById(R.id.tabText);
                     ImageView tabIcon = customView.findViewById(R.id.tabIcon);
                     tabText.setTextColor(Color.WHITE);

@@ -2,6 +2,7 @@ package com.example.cq_mobile.ui.home.UpdateJobsFolder.UpdateAPIFolder;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -13,6 +14,9 @@ import com.example.cq_mobile.Clock.ClockFolder.ClockInAPIFolder.TimerManager;
 import com.example.cq_mobile.Clock.TimeSheetFolder.ApiTSCallback;
 import com.example.cq_mobile.Clock.TimeSheetFolder.StopJobApi;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.Login;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
+import com.example.cq_mobile.MainActivity;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -81,14 +85,12 @@ public class TimeSheetAPI {
                     StopJobApi.stopJobWithTimesheet(userId, progressBar, context, new ApiTSCallback() {
                         @Override
                         public void onSuccess(String message) {
-                            new Handler(Looper.getMainLooper()).post(() -> {
-                                Log.w("StopJobApi", "message" + "\n -> " + message);
+                            ThreadManager.runOnCustomThread(() -> {
 
-
-                                progressBar.post(() -> progressBar.setVisibility(View.GONE));
                                 TimerManager timerManager = TimerManager.getInstance(context);
                                 timerManager.resetTimer(context);
                             });
+
                         }
 
                         @Override

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,8 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
-import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
+import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
@@ -35,7 +34,7 @@ import java.util.List;
 public class ChatPageFragment extends Fragment {
 
     private ChatManager chatManager;
-    private String accessToken;
+    AuthManager authManager;
     private RecyclerView chatRecyclerView;
     private ChatAdapter chatAdapter;
     private int currentPage = 1;  // Track pagination
@@ -48,50 +47,26 @@ public class ChatPageFragment extends Fragment {
     ProgressBar progressBar;
     List<ChatDetails> chatDetailsList;
     View view;
-
+String accessToken;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
          view = inflater.inflate(R.layout.fragment_chat_page, container, false);
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
-         email = sharedPrefManager.getEmail();
-         password = sharedPrefManager.getPassword();
-
-        Log.d("ChatPageFragment", "Email: " + email);
-        Log.d("ChatPageFragment", "Password: " + password);
+        ThreadManager.runOnMainThread(() -> {
 
         progressBar = view.findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
-
         chatRecyclerView = view.findViewById(R.id.chatRecyclerView);
         chatRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        chatManager = new ChatManager(getContext());
+            authManager = AuthManager.getInstance(getContext());
+            accessToken = authManager.getAccessToken();
+            chatManager = new ChatManager(getContext());
         Context context = requireContext();
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(context,email, password);
-        getAccessTokenAndLoadChats(tokenRequest, progressBar, currentPage, pageSize);
-
+            loadChatsWithToken(accessToken,progressBar);
+        });
         return view;
     }
 
-    private void getAccessTokenAndLoadChats(AccessTokenRequest tokenRequest, ProgressBar progressBar, int page, int pageSize) {
-        chatManager.getAccessToken(tokenRequest, new ChatManager.AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String token) {
-                accessToken = token;
-                Log.d("ChatPageFragment", "Access Token received: " + token);
-                loadChatsWithToken(token,progressBar);
-            }
-
-
-            @Override
-            public void onError(String errorMessage) {
-                Log.e("ChatPageFragment", "Error fetching access token: " + errorMessage);
-                progressBar.setVisibility(View.GONE);
-            }
-        });
-    }
 
     private void loadChatsWithToken(String token, ProgressBar progressBar) {
         if (isLoading) return;  // Prevent duplicate loads

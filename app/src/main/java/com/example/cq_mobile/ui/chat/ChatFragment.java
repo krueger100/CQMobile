@@ -1,7 +1,9 @@
 package com.example.cq_mobile.ui.chat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +11,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.google.android.material.tabs.TabLayout;
 import androidx.annotation.Nullable;
@@ -22,46 +27,39 @@ public class ChatFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_chat, container, false);
+        ThreadManager.runOnMainThread(() -> {
+            viewPager2 = rootView.findViewById(R.id.viewPager2);
+            FragmentStateAdapter adapter = new ChatPagerAdapter(this);
+            viewPager2.setAdapter(adapter);
+            TabLayout tabLayout = rootView.findViewById(R.id.tab_layout);
+            tabLayout.addTab(tabLayout.newTab().setText("Chat"));
+            tabLayout.addTab(tabLayout.newTab().setText("Colleagues"));
 
-        viewPager2 = rootView.findViewById(R.id.viewPager2);
+            tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    viewPager2.setCurrentItem(tab.getPosition());
+                }
 
-        // Set the adapter for the ViewPager2
-        FragmentStateAdapter adapter = new ChatPagerAdapter(this);
-        viewPager2.setAdapter(adapter);
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
 
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
+            });
 
-        // Add tabs to the TabLayout
-        TabLayout tabLayout = rootView.findViewById(R.id.tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("Chat"));
-        tabLayout.addTab(tabLayout.newTab().setText("Colleagues"));
+            viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    tabLayout.selectTab(tabLayout.getTabAt(position));
+                }
+            });
 
-        // Handle tab selection (optional)
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                viewPager2.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-                // Do something when a tab is unselected (optional)
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-                // Do something when a tab is reselected (optional)
-            }
         });
 
-        // Update indicator based on swipe events
-        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                tabLayout.selectTab(tabLayout.getTabAt(position));
-            }
-        });
 
         return rootView;
     }
@@ -104,5 +102,20 @@ public class ChatFragment extends Fragment {
             visibilityHandler.setClockOutVisibility(false);
 
         }
+        ThreadManager.runOnMainThread(() -> {
+            ServerDataReconnect serverDataReconnect = new ServerDataReconnect(getContext());
+            serverDataReconnect.reconnectAsync(success -> {
+                if (success) {
+                    Log.d("ChatFragment", "Reconnected successfully");
+                } else {
+                    Log.e("ChatFragment", "Reconnection failed. Redirecting to login.");
+                    new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        Intent intent = new Intent(getContext(), MainActivity.class);
+                        startActivity(intent);
+                    }, 500);
+                }
+            });
+
+        });
     }
 }

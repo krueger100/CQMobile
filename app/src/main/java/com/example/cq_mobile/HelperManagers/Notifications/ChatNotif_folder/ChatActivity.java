@@ -2,6 +2,7 @@ package com.example.cq_mobile.HelperManagers.Notifications.ChatNotif_folder;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -11,9 +12,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatAPIItem;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
@@ -26,6 +30,7 @@ import com.example.cq_mobile.ui.chat.ChatNotif.NotificationAPIResponse;
 
 
 import com.example.cq_mobile.ui.chat.ColleagueFolder.Contact;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -41,6 +46,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ChatNotificationAdapter adapter;
     private List<ChatNotificationItem> notifications = new ArrayList<>();
+    ServerDataReconnect serverDataReconnect;
 
     private List<ChatDetails> notificationsItems = new ArrayList<>();
     private static final String TAG = "ChatActivity";
@@ -58,6 +64,9 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chats_receiver);
+        serverDataReconnect = new ServerDataReconnect(getApplicationContext());
+
+        ThreadManager.runOnMainThread(() -> {
 
         chatManager = new ChatManager(this);
 
@@ -68,13 +77,9 @@ public class ChatActivity extends AppCompatActivity {
             Log.d("ChatActivity", "Navigated to ChatActivity with Channel URL: " + channelUrl);
         }
 
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
-        String accessToken = AuthManager.getInstance(this).getToken();
-        email = sharedPrefManager.getEmail();
-        password = sharedPrefManager.getPassword();
 
-        Log.d("ChatActivity", "Email: " + email);
-        Log.d("ChatActivity", "Password: " + password);
+         accessToken = AuthManager.getInstance(this).getAccessToken();
+
 
          progressBar = findViewById(R.id.progressBar);
          progressBar.setVisibility(View.VISIBLE);
@@ -84,31 +89,14 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        AccessTokenRequest tokenRequest = new AccessTokenRequest(ChatActivity.this,email, password);
-        getAccessTokenAndLoadChats(tokenRequest, progressBar, currentPage, pageSize);
-
-    }
-
-
-    private void getAccessTokenAndLoadChats(AccessTokenRequest tokenRequest, ProgressBar progressBar, int page, int pageSize) {
-        chatManager.getAccessToken(tokenRequest, new ChatManager.AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String token) {
-                accessToken = token;
-                Log.d(TAG, "Access Token received: " + token);
-                fetchChatNotifications(accessToken);
-                loadChatsWithToken(token,progressBar);
-
-            }
-
-
-            @Override
-            public void onError(String errorMessage) {
-                Log.e(TAG, "Error fetching access token: " + errorMessage);
-                progressBar.setVisibility(View.GONE);
-            }
+        fetchChatNotifications(accessToken);
+        loadChatsWithToken(accessToken,progressBar);
+            // Code to run on the main thread
+            Log.d("MainThread", "This is running on the main thread.");
         });
     }
+
+
 
     private void loadChatsWithToken(String token, ProgressBar progressBar) {
 
@@ -314,7 +302,22 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
+            if (success) {
+                Log.d(TAG, "Reconnected successfully");
+            } else {
+                Log.e(TAG, "Reconnection failed. Redirecting to login.");
+                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Intent intent = new Intent(ChatActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }, 500);
+            }
+        }));
+    }
 }
 
 

@@ -40,12 +40,15 @@ import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.CustomBottomNavView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationManagerForNewBuild;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.HelperManagers.DateAndTimeManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MapCameraManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.MarkerManager;
 import com.example.cq_mobile.HelperManagers.mapFolder.UserPositionMarkerManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.Login;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.RetrieveDataFromAPIMangers.SetupTaskRecyclerViewManager;
@@ -80,7 +83,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     int page = 1;
     int pageSize = 10;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private BackPressManager backPressManager;
+  //  private BackPressManager backPressManager;
     private GoogleMap googleMap;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private NavigationManagerForNewBuild navigationManager;
@@ -137,6 +140,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
     private ClockOutManager clockOutManager;
     Intent intent;
     String jobId_files, taskId_files;
+    ServerDataReconnect serverDataReconnect;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,9 +148,11 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         activityRef = new WeakReference<>(activity);
     runOnUiThread(() -> {
          context = getApplicationContext();
+         serverDataReconnect = new ServerDataReconnect(getApplicationContext());
         AuthManager authManager = AuthManager.getInstance(this);
         accessToken = authManager.getToken();
         userId = authManager.getUserId();
+
 
         view = findViewById(R.id.view);
         jobId = getIntent().getStringExtra("job_id");
@@ -180,7 +186,7 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         sharedPrefManager.saveStartJobInnerTask(taskId);
 
 
-        backPressManager = new BackPressManager(this);
+   //     backPressManager = new BackPressManager(this);
         showBottomSheet = findViewById(R.id.showBottomSheet);
         category_todo = findViewById(R.id.category_todo);
         progress_circular = findViewById(R.id.progress_circular);
@@ -430,40 +436,42 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
-        this.googleMap = map;
+        runOnUiThread(() -> {
+            this.googleMap = map;
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            enableUserLocation(context, userId, jobId, currentDate);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                enableUserLocation(context, userId, jobId, currentDate);
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            }
 
-        routeNewBuildManager.setGoogleMap(googleMap);
+            routeNewBuildManager.setGoogleMap(googleMap);
 
-        googleMap.setOnMapLoadedCallback(() -> {
-            Log.d("MapLoad", "Google Map has fully loaded");
+            googleMap.setOnMapLoadedCallback(() -> {
+                Log.d("MapLoad", "Google Map has fully loaded");
 
-            newBuildButtonManager.setButtonsVisibility(true);
-            newBuildButtonManager.setButtonClickListener(view -> {
-                ClickAnimationManager.applyClickAnimation(view);
-                if (view == notes) {
-                    intent = new Intent(context, NotesActivity.class);
-                    intent.putExtra("job_id", jobId);
-                    this.startActivity(intent);
-                } else if (view == folder) {
-                    if (jobId != null) {
-                        intent = new Intent(context, FilesActivity.class);
-                        intent.putExtra("job_id", jobId_files);
-                        intent.putExtra("task_id", taskId_files);
-                        intent.putExtra("accessToken", accessToken);
-                        startActivity(intent);
+                newBuildButtonManager.setButtonsVisibility(true);
+                newBuildButtonManager.setButtonClickListener(view -> {
+                    ClickAnimationManager.applyClickAnimation(view);
+                    if (view == notes) {
+                        intent = new Intent(context, NotesActivity.class);
+                        intent.putExtra("job_id", jobId);
+                        this.startActivity(intent);
+                    } else if (view == folder) {
+                        if (jobId != null) {
+                            intent = new Intent(context, FilesActivity.class);
+                            intent.putExtra("job_id", jobId_files);
+                            intent.putExtra("task_id", taskId_files);
+                            intent.putExtra("accessToken", accessToken);
+                            startActivity(intent);
+                        }
                     }
-                }
+                });
+
+
+                navigationInitialization();
             });
-
-
-            navigationInitialization();
         });
     }
 
@@ -603,19 +611,15 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                         sharedPrefManager.saveJobSuccessAsFalse(false);
 
                                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                            start_job.setText("Start Job");
-                                            start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.check_in_btn));
-                                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                            ThreadManager.runOnBackgroundThread(() -> {
+                                                start_job.setText("Start Job");
+                                                start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.check_in_btn));
                                                 TimerManager timerManager = TimerManager.getInstance(context);
                                                 timerManager.resetTimer(context);
-                                                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                                    TimerManager timerManager2 = TimerManager.getInstance(context);
-                                                    timerManager2.startTimer(context);
-                                                }, 2000);
-                                            }, 1000);
+                                            });
+
                                             Intent intent = new Intent(context, MainActivity.class);
                                             startActivity(intent);
-                                            finish();
                                         }, 3000);
 
                                         progress_circular.setVisibility(View.GONE);
@@ -695,6 +699,12 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
                                             sharedPrefManager.saveClockinDate(currentDate);
                                             start_job.setText("Stop Job");
                                             start_job.setBackground(ContextCompat.getDrawable(context, R.drawable.clock_out_btn));
+
+                                            new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                                Intent intent = new Intent(NewBuild.this, MainActivity.class);
+                                                startActivity(intent);
+                                                finish();
+                                            }, 500);
 
                                         }
 
@@ -789,13 +799,15 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         navigationManager = new NavigationManagerForNewBuild(this, bottomSheet, bottomSheetBehavior);
         navigationManager.setUpNavigation(bottomNavView);
 
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+     /*   getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 backPressManager.handleBackPress(MainActivity.class);
                 finish();
             }
         });
+
+      */
 
         showBottomSheet.setOnClickListener(v -> {
             if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
@@ -806,6 +818,23 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
             }
         });
     }
+   /*
+                serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
+            if (success) {
+                Log.d("MainActivity", "Reconnected successfully.");
+                Log.d(TAG, "Reconnected successfully");
+
+            } else {
+                Log.e("MainActivity", "Reconnection failed. Redirecting to login.");
+                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Intent intent = new Intent(MainActivity.this, Login.class);
+                    startActivity(intent);
+                    finish();
+                }, 500);
+            }
+        }));
+
+       */
 
 
 
@@ -816,14 +845,25 @@ public class NewBuild extends AppCompatActivity implements OnMapReadyCallback{
         transaction.commit();
     }
 
-
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
+            if (success) {
+                Log.d(TAG, "Reconnected successfully");
+            } else {
+                Log.e(TAG, "Reconnection failed. Redirecting to login.");
+                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Intent intent = new Intent(NewBuild.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }, 500);
+            }
+        }));
+    }
 }
 
-/*
 
-
- */
 
 /*
     runOnUiThread(() -> {

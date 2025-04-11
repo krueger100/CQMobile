@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -14,10 +15,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.Clock.ClockFolder.ClockOutFolder.ClockOutManager;
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -26,11 +30,14 @@ public class MoreActivity extends AppCompatActivity {
     ProgressBar progressBar;
     CircleImageView circleImageView2;
     TextView account_setting;
-
+    ServerDataReconnect serverDataReconnect;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_more);
+        serverDataReconnect = new ServerDataReconnect(getApplicationContext());
+
+        ThreadManager.runOnMainThread(() -> {
         back = findViewById(R.id.back);
         name= findViewById(R.id.name);
         logoutButton= findViewById(R.id.logoutButton);
@@ -39,12 +46,12 @@ public class MoreActivity extends AppCompatActivity {
         account_setting = findViewById(R.id.account_setting);
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(MoreActivity.this);
-        String accessToken = AuthManager.getInstance(this).getToken();
-        int userId = sharedPrefManager.getUserId();
-        String firstName = sharedPrefManager.getFirstName();
-        String lastName = sharedPrefManager.getLastName();
-        String email = sharedPrefManager.getEmail();
-        String avatar = sharedPrefManager.getAvatarUrl();
+            String accessToken = AuthManager.getInstance(this).getAccessToken();
+            int userId = AuthManager.getInstance(this).getUserId();
+            String fname  = AuthManager.getInstance(this).getFirstName();
+            String lname  = AuthManager.getInstance(this).getLastName();
+            String userName  = fname +" "+ lname;
+            String avatar = AuthManager.getInstance(this).getAvatar();
 
         int jobId = sharedPrefManager.getJobId();
         int taskId = sharedPrefManager.getTaskId();
@@ -54,16 +61,14 @@ public class MoreActivity extends AppCompatActivity {
         Log.d("MoreActivity", "Retrieved User Data: ");
         Log.d("MoreActivity", "Access Token: " + accessToken);
         Log.d("MoreActivity", "User ID: " + userId);
-        Log.d("MoreActivity", "First Name: " + firstName);
-        Log.d("MoreActivity", "Last Name: " + lastName);
-        Log.d("MoreActivity", "Email: " + email);
+            Log.d("MoreActivity", "UserName: " + userName);
         Log.d("MoreActivity", "avatar: " + avatar);
         Log.d("MoreActivity", "jobId: " + jobId);
         Log.d("MoreActivity", "taskId: " + taskId);
         Log.d("MoreActivity", "startDate: " + startDate);
 
 
-        name.setText(firstName +" "+lastName);
+        name.setText(userName);
 
         SharedPreferences sharedPreferencesClockout = getSharedPreferences("ClockPrefs", Context.MODE_PRIVATE);
         ClockOutManager clockOutManager = new ClockOutManager(MoreActivity.this, progressBar, jobId, taskId, userId, sharedPrefManager);
@@ -94,8 +99,11 @@ public class MoreActivity extends AppCompatActivity {
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MoreActivity.this, MainActivity.class);
-                startActivity(intent);
+                ThreadManager.runOnMainThread(() -> {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                    Log.d("MainThread", "This is running on the main thread.");
+                });
             }
         });
 
@@ -109,20 +117,36 @@ public class MoreActivity extends AppCompatActivity {
                 sharedPreferencesClockout.edit().clear().apply();
 
                 if (jobSuccess) {
-                    clockOutManager.setupClockOutButtonLogout(logoutButton, accessToken, jobId);
+                    clockOutManager.setupClockOutButtonLogout(logoutButton, jobId);
 
                 } else {
-                    clockOutManager.setupStopJobWithTimeSheetLogout(logoutButton, accessToken, jobId, taskId, sharedPrefManager,progressBar);
+                    clockOutManager.setupStopJobWithTimeSheetLogout(logoutButton, jobId, taskId, sharedPrefManager,progressBar);
 
                 }
             }
+        });
         });
 
 
 
 
     }
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        serverDataReconnect.reconnectAsync(success -> runOnUiThread(() -> {
+            if (success) {
+                Log.d("MoreActivity", "Reconnected successfully");
+            } else {
+                Log.e("MoreActivity", "Reconnection failed. Redirecting to login.");
+                new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Intent intent = new Intent(MoreActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }, 500);
+            }
+        }));
+    }
 
 }
 

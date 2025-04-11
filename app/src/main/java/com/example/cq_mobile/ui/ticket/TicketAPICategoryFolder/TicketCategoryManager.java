@@ -1,6 +1,9 @@
 package com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder;
 
 import android.content.Context;
+import android.util.Log;
+
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.util.List;
 
@@ -9,24 +12,30 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
 public class TicketCategoryManager {
     private final String baseUrl = "https://cqbms.app";
-    private final String accessToken;
+    private String accessToken;
     private final Context context;
     private Call<TicketAPICategoryResponse> currentCall;
-    public TicketCategoryManager(Context context, String accessToken) {
+
+    public TicketCategoryManager(Context context) {
         this.context = context;
-        this.accessToken = accessToken;
+        this.accessToken = AuthManager.getInstance(context).getToken();
     }
 
     public void loadCategoryTickets(int page, int pageSize, final TicketsCallback callback) {
+        if (accessToken == null) {
+            Log.e("TicketCategoryManager", "Access token is missing.");
+            callback.onError("Access token is missing.");
+            return;
+        }
+
         String url = baseUrl + "api/m/tickets/categories?page=" + page + "&per_page=" + pageSize;
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
 
         TicketCategoryApi ticketCategoryApi = retrofit.create(TicketCategoryApi.class);
 
@@ -52,16 +61,15 @@ public class TicketCategoryManager {
             }
         });
     }
+
     public void cancelLoading() {
         if (currentCall != null && !currentCall.isCanceled()) {
             currentCall.cancel();
         }
     }
 
-
     public interface TicketsCallback {
         void onTicketsLoaded(List<TicketAPICategoryItems> tickets);
         void onError(String errorMessage);
     }
-
 }

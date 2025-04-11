@@ -88,7 +88,7 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
                         ExecutorService executor = Executors.newSingleThreadExecutor();
                         executor.execute(() -> {
                             Log.d(TAG, "Starting delete operation for Ticket ID: " + ticketID + ", Message ID: " + reply.getId());
-                            String response = DeleteTicketMessageApiManager.deleteTicketMessage(ticketID, reply.getId());
+                            String response = DeleteTicketMessageApiManager.deleteTicketMessage(context,ticketID, reply.getId());
                             new Handler(Looper.getMainLooper()).post(() -> {
                                 if (!response.startsWith("Error:")) {
                                     Log.d(TAG, "Reply deleted successfully!" + response);
@@ -114,7 +114,6 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
                     })
                     .show();
         });
-
 
     }
 

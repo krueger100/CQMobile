@@ -1,8 +1,6 @@
 package com.example.cq_mobile.ui.ticket.ReplyTicketFolder;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,13 +26,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
+import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.CreateFolder.DeleteTicketFolder.DeleteTicketApiManager;
 import com.example.cq_mobile.ui.ticket.ResolveTicketAPIFolder.UpdateTicketStatusApiManager;
-import com.example.cq_mobile.ui.ticket.TicketFragment;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -63,217 +65,220 @@ public class ReplyTicket extends AppCompatActivity {
     String stats;
     String email;
     String password;
+    ServerDataReconnect serverDataReconnect;
+    private ClockOutVisibilityHandler visibilityHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_reply_ticket); // Your main activity layout
+        setContentView(R.layout.activity_reply_ticket);
+        serverDataReconnect = new ServerDataReconnect(this);
 
-        // Initialize UI components
-        indicator_green = findViewById(R.id.indicator_green);
-        item_title = findViewById(R.id.item_title);
-        resolve_ticket = findViewById(R.id.resolve_ticket);
-        ticket_category = findViewById(R.id.ticket_category);
-        reply = findViewById(R.id.reply);
-        reply_off = findViewById(R.id.reply_off);
-        cardView4 = findViewById(R.id.cardView4);
-        reply_body = findViewById(R.id.reply_body);
-        reply_show = findViewById(R.id.reply_show);
-        del_btn_on = findViewById(R.id.del_btn_on);
-        progressBar = findViewById(R.id.progressBar);
-
-
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
-         email = sharedPrefManager.getEmail();
-         password = sharedPrefManager.getPassword();
-         accessToken = AuthManager.getInstance(this).getToken();
-        Log.d("CreateTicket", "Access Token: " + accessToken);
-        Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
-        Log.d("ToDoFragmentSharedPreff", "Email: "+email);
-        Log.d("ToDoFragmentSharedPreff", "Password  : "+password);
-        // Retrieve data from the intent
-        accessToken = getIntent().getStringExtra("token");
-        String subject = getIntent().getStringExtra("subject");
-        String categoryName = getIntent().getStringExtra("categoryName");
-        String status = getIntent().getStringExtra("status");
-        String categoryColor = getIntent().getStringExtra("categoryColor");
-        String messageJson = getIntent().getStringExtra("messageJson");
-        Log.d("ReplyTicket", "messageJson: --->> " + messageJson);
-        int ticketID = getIntent().getIntExtra("ticketID", -1);
-        messagesJsonList = getIntent().getStringExtra("messagesJsonList");
-
-        // Initialize the RecyclerView here
-        repliesRecyclerView = findViewById(R.id.recyclerView_replies);
-        repliesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        replyAdapter = new ReplyAdapter(this, accessToken, replyList,ticketID,progressBar);
-        repliesRecyclerView.setAdapter(replyAdapter);
-        back = findViewById(R.id.back);
-        ticketIDMain = ticketID;
+        ThreadManager.runOnMainThread(() -> {
+            indicator_green = findViewById(R.id.indicator_green);
+            item_title = findViewById(R.id.item_title);
+            resolve_ticket = findViewById(R.id.resolve_ticket);
+            ticket_category = findViewById(R.id.ticket_category);
+            reply = findViewById(R.id.reply);
+            reply_off = findViewById(R.id.reply_off);
+            cardView4 = findViewById(R.id.cardView4);
+            reply_body = findViewById(R.id.reply_body);
+            reply_show = findViewById(R.id.reply_show);
+            del_btn_on = findViewById(R.id.del_btn_on);
+            progressBar = findViewById(R.id.progressBar);
 
 
-        stats = status;
-        Log.d("ResolveTicket", "stats:  " + stats);
-        resolve_ticket.setText(status != null && status.equals("open") ? "Resolve Ticket" : "Open");
-        resolve_ticket.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                String status;
-                if (stats.equals("open")) {
-                    status = "resolved";
-                } else {
-                    status = "open";
-                }
-                UpdateTicketStatusApiManager.updateTicketStatus(email,password, ticketIDMain, status, progressBar, accessToken, new UpdateTicketStatusApiManager.ApiCallback() {
-                    @Override
-                    public void onSuccess() {
-                        Log.d("ResolveTicket", "Ticket resolved successfully");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), "Ticket " + status, Toast.LENGTH_SHORT).show();
-                                resolve_ticket.setText(status.equals("resolved") ? "Open Ticket" : "Resolve Ticket");
-                                stats = status;
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        });
+            SharedPrefManager sharedPrefManager = new SharedPrefManager(ReplyTicket.this);
+            email = sharedPrefManager.getEmail();
+            password = sharedPrefManager.getPassword();
+            accessToken = AuthManager.getInstance(this).getToken();
+            Log.d("CreateTicket", "Access Token: " + accessToken);
+            Log.d("ToDoFragmentSharedPreff", "Retrieved User Data: ");
+            Log.d("ToDoFragmentSharedPreff", "Email: " + email);
+            Log.d("ToDoFragmentSharedPreff", "Password  : " + password);
+            // Retrieve data from the intent
+            accessToken = getIntent().getStringExtra("token");
+            String subject = getIntent().getStringExtra("subject");
+            String categoryName = getIntent().getStringExtra("categoryName");
+            String status = getIntent().getStringExtra("status");
+            String categoryColor = getIntent().getStringExtra("categoryColor");
+            String messageJson = getIntent().getStringExtra("messageJson");
+            Log.d("ReplyTicket", "messageJson: --->> " + messageJson);
+            int ticketID = getIntent().getIntExtra("ticketID", -1);
+            messagesJsonList = getIntent().getStringExtra("messagesJsonList");
+
+            // Initialize the RecyclerView here
+            repliesRecyclerView = findViewById(R.id.recyclerView_replies);
+            repliesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            replyAdapter = new ReplyAdapter(this, accessToken, replyList, ticketID, progressBar);
+            repliesRecyclerView.setAdapter(replyAdapter);
+            back = findViewById(R.id.back);
+            ticketIDMain = ticketID;
+
+
+            stats = status;
+            Log.d("ResolveTicket", "stats:  " + stats);
+            resolve_ticket.setText(status != null && status.equals("open") ? "Resolve Ticket" : "Open");
+            resolve_ticket.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    String status;
+                    if (stats.equals("open")) {
+                        status = "resolved";
+                    } else {
+                        status = "open";
                     }
-                    @Override
-                    public void onFailure(String error) {
-                        Log.e("ResolveTicket", "Failed to resolve ticket: " + error);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), "Failed to resolve ticket", Toast.LENGTH_SHORT).show();
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        });
-                    }
-                });
-            }
-        });
-
-
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-        ticket_category.setText(categoryName);
-
-
-        if (messagesJsonList != null) {
-            Gson gson = new Gson();
-            Type listType = new TypeToken<List<TicketAPIItem.Message>>() {}.getType();
-
-        messageList = gson.fromJson(messagesJsonList, listType);
-
-            // Debugging logs
-            for (TicketAPIItem.Message message : messageList) {
-                Log.d("ReplyTicket", "Message ID: " + message.getId());
-                Log.d("ReplyTicket", "User Name: " + message.getUser().getName());
-                Log.d("ReplyTicket", "Message Body: " + message.getBody());
-            }
-            loadReplies(messageList);
-
-
-        } else {
-            Log.d("ReplyTicket", "No messages received.");
-        }
-
-
-        // Apply color filter
-        if (categoryColor != null) {
-            try {
-                indicator_green.setColorFilter(Color.parseColor(categoryColor));
-            } catch (IllegalArgumentException e) {
-                Log.e("ReplyTicket", "Invalid color: " + categoryColor, e);
-            }
-        }
-
-        // Update UI elements
-        if (subject != null) item_title.setText(subject);
-
-        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadReplies(messageList);
-            swipeRefreshLayout.setRefreshing(false);
-        });
-
-        // Toggle delete button
-        del_btn_on.setOnClickListener(v -> {
-            progressBar.setVisibility(View.VISIBLE);
-            new AlertDialog.Builder(ReplyTicket.this)
-                    .setTitle("Delete Ticket")
-                    .setMessage("Are you sure you want to delete this ticket?")
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        // Perform delete operation
-                        new Thread(() -> {
-                            String response = DeleteTicketApiManager.deleteTicket(String.valueOf(ticketIDMain));
-                            runOnUiThread(() -> {
-                                if (response.startsWith("Error:")) {
-                                    Toast.makeText(ReplyTicket.this, "Ticket deleted successfully!", Toast.LENGTH_SHORT).show();
+                    UpdateTicketStatusApiManager.updateTicketStatus(email, password, ticketIDMain, status, progressBar, accessToken, new UpdateTicketStatusApiManager.ApiCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d("ResolveTicket", "Ticket resolved successfully");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(), "Ticket " + status, Toast.LENGTH_SHORT).show();
+                                    resolve_ticket.setText(status.equals("resolved") ? "Open Ticket" : "Resolve Ticket");
+                                    stats = status;
                                     progressBar.setVisibility(View.GONE);
-                                    Intent intent = new Intent(ReplyTicket.this, MainActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    progressBar.setVisibility(View.GONE);
-                                    Toast.makeText(ReplyTicket.this, "Failed to delete ticket: " + response, Toast.LENGTH_LONG).show();
                                 }
                             });
-                        }).start();
-                    })
-                    .setNegativeButton("No", (dialog, which) -> {
-                        // Dismiss the dialog
-                        dialog.dismiss();
-                    })
-                    .show();
-        });
+                        }
 
-        // Show reply form
-        reply_show.setOnClickListener(v -> {
-            ClickAnimationManager.applyClickAnimation(v);
-            cardView4.setVisibility(View.VISIBLE);
-            reply.setVisibility(View.VISIBLE);
-        });
-
-        // Hide reply form
-        reply_off.setOnClickListener(v -> {
-            ClickAnimationManager.applyClickAnimation(v);
-            cardView4.setVisibility(View.GONE);
-            reply_show.setVisibility(View.VISIBLE);
-            reply.setVisibility(View.GONE);
-        });
+                        @Override
+                        public void onFailure(String error) {
+                            Log.e("ResolveTicket", "Failed to resolve ticket: " + error);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(), "Failed to resolve ticket", Toast.LENGTH_SHORT).show();
+                                    progressBar.setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
 
 
+            back.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finish();
+                }
+            });
 
-        // Send reply
-        reply.setOnClickListener(v -> {
-            ClickAnimationManager.applyClickAnimation(v);
-
-            String replyText = reply_body.getText().toString().trim();
-            if (replyText.isEmpty()) {
-                Toast.makeText(ReplyTicket.this, "Reply cannot be empty", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            ticket_category.setText(categoryName);
 
 
+            if (messagesJsonList != null) {
+                Gson gson = new Gson();
+                Type listType = new TypeToken<List<TicketAPIItem.Message>>() {
+                }.getType();
 
-            if (ticketIDMain > 0) {
+                messageList = gson.fromJson(messagesJsonList, listType);
 
-        replyText = "<p>" + replyText + "</p>";
-                sendReply(ticketIDMain, replyText);
+                // Debugging logs
+                for (TicketAPIItem.Message message : messageList) {
+                    Log.d("ReplyTicket", "Message ID: " + message.getId());
+                    Log.d("ReplyTicket", "User Name: " + message.getUser().getName());
+                    Log.d("ReplyTicket", "Message Body: " + message.getBody());
+                }
+                loadReplies(messageList);
+
 
             } else {
-                Toast.makeText(ReplyTicket.this, "Invalid ticket ID", Toast.LENGTH_SHORT).show();
+                Log.d("ReplyTicket", "No messages received.");
             }
+
+
+            // Apply color filter
+            if (categoryColor != null) {
+                try {
+                    indicator_green.setColorFilter(Color.parseColor(categoryColor));
+                } catch (IllegalArgumentException e) {
+                    Log.e("ReplyTicket", "Invalid color: " + categoryColor, e);
+                }
+            }
+
+            // Update UI elements
+            if (subject != null) item_title.setText(subject);
+
+            SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                loadReplies(messageList);
+                swipeRefreshLayout.setRefreshing(false);
+            });
+
+            // Toggle delete button
+            del_btn_on.setOnClickListener(v -> {
+                progressBar.setVisibility(View.VISIBLE);
+                new AlertDialog.Builder(ReplyTicket.this)
+                        .setTitle("Delete Ticket")
+                        .setMessage("Are you sure you want to delete this ticket?")
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            // Perform delete operation
+                            new Thread(() -> {
+                                String response = DeleteTicketApiManager.deleteTicket(String.valueOf(ticketIDMain));
+                                runOnUiThread(() -> {
+                                    if (response.startsWith("Error:")) {
+                                        Toast.makeText(ReplyTicket.this, "Ticket deleted successfully!", Toast.LENGTH_SHORT).show();
+                                        progressBar.setVisibility(View.GONE);
+                                        Intent intent = new Intent(ReplyTicket.this, MainActivity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    } else {
+                                        progressBar.setVisibility(View.GONE);
+                                        Toast.makeText(ReplyTicket.this, "Failed to delete ticket: " + response, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            }).start();
+                        })
+                        .setNegativeButton("No", (dialog, which) -> {
+                            // Dismiss the dialog
+                            dialog.dismiss();
+                        })
+                        .show();
+            });
+
+            // Show reply form
+            reply_show.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+                cardView4.setVisibility(View.VISIBLE);
+                reply.setVisibility(View.VISIBLE);
+            });
+
+            // Hide reply form
+            reply_off.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+                cardView4.setVisibility(View.GONE);
+                reply_show.setVisibility(View.VISIBLE);
+                reply.setVisibility(View.GONE);
+            });
+
+
+            // Send reply
+            reply.setOnClickListener(v -> {
+                ClickAnimationManager.applyClickAnimation(v);
+
+                String replyText = reply_body.getText().toString().trim();
+                if (replyText.isEmpty()) {
+                    Toast.makeText(ReplyTicket.this, "Reply cannot be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+
+                if (ticketIDMain > 0) {
+
+                    replyText = "<p>" + replyText + "</p>";
+                    sendReply(ticketIDMain, replyText);
+
+                } else {
+                    Toast.makeText(ReplyTicket.this, "Invalid ticket ID", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
         });
-
-
-
 
     }
 
@@ -285,26 +290,20 @@ public class ReplyTicket extends AppCompatActivity {
             return;
         }
 
-        // Debug: Print all messages
         for (TicketAPIItem.Message message : messageList) {
             Log.d("ReplyTicket", "Message ID: " + message.getId());
             Log.d("ReplyTicket", "User Name: " + message.getUser().getName());
             Log.d("ReplyTicket", "Message Body: " + message.getBody());
 
-            // Collect ticketReplyID
             ticketReplyIDs.add(message.getId());
-
-            // Add the message to the reply list
             replyList.add(message);
         }
 
-        // Update RecyclerView on the main thread
         runOnUiThread(() -> {
             replyAdapter.notifyDataSetChanged();
             Log.d("ReplyTicket", "RecyclerView updated with " + replyList.size() + " replies.");
         });
 
-        // Debugging all ticketReplyIDs
         Log.d("ReplyTicket", "All ticketReplyIDs: " + ticketReplyIDs);
     }
 
@@ -317,25 +316,20 @@ public class ReplyTicket extends AppCompatActivity {
         Log.d("sendReply", "Retrieved User Data: ");
         Log.d("sendReply", "Email: "+email);
         Log.d("sendReply", "Password  : "+password);
-        ReplyTicketApiManager.replyToTicket(context,email,password,String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
+        ReplyTicketApiManager.replyToTicket(context,String.valueOf(ticketId), replyText, new ReplyTicketApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> Toast.makeText(ReplyTicket.this, "Reply sent successfully", Toast.LENGTH_SHORT).show());
                 closeKeyboard();
 
-                // Save true in SharedPreferences when the reply is successfully sent
                 SharedPreferences sharedPreferences = getSharedPreferences("ReplyData", MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("isReplySent", true);
                 editor.apply();
 
-
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                       finish();
-                    }
-                }, 2000);
+                ThreadManager.runOnMainThread(() -> {
+                    finish();
+                });
 
             }
 
@@ -355,6 +349,32 @@ public class ReplyTicket extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // Ensure visibility handler is not null and set visibility accordingly
+        if (visibilityHandler != null) {
+            visibilityHandler.setClockOutVisibility(false);
+        }
+
+
+        ThreadManager.runOnBackgroundThread(() -> {
+            ServerDataReconnect serverDataReconnect = new ServerDataReconnect(this);
+            serverDataReconnect.reconnectAsync(success -> {
+                if (success) {
+                    Log.d("TicketFragment", "Reconnected successfully");
+                } else {
+                    Log.e("TicketFragment", "Reconnection failed. Redirecting to login.");
+                    new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        Intent intent = new Intent(this, MainActivity.class);
+                        startActivity(intent);
+                    }, 500);
+                }
+            });
+        });
+
+    }
 
 
 }

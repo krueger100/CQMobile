@@ -17,6 +17,7 @@ import com.example.cq_mobile.HelperManagers.Animation.ClickAnimationManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.MoreActivityFolder.AccountSettingManager;
 import com.example.cq_mobile.R;
@@ -37,16 +38,18 @@ public class MoreFragment extends Fragment {
         // Inflate the fragment's layout using view binding
         binding = FragmentMoreBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        ThreadManager.runOnMainThread(() -> {
+            // Code to run on the main thread
 
         sharedPrefManager = new SharedPrefManager(requireContext());
 
         // Retrieve user data
-        String accessToken = AuthManager.getInstance(context).getToken();
-        int userId = sharedPrefManager.getUserId();
-        String userName = sharedPrefManager.getUserName();
-        String email = sharedPrefManager.getEmail();
-        String password = sharedPrefManager.getPassword();
-        String avatar = sharedPrefManager.getAvatarUrl();
+        String accessToken = AuthManager.getInstance(context).getAccessToken();
+        int userId = AuthManager.getInstance(context).getUserId();
+            String fname  = AuthManager.getInstance(getContext()).getFirstName();
+            String lname  = AuthManager.getInstance(getContext()).getLastName();
+            String userName  = fname +" "+ lname;
+        String avatar = AuthManager.getInstance(context).getAvatar();
         String notificationToken = sharedPrefManager.getNotiftoken();
         int jobId=  sharedPrefManager.getJobId();
         int taskId=  sharedPrefManager.getTaskId();
@@ -56,8 +59,7 @@ public class MoreFragment extends Fragment {
         Log.d("MoreFragment", "Access Token: " + accessToken);
         Log.d("MoreFragment", "User ID: " + userId);
         Log.d("MoreFragment", "UserName: " + userName);
-        Log.d("MoreFragment", "Email: " + email);
-        Log.d("MoreFragment", "Password: " + password);
+
         Log.d("MoreFragment", "Avatar: " + avatar);
         Log.d("MoreFragment", "notificationToken: " + notificationToken);
         Log.d("MoreFragment", "jobId: " + jobId);
@@ -90,15 +92,17 @@ public class MoreFragment extends Fragment {
             accountSettingManager.showAccountSettingBottomSheetFragment();
         });
 
-        // Set up click listeners
-        binding.back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Navigate to MainActivity
-                Intent intent = new Intent(requireContext(), MainActivity.class);
-                startActivity(intent);
-            }
-        });
+            // Set up click listeners
+            binding.back.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ThreadManager.runOnMainThread(() -> {
+                        Intent intent = new Intent(requireContext(), MainActivity.class);
+                        startActivity(intent);
+                        Log.d("MainThread", "This is running on the main thread.");
+                    });
+                }
+            });
 
         binding.logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,10 +113,10 @@ public class MoreFragment extends Fragment {
 
 
                 if (jobSuccess) {
-                    clockOutManager.setupClockOutButtonLogout(binding.logoutButton, accessToken, jobId);
+                    clockOutManager.setupClockOutButtonLogout(binding.logoutButton, jobId);
 
                 } else {
-                    clockOutManager.setupStopJobWithTimeSheetLogout(binding.logoutButton, accessToken, jobId, taskId, sharedPrefManager, binding.progressBar);
+                    clockOutManager.setupStopJobWithTimeSheetLogout(binding.logoutButton, jobId, taskId, sharedPrefManager, binding.progressBar);
 
                 }
 
@@ -120,6 +124,7 @@ public class MoreFragment extends Fragment {
         });
 
 
+        });
         return root;
     }
 

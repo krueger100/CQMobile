@@ -10,8 +10,8 @@ android {
         applicationId = "com.co.cq_mobile"
         minSdk = 33
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 8
+        versionName = "1.8"
         multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -23,16 +23,29 @@ android {
 
 
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            isShrinkResources = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+    android {
+        signingConfigs {
+            create("release") {
+                storeFile = file("C:/Users/carlo/AndroidStudioProjects/keyStore/cq_keystore.jks")
+                storePassword = "121429"
+                keyAlias = "key0"
+                keyPassword = "121429"
+            }
+        }
+
+        buildTypes {
+            getByName("release") {
+                signingConfig = signingConfigs.getByName("release")
+                isMinifyEnabled = false
+                isShrinkResources = false
+                proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+                )
+            }
         }
     }
+
 
 
 

@@ -29,12 +29,14 @@ import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager
 import com.example.cq_mobile.HelperManagers.BackPressManager;
 import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
+import com.example.cq_mobile.HelperManagers.SharedPreffFolder.ServerDataReconnect;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
-import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.databinding.FragmentTicketBinding;
+import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 import com.example.cq_mobile.ui.ticket.CreateFolder.CreateTicket;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketCategoryManager;
@@ -46,7 +48,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
-public class TicketFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener{
+public class TicketFragment extends Fragment implements CategoryAdapter.OnCategoryClickListener {
     private FragmentTicketBinding binding;
     private TicketCategoryManager ticketCategoryManager;
     private TicketSearchManager ticketSearchManager;
@@ -61,137 +63,136 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     String email;
     String password;
     private ClockOutVisibilityHandler visibilityHandler;
-
     private BackPressManager backPressManager;
+    String accessToken;
+    ServerDataReconnect serverDataReconnect;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentTicketBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        serverDataReconnect = new ServerDataReconnect(getContext());
+        ThreadManager.runOnMainThread(() -> {
+            SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
 
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
-        String accessToken = AuthManager.getInstance(context).getToken();
-        email = sharedPrefManager.getEmail();
-        password = sharedPrefManager.getPassword();
-        Log.d("TicketFragment", "Access Token: " + accessToken);
-        Log.d("TicketFragment", "Email: "+email);
-        Log.d("TicketFragment", "Password  : "+password);
-        context = getContext();
-        ticketCategoryManager = new TicketCategoryManager(context, accessToken);
+            AuthManager authManager = AuthManager.getInstance(requireContext());
+             accessToken = authManager.getToken();
+            int userId = authManager.getUserId();
 
-        setupBottomSheet();
-        if (binding != null) {
-            binding.createTicket.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TransitionAnimationManager.slideOutToRight(v, 150);
-                v.postDelayed(() -> {
+
+            email = sharedPrefManager.getEmail();
+            password = sharedPrefManager.getPassword();
+            Log.d("TicketFragment", "Access Token: " + accessToken);
+            Log.d("TicketFragment", "Email: " + email);
+            Log.d("TicketFragment", "Password  : " + password);
+            context = getContext();
+            ticketCategoryManager = new TicketCategoryManager(context);
+
+            setupBottomSheet();
+            if (binding != null) {
+                binding.createTicket.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TransitionAnimationManager.slideOutToRight(v, 150);
                         v.postDelayed(() -> {
-                            TransitionAnimationManager.slideInFromRight(v, 50);
+                            v.postDelayed(() -> {
+                                TransitionAnimationManager.slideInFromRight(v, 50);
+                            }, 150);
+                            Intent intent = new Intent(context, CreateTicket.class);
+                            startActivity(intent);
                         }, 150);
-                    Intent intent = new Intent(context, CreateTicket.class);
-                    startActivity(intent);
-        }, 150);
-
-                }
-            });
-
-
-            binding.searchBarBtnOff.setOnClickListener(v -> {
-                ClickAnimationManager.applyClickAnimation(v);
-
-                binding.searchBarBtnOn.setVisibility(View.VISIBLE);
-                binding.searchBarBtnOff.setVisibility(View.GONE);
-                binding.cardView3.setVisibility(View.VISIBLE);
-                loadTickets();
-
-                binding.progressBar.setVisibility(View.VISIBLE);
-
-            });
-
-            binding.searchBarBtnOn.setOnClickListener(v -> {
-                ClickAnimationManager.applyClickAnimation(v);
-
-                binding.searchBarBtnOn.setVisibility(View.GONE);
-                binding.searchBarBtnOff.setVisibility(View.VISIBLE);
-                binding.cardView3.setVisibility(View.GONE);
-
-
-            });
-
-            // Handle filter buttons
-            binding.filterBtnOff.setOnClickListener(v -> {
-                ClickAnimationManager.applyClickAnimation(v);
-
-                binding.filterBtnOn.setVisibility(View.VISIBLE);
-                binding.filterBtnOff.setVisibility(View.GONE);
-
-                binding.searchBarBtnOn.setVisibility(View.GONE);
-                binding.searchBarBtnOff.setVisibility(View.VISIBLE);
-                binding.cardView3.setVisibility(View.GONE);
-
-                hideBottomSheet();
-            });
-            binding.filterBtnOn.setOnClickListener(v -> {
-                ClickAnimationManager.applyClickAnimation(v);
-
-                binding.filterBtnOn.setVisibility(View.GONE);
-                binding.filterBtnOff.setVisibility(View.VISIBLE);
-
-                binding.searchBarBtnOn.setVisibility(View.VISIBLE);
-                binding.searchBarBtnOff.setVisibility(View.GONE);
-                binding.cardView3.setVisibility(View.VISIBLE);
-
-
-                showBottomSheet();
-            });
-
-
-
-
-
-
-            binding.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    isLoading = true;
-                    binding.swipeRefreshLayout.setRefreshing(false);
-                    reloadFragment();
-                }
-            });
-
-
-
-            binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-               @Override
-                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                    super.onScrolled(recyclerView, dx, dy);
-                    if (!isLoading && !recyclerView.canScrollVertically(1)) {
-                        binding.swipeRefreshLayout.setRefreshing(true);
-                        loadTicketsWithToken(accessToken);
 
                     }
+                });
+
+
+                binding.searchBarBtnOff.setOnClickListener(v -> {
+                    ClickAnimationManager.applyClickAnimation(v);
+
+                    binding.searchBarBtnOn.setVisibility(View.VISIBLE);
+                    binding.searchBarBtnOff.setVisibility(View.GONE);
+                    binding.cardView3.setVisibility(View.VISIBLE);
+                    loadTickets();
+
+                    binding.progressBar.setVisibility(View.VISIBLE);
+
+                });
+
+                binding.searchBarBtnOn.setOnClickListener(v -> {
+                    ClickAnimationManager.applyClickAnimation(v);
+
+                    binding.searchBarBtnOn.setVisibility(View.GONE);
+                    binding.searchBarBtnOff.setVisibility(View.VISIBLE);
+                    binding.cardView3.setVisibility(View.GONE);
+
+
+                });
+
+                // Handle filter buttons
+                binding.filterBtnOff.setOnClickListener(v -> {
+                    ClickAnimationManager.applyClickAnimation(v);
+
+                    binding.filterBtnOn.setVisibility(View.VISIBLE);
+                    binding.filterBtnOff.setVisibility(View.GONE);
+
+                    binding.searchBarBtnOn.setVisibility(View.GONE);
+                    binding.searchBarBtnOff.setVisibility(View.VISIBLE);
+                    binding.cardView3.setVisibility(View.GONE);
+
+                    hideBottomSheet();
+                });
+                binding.filterBtnOn.setOnClickListener(v -> {
+                    ClickAnimationManager.applyClickAnimation(v);
+
+                    binding.filterBtnOn.setVisibility(View.GONE);
+                    binding.filterBtnOff.setVisibility(View.VISIBLE);
+
+                    binding.searchBarBtnOn.setVisibility(View.VISIBLE);
+                    binding.searchBarBtnOff.setVisibility(View.GONE);
+                    binding.cardView3.setVisibility(View.VISIBLE);
+
+
+                    showBottomSheet();
+                });
+
+
+                binding.swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        isLoading = true;
+                        binding.swipeRefreshLayout.setRefreshing(false);
+                        reloadFragment();
+                    }
+                });
+
+
+                binding.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        if (!isLoading && !recyclerView.canScrollVertically(1)) {
+                            binding.swipeRefreshLayout.setRefreshing(true);
+                            loadTicketsWithToken(accessToken);
+
+                        }
+                    }
+                });
+
+
+                if (binding != null) {  // Check if the binding is still valid
+                    binding.progressBar.setVisibility(View.VISIBLE);
                 }
-            });
 
 
-            if (binding != null) {  // Check if the binding is still valid
-                binding.progressBar.setVisibility(View.VISIBLE);
+                loadCategoryTickets(accessToken);
+
+
             }
-            loadCategoryTickets(accessToken);
+
+        });
 
 
-            registerTimerReceiver();
-
-
-        }
         return root;
-    }
-
-    private void registerTimerReceiver() {
-
-
-
     }
 
 
@@ -221,7 +222,7 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
                 } else {
                     Toast.makeText(context, "Searching for: " + searchQuery, Toast.LENGTH_SHORT).show();
                     Log.d("Search", "Search query: " + searchQuery);
-                    loadSearchTickets(email, password, searchQuery, categoryId);
+                    loadSearchTickets(searchQuery, categoryId);
 
                 }
             }
@@ -251,7 +252,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
                     return;
                 }
 
-                binding.progressBar.setVisibility(View.GONE);
 
                 // Log the received ticket data
                 if (tickets != null && !tickets.isEmpty()) {
@@ -283,8 +283,6 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
             }
         });
     }
-
-
     private void loadTickets() {
         if (binding == null) {
             Log.e("TicketFragment", "Binding is null, ignoring response");
@@ -292,27 +290,19 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
             return;
         }
         setProgressBarVisibility(true);
-
-        AccessTokenRequest request = new AccessTokenRequest(context,email, password);
+        binding.progressBar.setVisibility(View.VISIBLE);
 
         if (ticketManager == null) {
             ticketManager = new TicketManager(requireContext());
         }
+        loadTicketsWithToken(accessToken);
 
-        ticketManager.getAccessToken(request, new TicketManager.AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String token) {
-                loadTicketsWithToken(token);
-            }
+        setProgressBarVisibility(false);
+        isLoading = false;
 
-            @Override
-            public void onError(String errorMessage) {
-                setProgressBarVisibility(false);
-                isLoading = false;
-                Log.e("TicketFragment", "Access Token Error: " + errorMessage);
-            }
-        });
+
     }
+
     private void loadTicketsWithToken(String token) {
 
         if (!isAdded() || getActivity() == null) {
@@ -346,6 +336,7 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
                     binding.swipeRefreshLayout.setRefreshing(false);
 
                 }
+
             }
 
             @Override
@@ -363,66 +354,61 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
             }
         });
     }
+
     private void displayTickets(List<TicketAPIItem> tickets, String token) {
         if (itemAdapter == null) {
             binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
             itemAdapter = new ItemAdapter(context, token, tickets);
             binding.recyclerView.setAdapter(itemAdapter);
-
+            binding.progressBar.setVisibility(View.GONE);
         } else {
             itemAdapter.addTickets(tickets);
         }
     }
 
 
-    private void loadSearchTickets(String email, String password, String search, int categoryId) {
+    private void loadSearchTickets(String search, int categoryId) {
         if (ticketSearchManager == null) {
             ticketSearchManager = new TicketSearchManager(context);
         }
-        ticketSearchManager.getAccessToken(email, password, new TicketSearchManager.AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String token) {
-                ticketSearchManager.loadSearchTickets(1, 10, search, categoryId, new TicketSearchManager.SearchTicketsCallback() {
-                    @Override
-                    public void onSearchTicketsLoaded(List<TicketAPIItem> tickets) {
-                        if (tickets != null && !tickets.isEmpty()) {
-                            for (TicketAPIItem ticket : tickets) {
-                                Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
-                                Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
+        String accessToken = AuthManager.getInstance(context).getToken();
+        if (accessToken != null && !AuthManager.getInstance(context).isTokenExpired()) {
+            ticketSearchManager.loadSearchTickets(1, 10, search, categoryId, new TicketSearchManager.SearchTicketsCallback() {
+                @Override
+                public void onSearchTicketsLoaded(List<TicketAPIItem> tickets) {
+                    if (tickets != null && !tickets.isEmpty()) {
+                        for (TicketAPIItem ticket : tickets) {
+                            Log.d("loadSearchTickets", "Ticket ID: " + ticket.getId());
+                            Log.d("loadSearchTickets", "Ticket Subject: " + ticket.getSubject());
 
+                            binding.searchBarBtnOn.setVisibility(View.GONE);
+                            binding.searchBarBtnOff.setVisibility(View.VISIBLE);
+                            binding.cardView3.setVisibility(View.GONE);
 
-                                binding.searchBarBtnOn.setVisibility(View.GONE);
-                                binding.searchBarBtnOff.setVisibility(View.VISIBLE);
-                                binding.cardView3.setVisibility(View.GONE);
-
-                                binding.swipeRefreshLayout.setRefreshing(false);
-                                binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-                                itemAdapter = new ItemAdapter(context, token, tickets);
-                                binding.recyclerView.setAdapter(itemAdapter);
-
-                            }
-                        } else {
-                            Log.d("loadSearchTickets", "No tickets found.");
-                            Toast.makeText(context, "No tickets found: " + "There are no match", Toast.LENGTH_SHORT).show();
-                            hideBottomSheet();
-                            binding.filterBtnOn.setVisibility(View.VISIBLE);
-                            binding.filterBtnOff.setVisibility(View.GONE);
-
+                            binding.swipeRefreshLayout.setRefreshing(false);
+                            binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+                            itemAdapter = new ItemAdapter(context, accessToken, tickets);
+                            binding.recyclerView.setAdapter(itemAdapter);
                         }
+                    } else {
+                        Log.d("loadSearchTickets", "No tickets found.");
+                        Toast.makeText(context, "No tickets found: " + "There are no match", Toast.LENGTH_SHORT).show();
+                        hideBottomSheet();
+                        binding.filterBtnOn.setVisibility(View.VISIBLE);
+                        binding.filterBtnOff.setVisibility(View.GONE);
                     }
+                }
 
-                    @Override
-                    public void onError(String errorMessage) {
-                        Log.e("loadSearchTickets", "Error: " + errorMessage);
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                Log.e("loadSearchTickets", "Error getting access token: " + errorMessage);
-            }
-        });
+                @Override
+                public void onError(String errorMessage) {
+                    Log.e("loadSearchTickets", "Error: " + errorMessage);
+                }
+            });
+        } else {
+            // Token is not available or expired, handle accordingly
+            Log.e("loadSearchTickets", "Access token is missing or expired.");
+            Toast.makeText(context, "Access token is missing or expired. Please log in again.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setProgressBarVisibility(boolean isVisible) {
@@ -489,16 +475,18 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
     }
 
 
-
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof ClockOutVisibilityHandler) {
-            visibilityHandler = (ClockOutVisibilityHandler) context;
-            backPressManager = new BackPressManager(context);
-        } else {
-            Log.d("MoreFragment", "Activity does not implement ClockOutVisibilityHandler");
-        }
+        ThreadManager.runOnBackgroundThread(() -> {
+            if (context instanceof ClockOutVisibilityHandler) {
+                visibilityHandler = (ClockOutVisibilityHandler) context;
+                backPressManager = new BackPressManager(context);
+            } else {
+                Log.d("MoreFragment", "Activity does not implement ClockOutVisibilityHandler");
+            }
+
+        });
 
 
     }
@@ -514,33 +502,49 @@ public class TicketFragment extends Fragment implements CategoryAdapter.OnCatego
         Log.d("TicketFragment", "All processes stopped and fragment paused.");
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
+        // Ensure visibility handler is not null and set visibility accordingly
         if (visibilityHandler != null) {
             visibilityHandler.setClockOutVisibility(false);
         }
+
+        // Handle the back press using the BackPressManager
         requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                // Handle the back press using your BackPressManager
                 if (backPressManager != null) {
                     backPressManager.handleBackPress(MainActivity.class);
                 }
             }
         });
-    }
+        ThreadManager.runOnMainThread(() -> {
+            ServerDataReconnect serverDataReconnect = new ServerDataReconnect(context);
+            serverDataReconnect.reconnectAsync(success -> {
+                if (success) {
+                    Log.d("TicketFragment", "Reconnected successfully");
+                } else {
+                    Log.e("TicketFragment", "Reconnection failed. Redirecting to login.");
+                    new android.os.Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        Intent intent = new Intent(context, MainActivity.class);
+                        startActivity(intent);
+                    }, 500);
+                }
+            });
+        });
 
+    }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (ticketManager != null) {
+            ticketManager.cancelAllCalls();
+        }
         binding = null;
     }
-
-
-
-
 }
 
 

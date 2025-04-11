@@ -32,17 +32,14 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
 
     private Context context;
     private List<CombinedItem> combinedList;
-    private String email;
-    private String password;
+
     private String accessToken;
     private String currentUserName;
     List<ChatDetails> chatDetailsList;
 
 
-    public ColleagueAdapter(Context context, List<CombinedItem> combinedList, String email, String password, String currentUserName, String accessToken, List<ChatDetails> chatDetailsList) {
+    public ColleagueAdapter(Context context, List<CombinedItem> combinedList, String currentUserName, String accessToken, List<ChatDetails> chatDetailsList) {
         this.context = context;
-        this.email = email;
-        this.password = password;
         this.currentUserName = currentUserName;
         this.accessToken = accessToken;
         this.combinedList = combinedList != null ? combinedList : new ArrayList<>();
@@ -60,15 +57,12 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
     @Override
     public void onBindViewHolder(@NonNull ColleagueViewHolder holder, int position) {
         CombinedItem item = combinedList.get(position);
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(context);
-        String accessToken = AuthManager.getInstance(context).getToken();
-        email = sharedPrefManager.getEmail();
-        password = sharedPrefManager.getPassword();
-        int id_user = sharedPrefManager.getUserId();
-        String avatar_url = sharedPrefManager.getAvatarUrl();
 
-        Log.d(TAG, "Email: " + email);
-        Log.d(TAG, "Password: " + password);
+         accessToken = AuthManager.getInstance(context).getAccessToken();
+        int id_user = AuthManager.getInstance(context).getUserId();
+        String avatar_url = AuthManager.getInstance(context).getAvatar();
+
+
         Log.d(TAG, "id_user: " + id_user);
         Log.d(TAG, "avatar_url: " + avatar_url);
         Log.d(TAG, "currentUserName: " + currentUserName);
@@ -138,10 +132,12 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
             // If senderID is 0, assume it's a colleague item and handle the button setup
             if (senderID == 0) {
                 Log.d("ColleagueAdapter", "Colleague: " + "  --  " + senderID + " - - - - " + currentUserName + " - - - - " + avatar + " - - - - " + avatar_url);
-                btn_Item(holder.itemView, channel, avatar, avatar_url, receiverName, currentUserName, senderID, members);
+                btn_Item(holder.itemView, channel, avatar, avatar_url, receiverName, currentUserName, senderID, members, position);
+
             } else {
                 Log.d("ColleagueAdapter", "Chat: " + "  --  " + senderID + " - - - - " + currentUserName + " - - - - " + avatar + " - - - - " + avatar_url);
-                btn_Item(holder.itemView, channel, avatar, avatar_url, receiverName, currentUserName, senderID, members);
+                btn_Item(holder.itemView, channel, avatar, avatar_url, receiverName, currentUserName, senderID, members, position);
+
             }
         } else {
             // If members is null or empty, remove the item from the list completely
@@ -154,15 +150,9 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
     }
 
 
-    private void btn_Item(View itemView, String channel, String avatar, String avatar_url, String receiverName, String senderName, int senderID, List<ChatMember> members) {
-        String finalChannel = channel;
-        String finalReceiverName = receiverName;
-        String finalSenderName = senderName;
-        int finalsenderID = senderID;
-        List<ChatMember> finalMembers = members;
-
+    private void btn_Item(View itemView, String channel, String avatar, String avatar_url, String receiverName, String senderName, int senderID, List<ChatMember> members, int position) {
         itemView.setOnClickListener(v -> {
-            if (finalMembers == null || finalMembers.isEmpty()) {
+            if (members == null || members.isEmpty()) {
                 Log.e(TAG, "No members found for this chat. Aborting click action.");
                 return;
             }
@@ -170,28 +160,29 @@ public class ColleagueAdapter extends RecyclerView.Adapter<ColleagueAdapter.Coll
             v.postDelayed(() -> {
                 TransitionAnimationManager.zoomIn(v, 50);
                 Intent intent = new Intent(context, InnerChats.class);
-                intent.putExtra("token", accessToken);
-                intent.putExtra("channel", finalChannel);
-                intent.putExtra("Email", email);
-                intent.putExtra("Password", password);
-                intent.putExtra("Sender", currentUserName);
-                intent.putExtra("Receiver", finalReceiverName);
+                intent.putExtra("token", AuthManager.getInstance(context).getAccessToken());
+                intent.putExtra("channel", channel);
+                intent.putExtra("Sender", senderName);
+                intent.putExtra("Receiver", receiverName);
                 intent.putExtra("Avatar", avatar);
                 intent.putExtra("Avatar_url", avatar_url);
-                intent.putExtra("id", finalsenderID);
+                intent.putExtra("id", senderID);
                 intent.putExtra("source_adapter", "ColleagueAdapter");
 
-                if (finalMembers != null) {
+                if (members != null) {
                     Gson gson = new Gson();
-                    String membersJson = gson.toJson(finalMembers);
+                    String membersJson = gson.toJson(members);
                     intent.putExtra("chatAPIData", membersJson);
                 }
 
                 Log.d(TAG, "Starting InnerChats activity with intent: " + intent.toString());
+
+                // Log the item position when clicked
+                Log.d(TAG, "Item clicked at position: " + position);
+
                 context.startActivity(intent);
             }, 100);
         });
-
     }
 
 

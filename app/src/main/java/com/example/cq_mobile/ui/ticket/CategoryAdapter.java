@@ -14,11 +14,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.CloseKeyboardManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.TicketAPICategoryFolder.TicketAPICategoryItems;
 
 import java.util.List;
-
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
     private static final String TAG = "CategoryAdapter";
     private List<TicketAPICategoryItems> itemList;
@@ -50,10 +50,13 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         TicketAPICategoryItems item = itemList.get(position);
         Log.d(TAG, "Binding item at position: " + position);
 
-        holder.categoryName.setText(item.getName());
-        if (item.getColor() != null) {
-            holder.categoryNameColor.setColorFilter(Color.parseColor(item.getColor()));
-        }
+        // Using the main thread to update the UI
+        ThreadManager.runOnMainThread(() -> {
+            holder.categoryName.setText(item.getName());
+            if (item.getColor() != null) {
+                holder.categoryNameColor.setColorFilter(Color.parseColor(item.getColor()));
+            }
+        });
 
         holder.itemView.setOnClickListener(v -> {
             if (onCategoryClickListener != null) {
@@ -78,4 +81,5 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             categoryNameColor = categoryView.findViewById(R.id.categoryName_color);
         }
     }
+
 }

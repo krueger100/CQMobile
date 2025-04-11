@@ -47,7 +47,7 @@ public class BackPressManager {
             Activity activity = (Activity) context;
             FragmentManager fragmentManager = ((androidx.fragment.app.FragmentActivity) activity).getSupportFragmentManager();
 
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            new Handler(Looper.getMainLooper()).post(() -> {
                 if (fragmentManager.getBackStackEntryCount() > 0) {
                     fragmentManager.popBackStack();
                 } else {
@@ -55,10 +55,11 @@ public class BackPressManager {
                     context.startActivity(intent);
                     activity.finish();
                 }
-            }, 200);
+            });
         }
     }
 }
+
 
 
 /*

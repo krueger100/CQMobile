@@ -9,6 +9,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
 
 
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -20,47 +21,18 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
 public class MessageManager {
     private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";
-    private String accessToken;
     private final Context context;
-    Call<AccessTokenResponse> call;
     Call<MessageAPIResponse> call2;
 
     public MessageManager(Context context) {
         this.context = context;
     }
 
-    public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-        call = apiService.AccessTokenUser(request);
-
-        call.enqueue(new Callback<AccessTokenResponse>() {
-            @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    accessToken = response.body().getAccessToken();
-                    if (accessToken != null) {
-                        Log.d("MessageManager", "Access Token: " + accessToken);
-                        callback.onAccessTokenReceived(accessToken);
-                    } else {
-                        callback.onError("Access token not received.");
-                    }
-                } else {
-                    callback.onError("Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                callback.onError("Failure: " + t.getMessage());
-            }
-        });
-    }
-
     public void loadMessages(int messageID, int channel, final AllChatsCallback callback) {
-        if (accessToken == null) {
+        String accessToken = AuthManager.getInstance(context).getToken(); // Get token from AuthManager
+        if (accessToken == null || accessToken.isEmpty()) {
             callback.onError("Access token is missing.");
             return;
         }
@@ -111,7 +83,6 @@ public class MessageManager {
                             chatItem.setMessage_read(innerChatMessage.getMessage().getName()); // Extract Avatar
                             chatItem.setMessage_read(innerChatMessage.getMessage().getDate());
 
-
                             chatItems.add(chatItem);
                         }
                     }
@@ -129,12 +100,6 @@ public class MessageManager {
         });
     }
 
-    public void cancelAccessTokenCall() {
-        if (call != null && !call.isCanceled()) {
-            call.cancel();
-        }
-    }
-
     public void cancelChatLoadingCall() {
         if (call2 != null && !call2.isCanceled()) {
             call2.cancel();
@@ -142,24 +107,15 @@ public class MessageManager {
     }
 
     public void cancelAllCalls() {
-        cancelAccessTokenCall();
         cancelChatLoadingCall();
-    }
-
-
-
-    public interface AccessTokenCallback {
-        void onAccessTokenReceived(String accessToken);
-        void onError(String errorMessage);
     }
 
     public interface AllChatsCallback {
         void onAllChatsLoaded(List<InnerChatAPIItem> chats, String rawJson);
         void onError(String errorMessage);
     }
-
-
 }
+
 
 //      MessageApi chatApi = retrofit.create(MessageApi.class);
 //        call2 = chatApi.getChats(page, pageSize, accessToken, "Bearer " + accessToken);

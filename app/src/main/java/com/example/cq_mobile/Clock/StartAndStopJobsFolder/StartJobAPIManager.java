@@ -3,7 +3,6 @@ package com.example.cq_mobile.Clock.StartAndStopJobsFolder;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;

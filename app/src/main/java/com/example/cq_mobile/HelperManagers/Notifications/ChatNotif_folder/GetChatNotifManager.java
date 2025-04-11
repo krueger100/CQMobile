@@ -106,7 +106,7 @@ public class GetChatNotifManager {
                 }
 
                 for (int channel : uniqueChannels) {
-                    UpdateReadAPIManager.updateReadStatus(channel, accessToken, new UpdateReadAPIManager.ApiCallback() {
+                    UpdateReadAPIManager.updateReadStatus(context, channel, new UpdateReadAPIManager.ApiCallback() {
                         @Override
                         public void onSuccess() {
                             Log.d("ChatAdapter", "Total Unread Messages: Read status updated successfully for channel: " + channel);
@@ -114,9 +114,11 @@ public class GetChatNotifManager {
 
                         @Override
                         public void onFailure(String error) {
-                            Log.d("ChatAdapter", "Total Unread Messages: Read status update failed for channel: " + channel + " Error: " + error);
+                            Log.d("ChatAdapter", "Total Unread Messages: Read status update failed: " + error);
                         }
                     });
+
+
                 }
 
 

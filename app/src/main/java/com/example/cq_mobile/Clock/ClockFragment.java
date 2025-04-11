@@ -136,6 +136,7 @@ public class ClockFragment extends Fragment {
 
                                                 // Save the coordinates (if available)
                                                 saveCoordinatesIfNeeded(todo);
+
                                             }
 
                                             // Save job details to SharedPreferences
@@ -166,6 +167,9 @@ public class ClockFragment extends Fragment {
                                         Log.d("TodoData", "Start Date: " + todo.getStart_date());
                                         Log.d("TodoData", "End Date: " + todo.getEnd_date());
                                         Log.d("TodoData", "Checked: " + todo.isChecked());
+
+                                        sharedPrefManager.saveStartJobID(String.valueOf(todo.getId()));
+                                        sharedPrefManager.saveStartJobInnerTask(String.valueOf(todo.getJob_id()));
 
                                         // Logging client details if available
                                         logClientDetails(todo.getClient_details());
@@ -225,6 +229,7 @@ public class ClockFragment extends Fragment {
                                             Taskmain.Coordinates taskCoords = convertToTaskmainCoordinates(coords);
                                             SharedPrefManager sharedPrefManager = SharedPrefManager.getInstance(requireContext());
                                             sharedPrefManager.saveCoordinatesList(Collections.singletonList(taskCoords));
+
                                         }
                                     }
                                 });
@@ -245,8 +250,11 @@ public class ClockFragment extends Fragment {
     }
 
     private Taskmain.Coordinates convertToTaskmainCoordinates(Todo.Coordinates todoCoordinates) {
-        double lat = Double.parseDouble(todoCoordinates.getLatitude());
-        double lon = Double.parseDouble(todoCoordinates.getLongitude());
+        String latitudeStr = todoCoordinates.getLatitude();
+        String longitudeStr = todoCoordinates.getLongitude();
+        double lat = (latitudeStr != null && !latitudeStr.isEmpty()) ? Double.parseDouble(latitudeStr) : 0.0;
+        double lon = (longitudeStr != null && !longitudeStr.isEmpty()) ? Double.parseDouble(longitudeStr) : 0.0;
+
         return new Taskmain.Coordinates(lat, lon);
     }
 
@@ -281,22 +289,28 @@ public class ClockFragment extends Fragment {
                             Log.w(TAG, "   <<<<<<<<< ACCESS TOKEN >>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.accessToken);
                             Log.w(TAG, "   <<<<<<<< NOTIFICATION TOKEN >>>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.token);
                             Log.w(TAG, "   <<<<<<<<< USER ID >>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.userId);
-
                             Log.w(TAG, "   <<<<<<<<< AVATAR >>>>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.avatar);
                             Log.w(TAG, "   <<<<<<<<< FIRST NAME >>>>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.firstName);
                             Log.w(TAG, "   <<<<<<<<< LAST NAME >>>>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.lastName);
                             Log.w(TAG, "   <<<<<<<<< EMAIL >>>>>>>>>> "+ "\n "+" ->  "+ ClockFragment.this.email);
 
-
-                            // Save user data to Firebase via NotificationTokenManager
+                            // Save user data to Firebase
                             NotificationTokenManager notificationTokenManager = new NotificationTokenManager(ClockFragment.this.userId);
-                            notificationTokenManager.saveUserDataToFirebase(ClockFragment.this.accessToken, String.valueOf(ClockFragment.this.userId), ClockFragment.this.avatar, ClockFragment.this.firstName, ClockFragment.this.lastName, token);
+                            notificationTokenManager.saveUserDataToFirebase(ClockFragment.this.accessToken,
+                                    String.valueOf(ClockFragment.this.userId),
+                                    ClockFragment.this.avatar,
+                                    ClockFragment.this.firstName,
+                                    ClockFragment.this.lastName,
+                                    token);
 
 
+
+                            // Hide ClockFragment or replace it
                             if (getActivity() instanceof MainActivity) {
                                 ((MainActivity) getActivity()).hideClockFragment();
                             }
                         }
+
 
                         @Override
                         public void onFailure(String error) {

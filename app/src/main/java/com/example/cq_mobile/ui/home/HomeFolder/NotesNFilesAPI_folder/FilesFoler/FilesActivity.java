@@ -256,9 +256,7 @@ public class FilesActivity extends AppCompatActivity {
         lastLoadedPage = page;
 
         String url = "https://cqbms.app/api/m/jobs/schedules/" + jobScheduleIdStr + "/files?page=" + page + "&per_page=" + pageSize + "&type=files";
-
         Log.w(TAG, "Loading files from URL: -> " + url);
-
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://cqbms.app/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -301,15 +299,12 @@ public class FilesActivity extends AppCompatActivity {
         });
     }
 
-
-
     private void refreshFileList() {
         currentPage = 1; // Reset pagination
         filesList.clear(); // Clear the list
         filesAdapter.notifyDataSetChanged(); // Notify adapter
         loadFiles(currentPage, accessToken); // Reload files
     }
-
 
     private void navigateBack() {
         Intent backIntent = new Intent(FilesActivity.this, NewBuild.class);

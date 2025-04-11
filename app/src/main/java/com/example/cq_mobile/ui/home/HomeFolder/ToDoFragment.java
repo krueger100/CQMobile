@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
+import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.Todo;
 import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoAdapter;
@@ -28,8 +31,8 @@ import com.example.cq_mobile.ui.home.HomeFolder.API_todo.TodoApiManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToDoFragment extends Fragment {
 
+public class ToDoFragment extends Fragment {
     private RecyclerView recyclerView;
     private TodoAdapter todoAdapter;
     private List<Todo> joblist = new ArrayList<>();
@@ -39,7 +42,8 @@ public class ToDoFragment extends Fragment {
     private int currentPage = 1;
     private final int PAGE_SIZE = 15;
     private ClockOutVisibilityHandler visibilityHandler;
-    private static final String TAG = "TodoFragment";
+    private static final String TAG = "ToDoFragment";
+    private Activity activity;
 
     @Nullable
     @Override
@@ -50,12 +54,18 @@ public class ToDoFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        todoAdapter = new TodoAdapter(getContext(), joblist);
-        recyclerView.setAdapter(todoAdapter);
-        String accessToken = AuthManager.getInstance(getContext()).getToken();
+        activity = getActivity();
 
+        if (activity != null) {
+            todoAdapter = new TodoAdapter( activity, joblist);
+            recyclerView.setAdapter(todoAdapter);
+        } else {
+            Log.e(TAG, "Activity is null, cannot set up adapter");
+        }
 
-        loadMessages();
+        if (joblist.isEmpty()) {
+            loadMessages();
+        }
 
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -89,7 +99,7 @@ public class ToDoFragment extends Fragment {
         AuthManager authManager = AuthManager.getInstance(context);
         if (!authManager.isLoggedIn() || authManager.isTokenExpired()) {
             Log.e(TAG, "Token missing or expired. Redirecting to login or showing error.");
-            // Optionally, redirect to login or show a dialog
+            // Optionally redirect to login or notify the user
             return;
         }
 
@@ -99,9 +109,9 @@ public class ToDoFragment extends Fragment {
         TodoApiManager.fetchApiDataPaginated(context, currentPage, PAGE_SIZE, new TodoApiManager.ApiResponseCallback() {
             @Override
             public void onDataFetched(List<Todo> data) {
-                if (!isAdded() || getActivity() == null) return;
+                if (!isAdded()) return;
 
-                getActivity().runOnUiThread(() -> {
+                requireActivity().runOnUiThread(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
                     isLoading = false;
 
@@ -121,9 +131,9 @@ public class ToDoFragment extends Fragment {
 
             @Override
             public void onError(String error) {
-                if (!isAdded() || getActivity() == null) return;
+                if (!isAdded()) return;
 
-                getActivity().runOnUiThread(() -> {
+                requireActivity().runOnUiThread(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.GONE);
                     isLoading = false;
                     Log.e(TAG, "Error loading data: " + error);
@@ -146,12 +156,15 @@ public class ToDoFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (visibilityHandler != null) {
-            visibilityHandler.setClockOutVisibility(true);
-        }
+        ThreadManager.runOnMainThread(() -> {
+            if (visibilityHandler != null) {
+                visibilityHandler.setClockOutVisibility(true);
+            }
+        });
+
+
     }
 }
-
 
 /*
  implements TimerManager.TimerListener

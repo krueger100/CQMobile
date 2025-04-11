@@ -1,48 +1,49 @@
 package com.example.cq_mobile.ui.ticket.ReplyTicketFolder.DeleteMessageFolder;
 
 
+import android.content.Context;
 import android.util.Log;
+
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-
 public class DeleteTicketMessageApiManager {
 
     private static final String TAG = "DeleteTicketMessageApiManager";
-   // private static final String BASE_URL = "https://aws.customquoter.co.uk/api/m/tickets/";
-   private static final String BASE_URL = "https://cqbms.app/api/m/tickets/";
-    private static final String AUTH_TOKEN = "6331|n98FC0W7s7RlA4o5mnCmfxTDYlzWkWF2qg2B4c0m";
+    private static final String BASE_URL = "https://cqbms.app/api/m/tickets/";
     private static final String API_KEY = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-    public static String deleteTicketMessage(int ticketId, int messageId) {
+    public static String deleteTicketMessage(Context context, int ticketId, int messageId) {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         Log.d(TAG, "Attempting to delete ticket message with Ticket ID: " + ticketId + ", Message ID: " + messageId);
 
         try {
-            // Build the URL for the DELETE request
+            String accessToken = AuthManager.getInstance(context).getToken();
+
+            if (accessToken == null || AuthManager.getInstance(context).isTokenExpired()) {
+                Log.e(TAG, "Access token is missing or expired.");
+                return "Error: Access token is missing or expired. Please log in again.";
+            }
             String completeUrl = BASE_URL + ticketId + "/" + messageId;
             Log.d(TAG, "Connecting to URL: " + completeUrl); // Log URL
             URL url = new URL(completeUrl);
-
-            // Open the connection
             connection = (HttpURLConnection) url.openConnection();
 
-            // Set request method and headers
             connection.setRequestMethod("DELETE");
-            connection.setRequestProperty("Authorization", "Bearer " + AUTH_TOKEN);
+            connection.setRequestProperty("Authorization", "Bearer " + accessToken);
             connection.setRequestProperty("x-api-key", API_KEY);
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("Accept", "application/json");
 
-            Log.d(TAG, "Headers set: Authorization, x-api-key, Content-Type, Accept"); // Log headers
+            Log.d(TAG, "Headers set: Authorization, x-api-key, Content-Type, Accept");
 
-            // Connect to the API
             connection.connect();
-            Log.d(TAG, "Connection established"); // Log connection status
+            Log.d(TAG, "Connection established");
 
             // Get the response code
             int responseCode = connection.getResponseCode();

@@ -110,11 +110,11 @@ public class TimerUIManager {
 
                 Log.w("JobTitle", "jobTitle  ->> " + jobTitle);
                 if (jobTitle != null && !jobTitle.trim().isEmpty()) {
-                    clockOutManager.setupClockOutButtonFab(fab, accessToken, jobId);
+                    clockOutManager.setupClockOutButtonFab(fab, jobId);
                     Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
                     Log.w(TAG, "setupClockOutButton  PRESSED<<-- ");
                 } else {
-                    clockOutManager.setupStopJobWithTimeSheetFab(fab, accessToken, jobId,taskId,sharedPrefManager,progressBar);
+                    clockOutManager.setupStopJobWithTimeSheetFab(fab, jobId,taskId,sharedPrefManager,progressBar);
                     Log.w("JobTitle", "MAIN_ACTIVITY  <<-- " + jobTitle);
                     Log.w(TAG, "setupStopJobWithTimeSheet  PRESSED<<-- ");
                 }

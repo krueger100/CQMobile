@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.cq_mobile.HelperManagers.CacheFolder.CacheManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.R;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,7 +40,7 @@ import java.util.List;
 public class ColleaguesPageFragment extends Fragment {
 
     private ColleagueManager colleagueManager;
-    private String accessToken;
+    AuthManager authManager;
     private RecyclerView colleaguesRecyclerView;
     private ColleagueAdapter colleagueAdapter;
     private int currentPage = 1;
@@ -48,34 +50,31 @@ public class ColleaguesPageFragment extends Fragment {
     private boolean hasMorePages = true;
     List<ChatDetails> chatDetailsList;
     SwipeRefreshLayout swipeRefreshLayout;
-
-    CacheManager cacheManager;
+    String accessToken,currentUserName;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_colleagues_page, container, false);
+        ThreadManager.runOnMainThread(() -> {
 
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(requireContext());
-        String email = sharedPrefManager.getEmail();
-        String password = sharedPrefManager.getPassword();
-        String currentUserName = sharedPrefManager.getFirstName() + " " + sharedPrefManager.getLastName();
+            authManager = AuthManager.getInstance(getContext());
+            accessToken = authManager.getAccessToken();
+            String fname  = AuthManager.getInstance(getContext()).getFirstName();
+            String lname  = AuthManager.getInstance(getContext()).getLastName();
+            currentUserName  = fname +"\t"+ lname;
 
         ProgressBar progressBar = view.findViewById(R.id.progressBar);
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         colleaguesRecyclerView = view.findViewById(R.id.colleaguesRecyclerView);
         layoutManager = new LinearLayoutManager(getContext());
         colleaguesRecyclerView.setLayoutManager(layoutManager);
-
+            Context context = requireContext();
         colleagueManager = new ColleagueManager(getContext());
         progressBar.setVisibility(View.VISIBLE);
 
-        if (email != null && password != null) {
-            Context context = requireContext();
-            AccessTokenRequest tokenRequest = new AccessTokenRequest(context,email, password);
-            getAccessTokenAndLoadColleagues(tokenRequest, progressBar, email, password, currentUserName);
-        } else {
-            progressBar.setVisibility(View.GONE);
-        }
+
+            loadColleaguesWithToken(progressBar,accessToken, getContext(), currentUserName);
+
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -84,7 +83,7 @@ public class ColleaguesPageFragment extends Fragment {
                 currentPage = 1;
                 isLoading = false;
                 hasMorePages = true;
-                loadColleaguesWithToken(progressBar, accessToken, getContext(), email, password, currentUserName);
+                loadColleaguesWithToken(progressBar,accessToken, getContext(), currentUserName);
             }
         });
 
@@ -96,38 +95,16 @@ public class ColleaguesPageFragment extends Fragment {
                 if (dy > 0 && !isLoading && hasMorePages && !recyclerView.canScrollVertically(1)) {
                     // Show SwipeRefreshLayout when loading more data
                     swipeRefreshLayout.setRefreshing(true);
-                    loadColleaguesWithToken(progressBar, accessToken, getContext(), email, password, currentUserName);
+                    loadColleaguesWithToken(progressBar, accessToken, getContext(),currentUserName);
                 }
             }
         });
-
+            Log.d("MainThread", "This is running on the main thread.");
+        });
         return view;
     }
 
-
-    private void getAccessTokenAndLoadColleagues(AccessTokenRequest tokenRequest, ProgressBar progressBar, String email, String password, String currentUserName) {  //
-        colleagueManager.getAccessToken(tokenRequest, new ColleagueManager.AccessTokenCallback() {
-            @Override
-            public void onAccessTokenReceived(String token) {
-                accessToken = token;
-                Log.d("ColleaguesPageFragment", "Access Token received: " + token);
-
-                loadColleaguesWithToken(progressBar,token, getContext(),email , password, currentUserName);
-
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                Log.e("ColleaguesPageFragment", "Error fetching access token: " + errorMessage);
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Failed to get access token", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-
-
-    private void loadColleaguesWithToken(ProgressBar progressBar, String accessToken, Context context, String email, String password, String currentUserName) {
+    private void loadColleaguesWithToken(ProgressBar progressBar, String accessToken, Context context, String currentUserName) {
         if (isLoading || !hasMorePages) return;
         isLoading = true;
 
@@ -171,7 +148,7 @@ public class ColleaguesPageFragment extends Fragment {
 
 
                             if (colleagueAdapter == null) {
-                                colleagueAdapter = new ColleagueAdapter(requireContext(), combinedList, email, password, currentUserName, accessToken, chatDetailsList);
+                                colleagueAdapter = new ColleagueAdapter(requireContext(), combinedList, currentUserName, accessToken, chatDetailsList);
                                 colleaguesRecyclerView.setAdapter(colleagueAdapter);
                             } else {
                                 colleagueAdapter.addMoreItems(combinedList);

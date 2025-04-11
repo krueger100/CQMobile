@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.MainActivity;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.ticket.CreateFolder.TicketCreateFolder.TicketCreateApiManager;
@@ -41,19 +42,18 @@ public class CreateTicket extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_ticket);
+        ThreadManager.runOnMainThread(() -> {
 
         subject = findViewById(R.id.subject);
         body_text = findViewById(R.id.body_text);
         category_spinner = findViewById(R.id.category_spinner);
         send_ticket = findViewById(R.id.send_ticket);
         back = findViewById(R.id.back);
-        progressBar = findViewById(R.id.progressBar); // Assuming you have a ProgressBar in your layout
-
-        SharedPrefManager sharedPrefManager = new SharedPrefManager(this);
+        progressBar = findViewById(R.id.progressBar);
         String accessToken = AuthManager.getInstance(this).getToken();
         Log.d("CreateTicket", "Access Token: " + accessToken);
 
-        ticketCategoryManager = new TicketCategoryManager(this, accessToken);
+        ticketCategoryManager = new TicketCategoryManager(this);
 
         loadCategoriesIntoSpinner();
 
@@ -97,6 +97,8 @@ public class CreateTicket extends AppCompatActivity {
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
+                                        Intent intent = new Intent(getApplicationContext(), CreateTicket.class);
+                                        startActivity(intent);
                                         finish();
                                     }
                                 }, 2000);
@@ -110,6 +112,8 @@ public class CreateTicket extends AppCompatActivity {
                         }
                 );
             }
+        });
+
         });
     }
 

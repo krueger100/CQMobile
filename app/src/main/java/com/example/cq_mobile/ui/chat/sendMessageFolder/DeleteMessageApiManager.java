@@ -1,8 +1,11 @@
 package com.example.cq_mobile.ui.chat.sendMessageFolder;
 
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -15,9 +18,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-
-public class DeleteMessageApiManager {
+import okhttp3.Response;public class DeleteMessageApiManager {
 
     private static final String TAG = "DeleteMessageApiManager";
 
@@ -27,20 +28,20 @@ public class DeleteMessageApiManager {
         void onFailure(String error);
     }
 
-    public static void deleteMessage(String messageId, ProgressBar progressBar, String accessToken, ApiCallback callback) {
+    public static void deleteMessage(String messageId, ProgressBar progressBar, Context context, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiDeleteMessageTask(messageId, progressBar, callback, accessToken));
+        executorService.execute(new ApiDeleteMessageTask(messageId, progressBar, callback, context));
     }
 
     private static class ApiDeleteMessageTask implements Runnable {
         private final String messageId;
-        private final String accessToken;
-        ProgressBar progressBar;
+        private final Context context;
+        private final ProgressBar progressBar;
         private final ApiCallback callback;
 
-        public ApiDeleteMessageTask(String messageId, ProgressBar progressBar, ApiCallback callback, String accessToken) {
+        public ApiDeleteMessageTask(String messageId, ProgressBar progressBar, ApiCallback callback, Context context) {
             this.messageId = messageId;
-            this.accessToken = accessToken;
+            this.context = context;
             this.progressBar = progressBar;
             this.callback = callback;
         }
@@ -51,8 +52,20 @@ public class DeleteMessageApiManager {
             String endpoint = "/api/m/chats/delete";
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
+            // Get the access token using AuthManager
+            String accessToken = AuthManager.getInstance(context).getToken();
+
+            if (accessToken == null || accessToken.isEmpty()) {
+                Log.e(TAG, "Access token is missing.");
+                callback.onFailure("Access token is missing.");
+                return;
+            }
+
             // Create JSON body for message deletion
-            String jsonBody = String.format("{\"id\": \"%s\"}", messageId);
+            String jsonBody = String.format("{\"id\": %s}", messageId);
+
+            // Log the payload before sending
+            Log.d(TAG, "Payload being sent: " + jsonBody);
 
             deleteMessageRequest(baseUrl, endpoint, accessToken, apiKey, jsonBody);
         }
@@ -67,7 +80,7 @@ public class DeleteMessageApiManager {
 
             Request request = new Request.Builder()
                     .url(baseUrl + endpoint)
-                    .addHeader("Authorization", "Bearer " + accessToken)
+                    .addHeader("Authorization", "Bearer " + accessToken.trim()) // Ensure token is trimmed
                     .addHeader("x-api-key", apiKey)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("Accept", "application/json")

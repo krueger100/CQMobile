@@ -23,6 +23,7 @@ import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.NavigationMana
 import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.Notes_Files_Docs_Sheets_nav;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.EncryptionUtil;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 
@@ -50,6 +51,7 @@ public class NotesActivity extends AppCompatActivity {
     private String taskId ;
     TextView notes_back, notes_back2;
     private NavigationManagerForTask navigationManager;
+    String accessToken;
    String token;
     int userId;
     String jobId;
@@ -77,12 +79,12 @@ public class NotesActivity extends AppCompatActivity {
 
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(NotesActivity.this);
-        String accessToken = AuthManager.getInstance(this).getToken();
-        username = sharedPrefManager.getUserName();
-        email = sharedPrefManager.getEmail();
-        password = sharedPrefManager.getPassword();
-        avatar= sharedPrefManager.getAvatarUrl();
-         userId = sharedPrefManager.getUserId();
+         accessToken = AuthManager.getInstance(this).getToken();
+         String fname  = AuthManager.getInstance(this).getFirstName();
+        String lname  = AuthManager.getInstance(this).getLastName();
+        username  = fname +"\t"+ lname;
+        String avatar  = AuthManager.getInstance(this).getAvatar();
+        int userId  = AuthManager.getInstance(this).getUserId();
 
         Log.d("NotesActivity", "Access Token: " + token);
 
@@ -168,7 +170,7 @@ public class NotesActivity extends AppCompatActivity {
 
     private void addNOTES(String noteText) {
         Context context = getApplicationContext();
-        UpdateNoteApiManager.updateNote(context,email, password, String.valueOf(jobScheduleId), noteText, new UpdateNoteApiManager.ApiCallback() {
+        UpdateNoteApiManager.updateNote(context,String.valueOf(jobScheduleId), noteText, new UpdateNoteApiManager.ApiCallback() {
             @Override
             public void onSuccess() {
                 Log.d("UpdateNote", "Note updated successfully!");
@@ -208,7 +210,7 @@ public class NotesActivity extends AppCompatActivity {
                 .build();
 
         NotesApi notesApi = retrofit.create(NotesApi.class);
-        Call<NotesResponse> call = notesApi.getNotes(url, "Bearer " + token, apiKey);
+        Call<NotesResponse> call = notesApi.getNotes(url, "Bearer " + accessToken, apiKey);
 
         call.enqueue(new Callback<NotesResponse>() {
             @Override

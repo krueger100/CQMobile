@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
+import com.example.cq_mobile.LoginFolder.AuthManager;
+import com.example.cq_mobile.LoginFolder.ThreadManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMessage;
@@ -38,21 +40,19 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     private int channel;
     private List<ChatMember> memberslist;
     String currentUser;
-    String accessToken;
     ProgressBar progressBar;
     String username;
     String currentUserID;
     String httpsAvatar_url;
 
     public MessagesAdapter(Context context, List<InnerChatAPIItem> messagesList, int id, int channel, List<ChatMember> memberslist,
-                           String currentUser, String accessToken, ProgressBar progressBar, String username, String currentUserID, String httpsAvatar_url) {
+                           String currentUser, ProgressBar progressBar, String username, String currentUserID, String httpsAvatar_url) {
         this.context = context;
         this.id = id;
         this.channel = channel;
         this.currentUser = currentUser;
         this.messagesList = messagesList != null ? messagesList : new ArrayList<>();
         this.memberslist = memberslist != null ? memberslist : new ArrayList<>();
-        this.accessToken = accessToken;
         this.progressBar = progressBar;
         this.username = username;
         this.currentUserID = currentUserID;
@@ -178,24 +178,28 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     .setMessage("Do you want to delete this message?")
                     .setPositiveButton("Delete", (dialog, which) -> {
                         progressBar.setVisibility(View.VISIBLE);
-                        DeleteMessageApiManager.deleteMessage(String.valueOf(chatAPIItem.getId()), progressBar, accessToken, new DeleteMessageApiManager.ApiCallback() {
-                            @Override
-                            public void onSuccess() {
-                                Log.d("DeleteMessage", "Message deleted successfully.");
+                        String accessToken = AuthManager.getInstance(context).getAccessToken();
+                        ThreadManager.runOnMainThread(() -> {
+                            DeleteMessageApiManager.deleteMessage(String.valueOf(chatAPIItem.getId()), progressBar,context, new DeleteMessageApiManager.ApiCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d("DeleteMessage", "Message deleted successfully.");
 
-                                int position = holder.getBindingAdapterPosition();
-                                if (position != RecyclerView.NO_POSITION) {
-                                    messagesList.remove(position);
-                                    notifyItemRemoved(position);
-                                    notifyItemRangeChanged(position, messagesList.size());
+                                    int position = holder.getBindingAdapterPosition();
+                                    if (position != RecyclerView.NO_POSITION) {
+                                        messagesList.remove(position);
+                                        notifyItemRemoved(position);
+                                        notifyItemRangeChanged(position, messagesList.size());
 
+                                    }
                                 }
-                            }
 
-                            @Override
-                            public void onFailure(String error) {
-                                Log.e("DeleteMessage", "Failed to delete message: " + error);
-                            }
+                                @Override
+                                public void onFailure(String error) {
+                                    Log.e("DeleteMessage", "Failed to delete message: " + error);
+                                }
+                            });
+
                         });
                     }).setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss());
 

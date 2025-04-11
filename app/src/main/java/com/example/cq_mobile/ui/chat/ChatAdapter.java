@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.bumptech.glide.Glide;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatDetails;
 import com.example.cq_mobile.ui.chat.ChatFolder.ChatMember;
@@ -165,15 +166,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 isSeen = true;
                 holder.chatCount.setVisibility(View.GONE);
 
-                UpdateReadAPIManager.updateReadStatus(chatChannels, accessToken, new UpdateReadAPIManager.ApiCallback() {
+                UpdateReadAPIManager.updateReadStatus(context, chatChannels, new UpdateReadAPIManager.ApiCallback() {
                     @Override
                     public void onSuccess() {
-                        Log.d("ChatAdapter", "Total Unread Messages: " + "Read status updated successfully!");
+                        Log.d("ChatAdapter", "Total Unread Messages: Read status updated successfully!");
                         Intent intent = new Intent(context, InnerChats.class);
-                        intent.putExtra("token", accessToken);
+                        intent.putExtra("token", AuthManager.getInstance(context).getAccessToken());
                         intent.putExtra("channel", chatChannels);
-                        intent.putExtra("Email", email);
-                        intent.putExtra("Password", password);
                         intent.putExtra("Sender", senders_name);
                         intent.putExtra("Receiver", receivers_name);
                         intent.putExtra("Avatar", chatItem.getAvatarPath());
@@ -184,13 +183,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                         String membersJson = gson.toJson(members);
                         intent.putExtra("chatAPIData", membersJson);
                         context.startActivity(intent);
-
-
                     }
 
                     @Override
                     public void onFailure(String error) {
-                        Log.d("ChatAdapter", "Total Unread Messages: " + "Read status unsuccessfully!   "+ error);
+                        Log.d("ChatAdapter", "Total Unread Messages: Read status update failed: " + error);
                     }
                 });
 

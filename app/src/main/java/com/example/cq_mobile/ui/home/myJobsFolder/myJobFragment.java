@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.myJobsFolder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.HelperManagers.SharedPreffFolder.SharedPrefManager;
 import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.MainActivity;
@@ -39,12 +42,12 @@ public class myJobFragment  extends Fragment {
     private final int PAGE_SIZE = 15;
     TextView goback ;
     private static final String TAG = "myJobFragment";
-
+    private Activity activity;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_my_jobs_todo, container, false);
-
+        activity = getActivity();
         progressBar = view.findViewById(R.id.progressBar);
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -53,8 +56,13 @@ public class myJobFragment  extends Fragment {
         // Set up RecyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        todoAdapter = new TodoAdapter(getContext(), joblist);
-        recyclerView.setAdapter(todoAdapter);
+        if (activity != null) {
+            todoAdapter = new TodoAdapter( activity, joblist);
+            recyclerView.setAdapter(todoAdapter);
+        } else {
+            Log.e(TAG, "Activity is null, cannot set up adapter");
+        }
+
 
         SharedPrefManager sharedPrefManager = new SharedPrefManager(getContext());
         String accessToken = AuthManager.getInstance(getContext()).getToken();

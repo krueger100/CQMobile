@@ -1,5 +1,6 @@
 package com.example.cq_mobile.ui.home.HomeFolder.API_todo;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cq_mobile.HelperManagers.Animation.TransitionAnimationManager;
 import com.example.cq_mobile.HelperManagers.CategoryColorManager;
+import com.example.cq_mobile.HelperManagers.CustomBottomNavFolder.ClockOutVisibilityHandler;
 import com.example.cq_mobile.R;
 import com.example.cq_mobile.ui.home.HomeFolder.JobsFolder.NewBuild;
 
@@ -25,12 +27,12 @@ import java.util.List;
 public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int VIEW_TYPE_EMPTY = 0;
     private static final int VIEW_TYPE_ITEM = 1;
-    private Context context;
     private List<Todo> todoList;
+    private Activity activity;
 
-    public TodoAdapter(Context context, List<Todo> todoList) {
-        this.context = context;
+    public TodoAdapter( Activity activity, List<Todo> todoList) {
         this.todoList = todoList;
+        this.activity = activity;
     }
 
     @Override
@@ -45,10 +47,10 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_EMPTY) {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_empty_state, parent, false);
+            View view = LayoutInflater.from(activity).inflate(R.layout.item_empty_state, parent, false);
             return new EmptyViewHolder(view);
         } else {
-            View view = LayoutInflater.from(context).inflate(R.layout.item_todo, parent, false);
+            View view = LayoutInflater.from(activity).inflate(R.layout.item_todo, parent, false);
             return new TodoViewHolder(view);
         }
     }
@@ -66,12 +68,12 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             String categories = todo.getCategory() != null ? todo.getCategory().trim() : "No Category";
             String categoriesColors = String.valueOf(todo.getCategory_color()).trim();
 
-
-            Drawable categoryBackground = CategoryColorManager.getCategoryBackground(context, categoriesColors);
+            // Set category color background
+            Drawable categoryBackground = CategoryColorManager.getCategoryBackground(activity, categoriesColors);
 
             if (id != null) {
                 Log.d("User ID ->", "Received Todo ID's: " + id);
-                Log.d("User ID ->", "Received Todo jobID's: " +jobid );
+                Log.d("User ID ->", "Received Todo jobID's: " + jobid);
                 Log.d("Category ->", "Category: " + categories + " | Color: " + categoriesColors);
 
                 todoHolder.category.setText(categories);
@@ -83,50 +85,36 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         todoHolder.category.setBackground(categoryBackground);
                     } catch (IllegalArgumentException e) {
                         Log.e("Todo", "Invalid category color format: " + categoriesColors, e);
-                        todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
+                        todoHolder.category.setTextColor(ContextCompat.getColor(activity, R.color.textBtnGrey));
                     }
                 } else {
                     Log.w("Todo", "Category color is null, empty, or invalid. Setting default color.");
-                    todoHolder.category.setTextColor(ContextCompat.getColor(context, R.color.textBtnGrey));
+                    todoHolder.category.setTextColor(ContextCompat.getColor(activity, R.color.textBtnGrey));
                 }
             }
 
-
-            todoHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TransitionAnimationManager.zoomOut(v, 150);
-                    v.postDelayed(() -> {
-                        v.postDelayed(() -> {
-                            TransitionAnimationManager.zoomIn(v, 50);
-                        todoHolder.progressBar.setVisibility(View.VISIBLE);
-                        Intent intent = new Intent(context, NewBuild.class);
-                        intent.putExtra("job_id", id);
-                            intent.putExtra("task_id", jobid);
-                        try {
-                            context.startActivity(intent);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            todoHolder.progressBar.setVisibility(View.GONE);
-                        }
-                        }, 150);
-
-                    }, 150);
-
-                }
+            // Set click listener for the item
+            todoHolder.itemView.setOnClickListener(v -> {
+                TransitionAnimationManager.zoomOut(v, 150);
+                v.postDelayed(() -> {
+                    TransitionAnimationManager.zoomIn(v, 50);
+                    todoHolder.progressBar.setVisibility(View.VISIBLE);
+                    Intent intent = new Intent(activity, NewBuild.class);
+                    intent.putExtra("job_id", id);
+                    intent.putExtra("task_id", jobid);
+                    try {
+                        activity.startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        todoHolder.progressBar.setVisibility(View.GONE);
+                    }
+                }, 150);
             });
-
-
-
-
         } else if (holder instanceof EmptyViewHolder) {
             // Optional: Handle empty view logic
-           ((EmptyViewHolder) holder).empty_state_text.setText("");
+            ((EmptyViewHolder) holder).empty_state_text.setText("");
         }
-
-
-
     }
 
     @Override
@@ -149,6 +137,7 @@ public class TodoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static class EmptyViewHolder extends RecyclerView.ViewHolder {
         TextView empty_state_text;
+
         public EmptyViewHolder(View itemView) {
             super(itemView);
             empty_state_text = itemView.findViewById(R.id.empty_state_text);

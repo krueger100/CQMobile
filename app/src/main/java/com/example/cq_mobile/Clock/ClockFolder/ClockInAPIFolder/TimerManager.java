@@ -52,6 +52,15 @@ public class TimerManager {
         }
     }
 
+    public void resetTimerBeforeStart() {
+        // Reset the timer variables
+        running = false;
+        seconds = 0;
+        startTimeMillis = 0;
+        handler.removeCallbacks(runnable);
+
+        Log.d(TAG, "Timer reset.");
+    }
 
 
     public void stopTimer(Context context) {

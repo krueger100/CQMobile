@@ -7,6 +7,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -18,8 +19,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import retrofit2.Call;
-import retrofit2.Callback;
-public class ReplyTicketApiManager {
+import retrofit2.Callback;public class ReplyTicketApiManager {
 
     private static final String TAG = "ReplyTicketApiManager";
 
@@ -29,9 +29,9 @@ public class ReplyTicketApiManager {
         void onFailure(String error);
     }
 
-    public static void replyToTicket(Context context, String email, String password, String ticketId, String replyBody, ApiCallback callback) {
+    public static void replyToTicket(Context context, String ticketId, String replyBody, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiReplyTicketTask(context,email,password,ticketId, replyBody, callback));
+        executorService.execute(new ApiReplyTicketTask(context, ticketId, replyBody, callback));
     }
 
     private static class ApiReplyTicketTask implements Runnable {
@@ -39,13 +39,9 @@ public class ReplyTicketApiManager {
         private final String ticketId;
         private final String replyBody;
         private final ApiCallback callback;
-        String email;
-        String password;
         Context context;
 
-        public ApiReplyTicketTask(Context context, String email, String password, String ticketId, String replyBody, ApiCallback callback) {
-            this.email = email;
-            this.password = password;
+        public ApiReplyTicketTask(Context context, String ticketId, String replyBody, ApiCallback callback) {
             this.ticketId = ticketId;
             this.replyBody = replyBody;
             this.context = context;
@@ -54,40 +50,18 @@ public class ReplyTicketApiManager {
 
         @Override
         public void run() {
-            String baseUrl =  "https://cqbms.app";//"https://aws.customquoter.co.uk";
+            String baseUrl = "https://cqbms.app";
             String endpoint = String.format("/api/m/tickets/%s/reply", ticketId);
-            String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";  // Make sure this is correct
+            String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
 
-            // Create JSON body for reply
             String jsonBody = String.format("{\"body\": \"%s\", \"ticket_id\": %s, \"ticket_message_id\": [6358, 5675, 5678, 5819]}", replyBody, ticketId);
-
-
-            // Start a new thread to get the access token
-            AccessTokenRequest request1 = new AccessTokenRequest(context,email, password);
-            AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-            Call<AccessTokenResponse> call = apiService.AccessTokenUser(request1);
-
-            call.enqueue(new Callback<AccessTokenResponse>() {
-                @Override
-                public void onResponse(Call<AccessTokenResponse> call, retrofit2.Response<AccessTokenResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String accessToken = response.body().getAccessToken();
-                        Log.d(TAG, "Access Token: " + accessToken);
-
-                        // Make the reply request using the access token
-                        postReplyToTicket(baseUrl, endpoint, accessToken, apiKey, jsonBody);
-                    } else {
-                        Log.e(TAG, "Failed to get access token: " + response.message());
-                        callback.onFailure("Failed to get access token: " + response.message());
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                    Log.e(TAG, "Failed to get access token: " + t.getMessage());
-                    callback.onFailure("Failed to get access token: " + t.getMessage());
-                }
-            });
+            String accessToken = AuthManager.getInstance(context).getToken();
+            if (accessToken != null && !AuthManager.getInstance(context).isTokenExpired()) {
+                postReplyToTicket(baseUrl, endpoint, accessToken, apiKey, jsonBody);
+            } else {
+                Log.e(TAG, "Access token is missing or expired.");
+                callback.onFailure("Access token is missing or expired. Please log in again.");
+            }
         }
 
         private void postReplyToTicket(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
@@ -107,8 +81,6 @@ public class ReplyTicketApiManager {
                     .post(body)
                     .build();
 
-            // Use enqueue for async call instead of execute
-            // Make sure you're using Retrofit's Callback properly with the response type.
             client.newCall(request).enqueue(new okhttp3.Callback() {  // Use OkHttp's Callback
                 @Override
                 public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
@@ -137,10 +109,10 @@ public class ReplyTicketApiManager {
                     callback.onFailure("Error sending reply: " + e.getMessage());
                 }
             });
-
         }
     }
 }
+
 
 /*
 

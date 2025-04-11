@@ -9,6 +9,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.util.List;
 import retrofit2.Call;
@@ -16,62 +17,32 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
 public class TicketManager {
-    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";  // Base URL
-    private String accessToken;  // Store the access token
+    private final String baseUrl = "https://cqbms.app"; // Base URL
     private final Context context;
-    Call<AccessTokenResponse> call;
-    Call<TicketAPIResponse> call2 ;
+    private Call<TicketAPIResponse> call2;  // Store the current API call
+
     public TicketManager(Context context) {
         this.context = context;
     }
 
-    // Method to get the access token and notify the caller via a callback
-    public void getAccessToken(AccessTokenRequest request, final AccessTokenCallback callback) {
-        // Create an instance of the API service
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-
-        // Call the API
-       call = apiService.AccessTokenUser(request);
-
-        // Enqueue the call to execute asynchronously
-        call.enqueue(new Callback<AccessTokenResponse>() {
-            @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    AccessTokenResponse accessTokenResponse = response.body();
-                    accessToken = accessTokenResponse.getAccessToken();
-
-                    // Check if the access token was fetched successfully
-                    if (accessToken != null) {
-                        Log.d("TicketManager", "Access Token: " + accessToken);
-                        callback.onAccessTokenReceived(accessToken);
-                    } else {
-                        callback.onError("Access token not received.");
-                    }
-                } else {
-                    callback.onError("Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                // Log the failure (e.g., network error)
-                callback.onError("Failure: " + t.getMessage());
-            }
-        });
-    }
-
-    // Method to load tickets using the access token
     public void loadTickets(int page, int pageSize, final AllTicketsCallback callback) {
+        AuthManager authManager = AuthManager.getInstance(context);
+
+        // Check if the user is logged in and if the token is valid
+        if (!authManager.isLoggedIn() || authManager.isTokenExpired()) {
+            callback.onError("Access token is missing or expired.");
+            return;
+        }
+
+        String accessToken = authManager.getToken();
         if (accessToken == null) {
             callback.onError("Access token is missing.");
             return;
         }
 
-        // Construct the proper URL with the provided parameters
-        String url = baseUrl + "api/m/tickets/categories?page=" + page + "&per_page=" + pageSize;
+        // Construct the URL for the API request
+        String url = baseUrl + "/api/m/tickets/categories?page=" + page + "&per_page=" + pageSize;
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
@@ -80,64 +51,50 @@ public class TicketManager {
 
         TicketApi ticketApi = retrofit.create(TicketApi.class);
 
-        // Making the API call with additional parameters
-       call2 = ticketApi.getTickets(page, pageSize, accessToken, "Bearer " + accessToken);
+        // Making the API call with the Bearer token
+        call2 = ticketApi.getTickets(page, pageSize, accessToken, "Bearer " + accessToken);
 
+        // Execute the request asynchronously
         call2.enqueue(new Callback<TicketAPIResponse>() {
             @Override
-            public void onResponse(Call<TicketAPIResponse> call2, Response<TicketAPIResponse> response) {
+            public void onResponse(Call<TicketAPIResponse> call, Response<TicketAPIResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-
                     callback.onAllTicketsLoaded(response.body().getData());
                 } else {
-                    // Handle the error
+                    // Handle the error (e.g., response not successful)
                     String errorMessage = response.message() != null ? response.message() : "Unknown error";
                     callback.onError(errorMessage);
                 }
             }
 
             @Override
-            public void onFailure(Call<TicketAPIResponse> call2, Throwable t) {
-                // Handle the failure
+            public void onFailure(Call<TicketAPIResponse> call, Throwable t) {
+                // Handle the failure (e.g., network error)
                 callback.onError(t.getMessage());
             }
         });
     }
 
-    public void cancelAccessTokenCall() {
-        if (call != null && !call.isCanceled()) {
-            call.cancel();
-        }
-    }
-
-    /**
-     * Cancels the ticket loading API call.
-     */
+    // Cancel the ongoing ticket loading call
     public void cancelTicketLoadingCall() {
         if (call2 != null && !call2.isCanceled()) {
             call2.cancel();
         }
     }
 
-    /**
-     * Cancels both API calls if they are in progress.
-     */
+    // Cancel all ongoing API calls
     public void cancelAllCalls() {
-        cancelAccessTokenCall();
         cancelTicketLoadingCall();
     }
 
-    // Callback interfaces
-    public interface AccessTokenCallback {
-        void onAccessTokenReceived(String accessToken);
-        void onError(String errorMessage);
-    }
-
+    // Callback interface for loading all tickets
     public interface AllTicketsCallback {
         void onAllTicketsLoaded(List<TicketAPIItem> tickets);
         void onError(String errorMessage);
     }
 }
+
+
 /*
 curl -X GET "https://aws.customquoter.co.uk/api/m/tickets/117" \
 -H "Authorization: Bearer 5623|qi1c6mlU56torLCTinGwoaeyqqm9Ocxn0nTZX63W" \

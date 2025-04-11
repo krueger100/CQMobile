@@ -7,6 +7,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -19,7 +20,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
-
 public class UpdateNoteApiManager {
 
     private static final String TAG = "UpdateNoteApiManager";
@@ -29,21 +29,18 @@ public class UpdateNoteApiManager {
         void onFailure(String error);
     }
 
-    public static void updateNote(Context context, String email, String password, String scheduleId, String note, ApiCallback callback) {
+    public static void updateNote(Context context, String scheduleId, String note, ApiCallback callback) {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(new ApiUpdateNoteTask(context,email, password, scheduleId, note, callback));
+        executorService.execute(new ApiUpdateNoteTask(context, scheduleId, note, callback));
     }
 
     private static class ApiUpdateNoteTask implements Runnable {
         private final String scheduleId;
         private final String note;
         private final ApiCallback callback;
-        private final String email;
-        private final String password;
         Context context;
-        public ApiUpdateNoteTask(Context context, String email, String password, String scheduleId, String note, ApiCallback callback) {
-            this.email = email;
-            this.password = password;
+
+        public ApiUpdateNoteTask(Context context, String scheduleId, String note, ApiCallback callback) {
             this.scheduleId = scheduleId;
             this.note = note;
             this.context = context;
@@ -52,34 +49,20 @@ public class UpdateNoteApiManager {
 
         @Override
         public void run() {
-            String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk";
+            String baseUrl = "https://cqbms.app"; // or another base URL
             String endpoint = String.format("/api/m/jobs/schedules/%s/notes", scheduleId);
             String apiKey = "BLSNDC1Blc29jhd4jJ898FPrIS1s6YE2";
-
+            String accessToken = AuthManager.getInstance(context).getToken(); // Retrieve token from AuthManager
             String jsonBody = String.format("{\"note\": \"%s\"}", note);
-            AccessTokenRequest request1 = new AccessTokenRequest(context,email, password);
-            AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-            Call<AccessTokenResponse> call = apiService.AccessTokenUser(request1);
 
-            call.enqueue(new Callback<AccessTokenResponse>() {
-                @Override
-                public void onResponse(Call<AccessTokenResponse> call, retrofit2.Response<AccessTokenResponse> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String accessToken = response.body().getAccessToken();
-                        Log.d(TAG, "Access Token: " + accessToken);
-                        postUpdateNote(baseUrl, endpoint, accessToken, apiKey, jsonBody);
-                    } else {
-                        Log.e(TAG, "Failed to get access token: " + response.message());
-                        callback.onFailure("Failed to get access token: " + response.message());
-                    }
-                }
+            if (accessToken == null || accessToken.isEmpty()) {
+                Log.e(TAG, "Access token is null or empty.");
+                callback.onFailure("Access token is null or empty.");
+                return;
+            }
 
-                @Override
-                public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                    Log.e(TAG, "Failed to get access token: " + t.getMessage());
-                    callback.onFailure("Failed to get access token: " + t.getMessage());
-                }
-            });
+            // Proceed with updating the note using the retrieved token
+            postUpdateNote(baseUrl, endpoint, accessToken, apiKey, jsonBody);
         }
 
         private void postUpdateNote(String baseUrl, String endpoint, String accessToken, String apiKey, String jsonBody) {
@@ -88,7 +71,8 @@ public class UpdateNoteApiManager {
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+            // Update the way RequestBody is created
+            RequestBody body = RequestBody.create(MediaType.get("application/json"), jsonBody);
 
             Request request = new Request.Builder()
                     .url(baseUrl + endpoint)

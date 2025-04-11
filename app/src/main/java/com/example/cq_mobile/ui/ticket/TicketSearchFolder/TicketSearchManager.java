@@ -7,6 +7,7 @@ import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenApiService
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenRequest;
 import com.example.cq_mobile.HelperManagers.getAccessToken.AccessTokenResponse;
 import com.example.cq_mobile.HelperManagers.getAccessToken.RetrofitClientAccessToken;
+import com.example.cq_mobile.LoginFolder.AuthManager;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIItem;
 import com.example.cq_mobile.ui.ticket.TicketsFolder.TicketAPIResponse;
 import com.google.gson.Gson;
@@ -18,55 +19,24 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
 public class TicketSearchManager {
-    private final String baseUrl = "https://cqbms.app";//"https://aws.customquoter.co.uk/";  // Base URL
+    private final String baseUrl = "https://cqbms.app";
     private String accessToken;
     private final Context context;
-    private Call<AccessTokenResponse> accessTokenCall;
-    Call<TicketAPIResponse> call2 ;
+    private Call<TicketSearchAPIResponse> call;
 
     public TicketSearchManager(Context context) {
         this.context = context;
     }
 
-    public void getAccessToken(String email, String password, final AccessTokenCallback callback) {
-        AccessTokenApiService apiService = RetrofitClientAccessToken.getRetrofitInstance().create(AccessTokenApiService.class);
-
-        AccessTokenRequest request = new AccessTokenRequest(context,email, password);
-        accessTokenCall = apiService.AccessTokenUser(request);
-        accessTokenCall.enqueue(new Callback<AccessTokenResponse>() {
-            @Override
-            public void onResponse(Call<AccessTokenResponse> call, Response<AccessTokenResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    AccessTokenResponse accessTokenResponse = response.body();
-                    accessToken = accessTokenResponse.getAccessToken();
-                    if (accessToken != null) {
-                        Log.d("TicketSearchManager", "Access Token: " + accessToken);
-                        callback.onAccessTokenReceived(accessToken);
-                    } else {
-                        callback.onError("Access token not received.");
-                    }
-                } else {
-                    callback.onError("Error: " + response.message());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<AccessTokenResponse> call, Throwable t) {
-                callback.onError("Failure: " + t.getMessage());
-            }
-        });
-    }
-
-    // Method to load tickets using the access token
-
     public void loadSearchTickets(int page, int pageSize, String search, int categoryId, final SearchTicketsCallback callback) {
+        accessToken = AuthManager.getInstance(context).getToken();
         if (accessToken == null) {
             Log.e("TicketSearchManager", "Access token is missing.");
             callback.onError("Access token is missing.");
             return;
         }
+
         String url = baseUrl + "api/m/tickets/";
 
         Log.d("TicketSearchManager", "API URL: " + url);
@@ -79,8 +49,7 @@ public class TicketSearchManager {
 
         TicketSearchApi ticketApi = retrofit.create(TicketSearchApi.class);
 
-        // Making the API call with additional parameters
-        Call<TicketSearchAPIResponse> call = ticketApi.getSearchTickets(
+        call = ticketApi.getSearchTickets(
                 page,
                 pageSize,
                 search,
@@ -111,6 +80,7 @@ public class TicketSearchManager {
     }
 
 
+
     // Callback interfaces
     public interface AccessTokenCallback {
         void onAccessTokenReceived(String accessToken);
@@ -122,5 +92,3 @@ public class TicketSearchManager {
         void onError(String errorMessage);
     }
 }
-
-
